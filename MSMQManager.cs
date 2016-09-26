@@ -1,6 +1,5 @@
 using System;
 using System.Configuration;
-using System.EnterpriseServices;
 using System.Messaging;
 using Microsoft.ApplicationBlocks.ExceptionManagement;
 using StarChef.Data;
@@ -257,6 +256,7 @@ namespace StarChef.MSMQService
 		private string _dbDSN = string.Empty;
         private DateTime _arrived_time = DateTime.MinValue;
         private int _database_id = 0;
+        private int _entityTypeId = 0;
 
 		public UpdateMessage()
 		{
@@ -279,8 +279,12 @@ namespace StarChef.MSMQService
 			_message_type = action;
             _database_id = databaseId;
 		}
+        public UpdateMessage(int productId, int groupId, string dbDSN, int action, int databaseId, int entityTypeId) : this(productId,groupId,dbDSN,action,databaseId)
+        {
+            _entityTypeId = entityTypeId;
+        }
 
-		public int SubAction
+        public int SubAction
 		{
 			get {return _sub_message_type;}
 			set {_sub_message_type = value;}
@@ -322,9 +326,15 @@ namespace StarChef.MSMQService
             set { _database_id = value; }
         }
 
-		public override string ToString()
+        public int EntityTypeID
+        {
+            get { return _entityTypeId; }
+            set { _entityTypeId = value; }
+        }
+
+        public override string ToString()
 		{
-            return "database_id: " + _database_id.ToString() + ", product_id: " + _product_id.ToString() + ", group_id: " + _group_id.ToString() + ", action: " + ((Constants.MessageActionType)_message_type).ToString() + ", sub action: " + _sub_message_type.ToString(); 
+            return "database_id: " + _database_id.ToString() + ", product_id: " + _product_id.ToString() + ", group_id: " + _group_id.ToString() + ", action: " + ((Constants.MessageActionType)_message_type).ToString() + ", sub action: " + _sub_message_type.ToString() + ", entityTypeId: " + _entityTypeId.ToString(); 
 		}
 	}
 

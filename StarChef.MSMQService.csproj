@@ -105,13 +105,77 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac, Version=4.1.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>packages\Autofac.4.1.0\lib\net45\Autofac.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Fourth.Orchestration, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Fourth.Orchestration.1.1.40\lib\net45\Fourth.Orchestration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Fourth.Orchestration.1.1.40\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Fourth.Orchestration.1.1.40\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Fourth.Orchestration.Model, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Fourth.Orchestration.Model.1.1.40\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Fourth.Orchestration.1.1.40\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Google.ProtocolBuffers, Version=2.4.1.555, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
+      <HintPath>packages\Google.ProtocolBuffers.2.4.1.555\lib\net40\Google.ProtocolBuffers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Google.ProtocolBuffers.Serialization, Version=2.4.1.555, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
+      <HintPath>packages\Google.ProtocolBuffers.2.4.1.555\lib\net40\Google.ProtocolBuffers.Serialization.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.ApplicationBlocks.ExceptionManagement">
       <Name>Microsoft.ApplicationBlocks.ExceptionManagement</Name>
       <HintPath>ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces">
-      <Name>Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces</Name>
-      <HintPath>ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces.dll</HintPath>
+    <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Data.OData.5.6.4\lib\net40\Microsoft.Data.OData.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\WindowsAzure.ServiceBus.3.1.4\lib\net45-full\Microsoft.ServiceBus.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.WindowsAzure.ConfigurationManager.3.2.1\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=6.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\WindowsAzure.Storage.6.2.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="StarChef.Data">
       <HintPath>ThirdPartyReferences\StarChef.Data.dll</HintPath>
@@ -119,7 +183,6 @@
     <Reference Include="System">
       <Name>System</Name>
     </Reference>
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Configuration.Install">
       <Name>System.Configuration.Install</Name>
     </Reference>
@@ -129,14 +192,15 @@
     <Reference Include="System.Data">
       <Name>System.Data</Name>
     </Reference>
-    <Reference Include="System.EnterpriseServices">
-      <Name>System.EnterpriseServices</Name>
-    </Reference>
     <Reference Include="System.Messaging">
       <Name>System.Messaging</Name>
     </Reference>
     <Reference Include="System.ServiceProcess">
       <Name>System.ServiceProcess</Name>
+    </Reference>
+    <Reference Include="System.Spatial, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml">
       <Name>System.XML</Name>
@@ -147,12 +211,14 @@
     <None Include="installme.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
     <None Include="uninstallme.bat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ContainerConfig.cs" />
     <Compile Include="Listener.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -231,6 +297,16 @@
       <IncludeHash>False</IncludeHash>
       <FileType>ManifestEntryPoint</FileType>
     </PublishFile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StarChef.Orchestrate\StarChef.Orchestrate.csproj">
+      <Project>{89ef0b30-23af-4f8c-a073-7924d2b51167}</Project>
+      <Name>StarChef.Orchestrate</Name>
+    </ProjectReference>
+    <ProjectReference Include="StarChef.Common\StarChef.Common.csproj">
+      <Project>{6fd83544-9ea6-41b9-a29c-e9117aafef35}</Project>
+      <Name>StarChef.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
