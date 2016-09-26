@@ -366,7 +366,7 @@ namespace StarChef.MSMQService
             var entityId = 0;
             var arrivedTime = msg.ArrivedTime;
 
-            var entityTypeWrapper = EnumHelper.EntityTypeWrapper.Recipe;
+            EnumHelper.EntityTypeWrapper? entityTypeWrapper = null;
 
             switch (msg.EntityTypeID)
             {
@@ -397,12 +397,14 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+            if (entityTypeWrapper.HasValue && 
+                IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
             {
-                _messageSender.Send(entityTypeWrapper,
+                _messageSender.Send(entityTypeWrapper.Value,
                                     msg.DSN,
                                     entityTypeId,
                                     entityId,
+                                    msg.DatabaseID,
                                     arrivedTime,
                                     Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC);
             }

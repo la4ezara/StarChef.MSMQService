@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Common", "StarChef
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{A9BB2B79-5930-4EF8-8434-C6A1B748E5EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleListener", "..\SampleListener\SampleListener.csproj", "{2A642C4E-A481-44CA-A2CA-E15F79D61F0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleEventListener", "SampleEventListener\SampleEventListener.csproj", "{2A642C4E-A481-44CA-A2CA-E15F79D61F0A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
