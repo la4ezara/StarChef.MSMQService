@@ -299,13 +299,13 @@
     </PublishFile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\StarChef.Orchestrate\StarChef.Orchestrate.csproj">
-      <Project>{89ef0b30-23af-4f8c-a073-7924d2b51167}</Project>
-      <Name>StarChef.Orchestrate</Name>
-    </ProjectReference>
     <ProjectReference Include="StarChef.Common\StarChef.Common.csproj">
       <Project>{6fd83544-9ea6-41b9-a29c-e9117aafef35}</Project>
       <Name>StarChef.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="StarChef.Orchestrate\StarChef.Orchestrate.csproj">
+      <Project>{89EF0B30-23AF-4F8C-A073-7924D2B51167}</Project>
+      <Name>StarChef.Orchestrate</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
