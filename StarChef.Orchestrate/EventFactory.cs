@@ -1,7 +1,8 @@
 ﻿using System;
-using Fourth.Orchestration.Model.Recipes;
+using Fourth.Orchestration.Model.Menus;
 using EventModel = Fourth.Orchestration.Model;
 using CategoryModel = Fourth.Orchestration.Model.Recipes.Events.RecipeUpdated.Types.Category;
+using StarChef.Common.Models;
 
 namespace StarChef.Orchestrate
 {
@@ -12,15 +13,7 @@ namespace StarChef.Orchestrate
             var rand = new Random();
 
             // Create a builder for the event
-            var categoryBuilder = GetCategoryBuilder();
-
             var builder = Events.RecipeUpdated.CreateBuilder();
-            builder.SetId(Guid.NewGuid().ToString())
-                   .SetName(new string('N', rand.Next(10, 30)))
-                   .SetCreatedByFirstName(new string('F', rand.Next(10, 30)))
-                   .SetOrganisationId(new string('O', rand.Next(10, 30)))
-                   .SetSequenceNumber(rand.Next(1, int.MaxValue))
-                   .SetSourceSystem(Events.SourceSystem.STARCHEF);
 
             // Build the immutable data object
             var eventObj = builder.Build();
@@ -28,13 +21,31 @@ namespace StarChef.Orchestrate
             return eventObj;
         }
 
-        private static CategoryModel.Builder GetCategoryBuilder()
+        public static Events.MealPeriodUpdated CreateMealPeriodEvent(string dbConnectionString,
+            int entityId,
+            int databaseId)
         {
-            var categoryBuilder = CategoryModel.CreateBuilder();
 
-            categoryBuilder.SetName("CategoryName");
+            Customer cust = new Customer(databaseId);
+            MealPeriod mp = new MealPeriod(entityId, dbConnectionString);
 
-            return categoryBuilder;
+            var rand = new Random();
+
+            
+            var builder = Events.MealPeriodUpdated.CreateBuilder();
+
+            builder.SetCustomerId(cust.ExternalId)
+                .SetCustomerName(cust.Name)
+                .SetExternalId(mp.ExternalId)
+                .SetMealPeriodName(mp.Name)
+                .SetSource(Events.SourceSystem.STARCHEF)
+                .SetSequenceNumber(rand.Next(1, int.MaxValue));
+            
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+
         }
     }
 }

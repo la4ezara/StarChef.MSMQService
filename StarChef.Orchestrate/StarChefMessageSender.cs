@@ -22,6 +22,7 @@ namespace StarChef.Orchestrate
             IDatabaseManager databaseManager
             )
         {
+
             _messagingFactory = messagingFactory;
             _databaseManager = databaseManager;
         }
@@ -32,8 +33,7 @@ namespace StarChef.Orchestrate
             int entityTypeId,
             int entityId,
             int databaseId,
-            DateTime messageArrivedTime,
-            int sqlCommandTimeout
+            DateTime messageArrivedTime
             )
         {
             var result = false;
@@ -46,19 +46,22 @@ namespace StarChef.Orchestrate
                     switch(entityTypeWrapper)
                     {
                         case EnumHelper.EntityTypeWrapper.Recipe:
-                            var eventPayload = EventFactory.CreateRecipeEvent();
+                            var recipeEventPayload = EventFactory.CreateRecipeEvent();
+                            result = bus.Publish(recipeEventPayload);
+                            break;
+                        case EnumHelper.EntityTypeWrapper.MealPeriod:
+                            var mealPeriodEventPayload = EventFactory.CreateMealPeriodEvent(dbConnectionString, entityId, databaseId);
+                            result = bus.Publish(mealPeriodEventPayload);
+                            break;
 
-                            result = bus.Publish(eventPayload);
-
-                            LogDatabase(dbConnectionString,
+                    }
+                    
+                }
+                LogDatabase(dbConnectionString,
                                         entityTypeId,
                                         entityId,
-                                        sqlCommandTimeout,
                                         messageArrivedTime,
                                         result);
-                            break;
-                    }
-                }
             }
             catch(Exception ex)
             {
@@ -71,7 +74,6 @@ namespace StarChef.Orchestrate
             string connectionString,
             int entityTypeId,
             int entityId,
-            int timeout,
             DateTime msgDateTime,
             bool publishStatus
         )
@@ -80,7 +82,6 @@ namespace StarChef.Orchestrate
 
             _databaseManager.Execute(connectionString,
                                     "sc_insert_orchestration_event_log",
-                                    timeout,
                                     new SqlParameter("@entity_type_id", entityTypeId),
                                     new SqlParameter("@entity_id", entityId),
                                     new SqlParameter("@publish_status", publishStatus ? 1 : 0),

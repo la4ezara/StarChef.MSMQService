@@ -11,7 +11,6 @@ namespace StarChef.Orchestrate
             int entityTypeId,
             int entityId,
             int databaseId,
-            DateTime messageArrivedTime,
-            int sqlCommandTimeout);
+            DateTime messageArrivedTime);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System.Data;
+using System.Data.SqlClient;
 
 namespace StarChef.Common
 {
@@ -7,7 +8,12 @@ namespace StarChef.Common
         int Execute(
                 string connectionString,
                 string spName,
-                int sqlCommandTimeout = 600,
                 params SqlParameter[] parameterValues);
+
+        IDataReader ExecuteReader(
+           string connectionString,
+           string spName,
+           params SqlParameter[] parameterValues
+           );
     }
 }

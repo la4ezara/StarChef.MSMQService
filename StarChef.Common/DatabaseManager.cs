@@ -8,7 +8,6 @@ namespace StarChef.Common
         public int Execute(
             string connectionString, 
             string spName, 
-            int sqlCommandTimeout = 600, 
             params SqlParameter[] parameterValues
             )
         {
@@ -23,8 +22,7 @@ namespace StarChef.Common
                 // of these procs may take several minutes to complete
                 var cmd = new SqlCommand(spName, cn)
                 {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = sqlCommandTimeout
+                    CommandType = CommandType.StoredProcedure
                 };
 
                 // add params
@@ -38,5 +36,37 @@ namespace StarChef.Common
 
             return retval;
         }
+
+        public IDataReader ExecuteReader(
+           string connectionString,
+           string spName,
+           params SqlParameter[] parameterValues
+           )
+        {
+            //create & open a SqlConnection, and dispose of it after we are done.
+            using (var cn = new SqlConnection(connectionString))
+            {
+                cn.Open();
+
+                // need a command with sensible timeout value (10 minutes), as some 
+                // of these procs may take several minutes to complete
+                var cmd = new SqlCommand(spName, cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                // add params
+                if (parameterValues != null)
+                    foreach (var param in parameterValues)
+                        cmd.Parameters.Add(param);
+
+                // run proc
+                var reader = cmd.ExecuteReader();
+                var dt = new DataTable();
+                dt.Load(reader);
+                return dt.CreateDataReader();
+            }
+        }
+
     }
 }

@@ -184,11 +184,11 @@ namespace StarChef.MSMQService
             {
                 MailMessage mail = new MailMessage
                 {
-                    From = new MailAddress(ConfigurationSettings.AppSettings["FromAddress"].ToString(), ConfigurationSettings.AppSettings["Alias"].ToString())
+                    From = new MailAddress(ConfigurationManager.AppSettings["FromAddress"].ToString(), ConfigurationManager.AppSettings["Alias"].ToString())
                 };
-                mail.To.Add(ConfigurationSettings.AppSettings["ToAddress"].ToString());
+                mail.To.Add(ConfigurationManager.AppSettings["ToAddress"].ToString());
                 mail.IsBodyHtml = true;
-                mail.Subject = ConfigurationSettings.AppSettings["Subject"].ToString();
+                mail.Subject = ConfigurationManager.AppSettings["Subject"].ToString();
                 mail.Body = message.ToString();
                 mail.Priority = MailPriority.High;
                 SmtpClient smtp = new SmtpClient();
@@ -368,7 +368,7 @@ namespace StarChef.MSMQService
 
             EnumHelper.EntityTypeWrapper? entityTypeWrapper = null;
 
-            switch (msg.EntityTypeID)
+            switch (msg.EntityTypeId)
             {
                 case (int) Constants.EntityType.User:
                     entityTypeId = (int) Constants.EntityType.User;
@@ -405,14 +405,13 @@ namespace StarChef.MSMQService
                                     entityTypeId,
                                     entityId,
                                     msg.DatabaseID,
-                                    arrivedTime,
-                                    Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC);
+                                    arrivedTime);
             }
         }
 
         private bool IsPublishEnabled(int entityTypeId, string connectionString, string spName)
         {
-            bool isEnabled;
+            bool isEnabled=false;
 
             //create & open a SqlConnection, and dispose of it after we are done.
             using (var cn = new SqlConnection(connectionString))
@@ -427,14 +426,11 @@ namespace StarChef.MSMQService
                     CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
                 };
                 cmd.Parameters.Add(new SqlParameter("@entity_type_id", entityTypeId));
-                cmd.Parameters.Add(new SqlParameter("@can_publish", SqlDbType.Bit)
+                var rdr = cmd.ExecuteReader();
+                if (rdr.Read())
                 {
-                    Direction = ParameterDirection.Output
-                });
-
-                cmd.ExecuteNonQuery();
-
-                isEnabled = Convert.ToBoolean(cmd.Parameters["@can_publish"].Value);
+                    if (!rdr.IsDBNull(0)) isEnabled = rdr.GetBoolean(0);
+                }
             }
             return isEnabled;
         }

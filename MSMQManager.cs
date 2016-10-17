@@ -326,7 +326,7 @@ namespace StarChef.MSMQService
             set { _database_id = value; }
         }
 
-        public int EntityTypeID
+        public int EntityTypeId
         {
             get { return _entityTypeId; }
             set { _entityTypeId = value; }
