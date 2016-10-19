@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SampleEventListener")]
+[assembly: AssemblyTitle("StarChef.Listener")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SampleEventListener")]
+[assembly: AssemblyProduct("StarChef.Listener")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("2a642c4e-a481-44ca-a2ca-e15f79d61f0a")]
+[assembly: Guid("0d8b1de7-8b3c-4d46-9615-114f360675cf")]
 
 // Version information for an assembly consists of the following four values:
 //

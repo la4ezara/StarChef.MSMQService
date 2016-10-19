@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Common", "StarChef
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Orchestrate", "StarChef.Orchestrate\StarChef.Orchestrate.csproj", "{89EF0B30-23AF-4F8C-A073-7924D2B51167}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StarChef.Listener", "StarChef.Listener", "{89F2975A-15E7-41B6-A67B-AD5E73EC4F79}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Listener", "StarChef.Listener\StarChef.Listener.csproj", "{0D8B1DE7-8B3C-4D46-9615-114F360675CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +31,15 @@ Global
 		{89EF0B30-23AF-4F8C-A073-7924D2B51167}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89EF0B30-23AF-4F8C-A073-7924D2B51167}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89EF0B30-23AF-4F8C-A073-7924D2B51167}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF} = {89F2975A-15E7-41B6-A67B-AD5E73EC4F79}
 	EndGlobalSection
 EndGlobal
