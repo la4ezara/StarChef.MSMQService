@@ -9,11 +9,15 @@ set serviceName="StarchefMessageListner"
 set servicePath=%1
 set installUtilPath="C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\installutil"
 
-for /F "tokens=3 delims=: " %%H in ('sc query %serviceName%^| findstr "STATE"') do (
-  if /I "%%H" EQU "RUNNING" (
-	echo Service "%serviceName%" found - try to stop service.
-	net stop %serviceName%
-  )
+if EXIST servicePath( 
+	for /F "tokens=3 delims=: " %%H in ('sc query %serviceName%^| findstr "STATE"') do (
+	  if /I "%%H" EQU "RUNNING" (
+		echo Service "%serviceName%" found - try to stop service.
+		net stop %serviceName%
+	  )
   
-  %installUtilPath% /serviceName=%serviceName% /u %servicePath%
+	  %installUtilPath% /serviceName=%serviceName% /u %servicePath%
+	)
+) ELSE (
+	echo "Service path not exist."
 )
