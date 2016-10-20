@@ -85,51 +85,53 @@ namespace StarChef.Listener
         public void LoadServiceProperties()
         {
             var configFile = GetInstallationTarget() + "WindowsServiceCredentials.config";
-            
-            using (var reader = XmlReader.Create(configFile))
+            if (System.IO.File.Exists(configFile))
             {
-                while (reader.Read())
+                using (var reader = XmlReader.Create(configFile))
                 {
-                    if (!reader.IsStartElement())
-                        continue;
-
-                    switch (reader.Name)
+                    while (reader.Read())
                     {
-                        case "UserName":
-                            if (reader.Read()) UserName = reader.Value;
-                            break;
-                        case "Password":
-                            if (reader.Read()) Password = reader.Value;
-                            break;
-                        case "StartServiceIfServerNameEndsWith":
-                            if (reader.Read()) StartServiceIfServerNameEndsWith = reader.Value;
-                            break;
-                        case "ServiceAccount":
-                            if (reader.Read())
-                            {
-                                switch (reader.Value)
+                        if (!reader.IsStartElement())
+                            continue;
+
+                        switch (reader.Name)
+                        {
+                            case "UserName":
+                                if (reader.Read()) UserName = reader.Value;
+                                break;
+                            case "Password":
+                                if (reader.Read()) Password = reader.Value;
+                                break;
+                            case "StartServiceIfServerNameEndsWith":
+                                if (reader.Read()) StartServiceIfServerNameEndsWith = reader.Value;
+                                break;
+                            case "ServiceAccount":
+                                if (reader.Read())
                                 {
-                                    case "LocalService":
-                                        ServiceAccount = ServiceAccount.LocalService;
-                                        break;
-                                    case "NetworkService":
-                                        ServiceAccount = ServiceAccount.NetworkService;
-                                        break;
-                                    case "LocalSystem":
-                                        ServiceAccount = ServiceAccount.LocalSystem;
-                                        break;
-                                    case "User":
-                                        ServiceAccount = ServiceAccount.User;
-                                        break;
+                                    switch (reader.Value)
+                                    {
+                                        case "LocalService":
+                                            ServiceAccount = ServiceAccount.LocalService;
+                                            break;
+                                        case "NetworkService":
+                                            ServiceAccount = ServiceAccount.NetworkService;
+                                            break;
+                                        case "LocalSystem":
+                                            ServiceAccount = ServiceAccount.LocalSystem;
+                                            break;
+                                        case "User":
+                                            ServiceAccount = ServiceAccount.User;
+                                            break;
+                                    }
                                 }
-                            }
-                            break;
-                        case "ServiceName":
-                            if (reader.Read()) ServiceName = reader.Value;
-                            break;
-                        case "DisplayName":
-                            if (reader.Read()) DisplayName = reader.Value;
-                            break;
+                                break;
+                            case "ServiceName":
+                                if (reader.Read()) ServiceName = reader.Value;
+                                break;
+                            case "DisplayName":
+                                if (reader.Read()) DisplayName = reader.Value;
+                                break;
+                        }
                     }
                 }
             }

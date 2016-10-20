@@ -1,8 +1,7 @@
 @echo off
 echo.
 echo Be sure to run this command as Administrator
-echo First argument should be service name.
-echo Second argument should be service location.
+echo First argument should be service location.
 echo.
 
 set serviceName="StarchefMessageListner"
