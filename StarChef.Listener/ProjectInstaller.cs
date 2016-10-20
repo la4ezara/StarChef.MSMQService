@@ -26,13 +26,14 @@ namespace StarChef.Listener
         {
             get
             {
-                var machineName = Environment.MachineName;
-                var startService = false;
-                if (!string.IsNullOrEmpty(machineName))
-                    machineName = machineName.Trim();
-                if (!string.IsNullOrEmpty(machineName) && !string.IsNullOrEmpty(StartServiceIfServerNameEndsWith))
-                    startService = machineName.EndsWith(StartServiceIfServerNameEndsWith);
-                return startService;
+                //var machineName = Environment.MachineName;
+                //var startService = false;
+                //if (!string.IsNullOrEmpty(machineName))
+                //    machineName = machineName.Trim();
+                //if (!string.IsNullOrEmpty(machineName) && !string.IsNullOrEmpty(StartServiceIfServerNameEndsWith))
+                //    startService = machineName.EndsWith(StartServiceIfServerNameEndsWith);
+                //return startService;
+                return true;
             }
         }
 
@@ -55,14 +56,14 @@ namespace StarChef.Listener
                         continue;
 
                     var serviceInstaller = installer1;
-                    serviceInstaller.DisplayName = DisplayName;
-                    serviceInstaller.ServiceName = ServiceName;
+                    //serviceInstaller.DisplayName = DisplayName;
+                    //serviceInstaller.ServiceName = ServiceName;
                 }
 
                 //Set the account type and credentials to the service process installer
-                serviceProcessInstaller1.Account = ServiceAccount;
-                serviceProcessInstaller1.Username = UserName;
-                serviceProcessInstaller1.Password = Password;
+                //serviceProcessInstaller1.Account = ServiceAccount;
+                //serviceProcessInstaller1.Username = UserName;
+                //serviceProcessInstaller1.Password = Password;
 
                 //Set the startup type depending of the server name.
                 //Please check also the method SchedulerServiceInstaller_AfterInstall right below.
@@ -97,10 +98,12 @@ namespace StarChef.Listener
                         switch (reader.Name)
                         {
                             case "UserName":
-                                if (reader.Read()) UserName = reader.Value;
+                                if (reader.Read())
+                                    UserName = reader.Value;
                                 break;
                             case "Password":
-                                if (reader.Read()) Password = reader.Value;
+                                if (reader.Read())
+                                    Password = reader.Value;
                                 break;
                             case "StartServiceIfServerNameEndsWith":
                                 if (reader.Read()) StartServiceIfServerNameEndsWith = reader.Value;

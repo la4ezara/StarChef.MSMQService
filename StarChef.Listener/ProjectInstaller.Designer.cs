@@ -38,6 +38,7 @@
             // 
             serviceProcessInstaller1.Password = null;
             serviceProcessInstaller1.Username = null;
+            serviceProcessInstaller1.Account = System.ServiceProcess.ServiceAccount.LocalSystem;
             serviceProcessInstaller1.AfterInstall += new System.Configuration.Install.InstallEventHandler(serviceProcessInstaller1_AfterInstall);
             // 
             // SchedulerServiceInstaller
