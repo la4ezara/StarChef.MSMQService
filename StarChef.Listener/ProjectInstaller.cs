@@ -247,5 +247,21 @@ namespace StarChef.Listener
                 logEntry += "Inner exception message: " + ex.InnerException.Message;
             return logEntry;
         }
+
+        private void listenerServiceInstaller_AfterInstall(object sender, InstallEventArgs e)
+        {
+            try
+            {
+                if (MustStartServiceByDefault)
+                {
+                    StartTheService();
+                }
+            }
+            catch (Exception ex)
+            {
+                //If the service fails to start we do not want to revert the installation, so we just log the error		
+                WriteMessageLog("Unexpected error after installing JobSchedulerWindowsService.", EventLogEntryType.Error, ex);
+            }
+        }
     }
 }

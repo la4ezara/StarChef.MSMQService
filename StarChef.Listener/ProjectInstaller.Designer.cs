@@ -46,6 +46,7 @@
             this.listenerServiceInstaller.DisplayName = "Starchef Message Listner";
             this.listenerServiceInstaller.ServiceName = "StarchefMessageListner";
             this.listenerServiceInstaller.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
+            this.listenerServiceInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(this.listenerServiceInstaller_AfterInstall);
             // 
             // ProjectInstaller
             // 
