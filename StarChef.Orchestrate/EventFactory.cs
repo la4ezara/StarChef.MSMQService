@@ -39,26 +39,13 @@ namespace StarChef.Orchestrate
         {
 
             Customer cust = new Customer(databaseId);
-            Group g = new Group(entityId, dbConnectionString);
+            Group g = new Group(entityId);
 
             var rand = new Random();
 
 
-            var builder = Events.GroupUpdated.CreateBuilder();
-
-            builder.SetCustomerId(cust.ExternalId)
-                .SetCustomerName(cust.Name)
-                .SetExternalId(g.ExternalId)
-                .SetGroupName(g.Name)
-                .SetGroupCode(g.Code)
-                .SetDescription(g.Description)
-                .SetCurrencyIso4217Code(g.CurrencyCode)
-                .SetLanguageIso6391Code(g.LanguageCode)
-                .SetSource(Events.SourceSystem.STARCHEF)
-                .SetSequenceNumber(rand.Next(1, int.MaxValue));
-
-            //builder.SetSuppliers()
-
+            var builder = g.Build(cust, dbConnectionString);
+            
             // Build the immutable data object
             var eventObj = builder.Build();
 

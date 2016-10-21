@@ -1,69 +1,90 @@
 ﻿using StarChef.Common;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using Fourth.Orchestration.Model.Menus;
+using System;
 
 namespace StarChef.Orchestrate.Models
 {
     public class Group
     {
-        public string ExternalId { get; set; }
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Code { get; set; }
-        public string Description { get; set; }
-        public string CurrencyCode { get; set; }
-        public string LanguageCode { get; set; }
-        Dictionary<string,string> Suppliers { get; set; }
-        Dictionary<string, string> Ingredients { get; set; }
-        Dictionary<string, string> Recipes { get; set; }
-        Dictionary<string, string> Menus { get; set; }
+     
 
-        public Group(int GroupId, string connectionString)
+        public Group(int GroupId)
         {
+            Id = GroupId;           
+        }
+
+
+        public Events.GroupUpdated.Builder Build(Customer cust, string connectionString)
+        {
+            var rand = new Random();
+            var builder = Events.GroupUpdated.CreateBuilder();
+
             var dbManager = new DatabaseManager();
-
-            Id = GroupId;
-
             var reader = dbManager.ExecuteReader(connectionString,
                                     "sc_event_group",
-                                    new SqlParameter("@entity_id", GroupId));
+                                    new SqlParameter("@entity_id", Id));
             if (reader.Read())
             {
-                ExternalId = reader[1].ToString();
-                Name = reader[2].ToString();
-                Code = reader[3].ToString();
-                Description = reader[4].ToString();
-                CurrencyCode = reader[5].ToString();
-                LanguageCode = reader[6].ToString();
+                builder.SetCustomerId(cust.ExternalId)
+                .SetCustomerName(cust.Name)
+                .SetExternalId(reader[1].ToString())
+                .SetGroupName(reader[2].ToString())
+                .SetGroupCode(reader[3].ToString())
+                .SetDescription(reader[4].ToString())
+                .SetCurrencyIso4217Code(reader[5].ToString())
+                .SetLanguageIso6391Code(reader[6].ToString())
+                .SetSource(Events.SourceSystem.STARCHEF)
+                .SetSequenceNumber(rand.Next(1,int.MaxValue));
+            }
+            
+            if (reader.NextResult())
+            {
+                while (reader.Read())
+                {
+                    var supBuilder = Events.GroupUpdated.Types.SupplierItem.CreateBuilder();
+                    supBuilder.SetExternalId(reader[0].ToString())
+                        .SetSupplierName(reader[1].ToString());
+                    builder.AddSuppliers(supBuilder);
+                }
             }
 
-            reader.NextResult();
-            Suppliers = new Dictionary<string, string>();
-            while(reader.Read())
+            if (reader.NextResult())
             {
-                Suppliers.Add(reader[0].ToString(), reader[1].ToString());
+                while (reader.Read())
+                {
+                    var ingBuilder = Events.GroupUpdated.Types.IngredientItem.CreateBuilder();
+                    ingBuilder.SetExternalId(reader[0].ToString())
+                        .SetIngredientName(reader[1].ToString());
+                    builder.AddIngredients(ingBuilder);
+                }
             }
 
-            reader.NextResult();
-            Ingredients = new Dictionary<string, string>();
-            while (reader.Read())
+            if (reader.NextResult())
             {
-                Ingredients.Add(reader[0].ToString(), reader[1].ToString());
+                while (reader.Read())
+                {
+                    var recBuilder = Events.GroupUpdated.Types.RecipeItem.CreateBuilder();
+                    recBuilder.SetExternalId(reader[0].ToString())
+                        .SetRecipeName(reader[1].ToString());
+                    builder.AddRecipes(recBuilder);
+                }
             }
 
-            reader.NextResult();
-            Recipes = new Dictionary<string, string>();
-            while (reader.Read())
+            if (reader.NextResult())
             {
-                Recipes.Add(reader[0].ToString(), reader[1].ToString());
+                while (reader.Read())
+                {
+                    var mnuBuilder = Events.GroupUpdated.Types.MenuItem.CreateBuilder();
+                    mnuBuilder.SetExternalId(reader[0].ToString())
+                        .SetMenuName(reader[1].ToString());
+                    builder.AddMenus(mnuBuilder);
+                }
             }
 
-            reader.NextResult();
-            Menus = new Dictionary<string, string>();
-            while (reader.Read())
-            {
-                Menus.Add(reader[0].ToString(), reader[1].ToString());
-            }
+            return builder;
         }
     }
 }
