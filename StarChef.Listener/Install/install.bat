@@ -8,7 +8,7 @@ set serviceName="StarchefMessageListner"
 set servicePath=%1
 set installUtilPath="C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\installutil"
 
-echo Try to install service "%serviceName%"
+echo Try to install service %serviceName%
 %installUtilPath% /serviceName=%serviceName% %servicePath%
 
 for /F "tokens=3 delims=: " %%H in ('sc query %serviceName%^| findstr "STATE"') do (

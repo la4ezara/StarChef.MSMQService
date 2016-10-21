@@ -20,8 +20,8 @@
             base.Dispose(disposing);
         }
 
-        private System.ServiceProcess.ServiceProcessInstaller serviceProcessInstaller1;
-        private System.ServiceProcess.ServiceInstaller schedulerServiceInstaller;
+        private System.ServiceProcess.ServiceProcessInstaller listenerProcessInstaller;
+        private System.ServiceProcess.ServiceInstaller listenerServiceInstaller;
 
         #region Component Designer generated code
 
@@ -31,27 +31,28 @@
         /// </summary>
         private void InitializeComponent()
         {
-            serviceProcessInstaller1 = new System.ServiceProcess.ServiceProcessInstaller();
-            schedulerServiceInstaller = new System.ServiceProcess.ServiceInstaller();
+            this.listenerProcessInstaller = new System.ServiceProcess.ServiceProcessInstaller();
+            this.listenerServiceInstaller = new System.ServiceProcess.ServiceInstaller();
             // 
-            // serviceProcessInstaller1
+            // listenerProcessInstaller
             // 
-            serviceProcessInstaller1.Password = null;
-            serviceProcessInstaller1.Username = null;
-            serviceProcessInstaller1.AfterInstall += new System.Configuration.Install.InstallEventHandler(serviceProcessInstaller1_AfterInstall);
+            this.listenerProcessInstaller.Account = System.ServiceProcess.ServiceAccount.LocalSystem;
+            this.listenerProcessInstaller.Password = null;
+            this.listenerProcessInstaller.Username = null;
             // 
-            // SchedulerServiceInstaller
+            // listenerServiceInstaller
             // 
-            schedulerServiceInstaller.Description = "Service responsible for listening for arrival of messages";
-            schedulerServiceInstaller.DisplayName = "Starchef Message Listner";
-            schedulerServiceInstaller.ServiceName = "StarchefMessageListner";
-            schedulerServiceInstaller.AfterInstall += new System.Configuration.Install.InstallEventHandler(SchedulerServiceInstaller_AfterInstall);
+            this.listenerServiceInstaller.Description = "Service responsible for listening for arrival of messages";
+            this.listenerServiceInstaller.DisplayName = "Starchef Message Listner";
+            this.listenerServiceInstaller.ServiceName = "StarchefMessageListner";
+            this.listenerServiceInstaller.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
             // 
             // ProjectInstaller
             // 
-            Installers.AddRange(new System.Configuration.Install.Installer[] {
-            serviceProcessInstaller1,
-            schedulerServiceInstaller});
+            this.Installers.AddRange(new System.Configuration.Install.Installer[] {
+            this.listenerProcessInstaller,
+            this.listenerServiceInstaller});
+
         }
 
         #endregion
