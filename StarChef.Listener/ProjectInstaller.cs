@@ -165,23 +165,23 @@ namespace StarChef.Listener
             }
         }
         
-      private void StartTheService()
-        {
-            try
-            {
-                var controller = new ServiceController
-                {
-                    MachineName = ".",
-                    ServiceName = listenerServiceInstaller.ServiceName
-                };
-                controller.Start();
-            }
-            catch (Exception ex)
-            {
-                WriteMessageLog("Unexpected error while trying to start JobSchedulerWindowsService by the fist time after its installation.", EventLogEntryType.Error, ex);
-                throw ex;
-            }
-        }
+      //private void StartTheService()
+      //  {
+      //      try
+      //      {
+      //          var controller = new ServiceController
+      //          {
+      //              MachineName = ".",
+      //              ServiceName = listenerServiceInstaller.ServiceName
+      //          };
+      //          controller.Start();
+      //      }
+      //      catch (Exception ex)
+      //      {
+      //          WriteMessageLog("Unexpected error while trying to start JobSchedulerWindowsService by the fist time after its installation.", EventLogEntryType.Error, ex);
+      //          throw ex;
+      //      }
+      //  }
 
         /// <summary>
         /// Try to write a message in the Windows Event Log. If it fails, try to write it in a plain text file.
@@ -190,23 +190,23 @@ namespace StarChef.Listener
         /// <param name="type">Type of entry (error, information. warning, etc)</param>
         /// <param name="ex">The exception raisen</param>
         /// <returns>Returns whether the message could be written in the log or not</returns>
-        private void WriteMessageLog(string message, EventLogEntryType type, Exception ex)
-        {
-            try
-            {
-                WriteEventLog(message, type, ex);
-            }
-            catch
-            {
-                try
-                {
-                    WriteLogFile(message, type, ex);
-                }
-                catch (Exception)
-                {
-                }
-            }
-        }
+        //private void WriteMessageLog(string message, EventLogEntryType type, Exception ex)
+        //{
+        //    try
+        //    {
+        //        WriteEventLog(message, type, ex);
+        //    }
+        //    catch
+        //    {
+        //        try
+        //        {
+        //            WriteLogFile(message, type, ex);
+        //        }
+        //        catch (Exception)
+        //        {
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Write an entry in the Windows Event Log
@@ -214,13 +214,13 @@ namespace StarChef.Listener
         /// <param name="message">Message describing the entry</param>
         /// <param name="type">Type of entry (error, information. warning, etc)</param>
         /// <param name="ex">The exception raisen</param>
-        private void WriteEventLog(string message, EventLogEntryType type, Exception ex)
-        {
-            const string source = "Starchef Message Listner Installer";
-            const string log = "Application";
-            if (!EventLog.SourceExists(source)) EventLog.CreateEventSource(source, log);
-            EventLog.WriteEntry(source, GenerateDefaultLogEntry(message, ex), type, 0);
-        }
+        //private void WriteEventLog(string message, EventLogEntryType type, Exception ex)
+        //{
+        //    const string source = "Starchef Message Listner Installer";
+        //    const string log = "Application";
+        //    if (!EventLog.SourceExists(source)) EventLog.CreateEventSource(source, log);
+        //    EventLog.WriteEntry(source, GenerateDefaultLogEntry(message, ex), type, 0);
+        //}
 
         /// <summary>
         /// Write a log entry in a plain text file
@@ -228,14 +228,14 @@ namespace StarChef.Listener
         /// <param name="message">Message describing the entry</param>
         /// <param name="type">Type of entry (error, information. warning, etc)</param>
         /// <param name="ex">The exception raisen</param>
-        private void WriteLogFile(string message, EventLogEntryType type, Exception ex)
-        {
-            const string newDashedLine = "=============================================================";
-            var logEntry = Environment.NewLine + newDashedLine + Environment.NewLine +
-                                DateTime.UtcNow + Environment.NewLine +
-                                GenerateDefaultLogEntry(message, ex) + Environment.NewLine + Environment.NewLine;
-            System.IO.File.AppendAllText(GetInstallationTarget() + "StarchefMessageListnerInstallation.log", logEntry);
-        }
+        //private void WriteLogFile(string message, EventLogEntryType type, Exception ex)
+        //{
+        //    const string newDashedLine = "=============================================================";
+        //    var logEntry = Environment.NewLine + newDashedLine + Environment.NewLine +
+        //                        DateTime.UtcNow + Environment.NewLine +
+        //                        GenerateDefaultLogEntry(message, ex) + Environment.NewLine + Environment.NewLine;
+        //    System.IO.File.AppendAllText(GetInstallationTarget() + "StarchefMessageListnerInstallation.log", logEntry);
+        //}
 
         private static string GenerateDefaultLogEntry(string message, Exception ex)
         {
@@ -248,20 +248,20 @@ namespace StarChef.Listener
             return logEntry;
         }
 
-        private void listenerServiceInstaller_AfterInstall(object sender, InstallEventArgs e)
-        {
-            try
-            {
-                if (MustStartServiceByDefault)
-                {
-                    StartTheService();
-                }
-            }
-            catch (Exception ex)
-            {
-                //If the service fails to start we do not want to revert the installation, so we just log the error		
-                WriteMessageLog("Unexpected error after installing JobSchedulerWindowsService.", EventLogEntryType.Error, ex);
-            }
-        }
+        //private void listenerServiceInstaller_AfterInstall(object sender, InstallEventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (MustStartServiceByDefault)
+        //        {
+        //            StartTheService();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        //If the service fails to start we do not want to revert the installation, so we just log the error		
+        //        WriteMessageLog("Unexpected error after installing JobSchedulerWindowsService.", EventLogEntryType.Error, ex);
+        //    }
+        //}
     }
 }
