@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using StarChef.Common;
 using System.Configuration;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace StarChef.Common.Models
+namespace StarChef.Orchestrate.Models
 {
     public class Customer
     {

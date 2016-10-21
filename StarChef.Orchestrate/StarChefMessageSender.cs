@@ -53,6 +53,10 @@ namespace StarChef.Orchestrate
                             var mealPeriodEventPayload = EventFactory.CreateMealPeriodEvent(dbConnectionString, entityId, databaseId);
                             result = bus.Publish(mealPeriodEventPayload);
                             break;
+                        case EnumHelper.EntityTypeWrapper.Group:
+                            var groupEventPayload = EventFactory.CreateGroupEvent(dbConnectionString, entityId, databaseId);
+                            result = bus.Publish(groupEventPayload);
+                            break;
 
                     }
                     

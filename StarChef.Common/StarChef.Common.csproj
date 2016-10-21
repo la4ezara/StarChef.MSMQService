@@ -39,8 +39,6 @@
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="IDatabaseManager.cs" />
     <Compile Include="EnumHelper.cs" />
-    <Compile Include="Models\Customer.cs" />
-    <Compile Include="Models\MealPeriod.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

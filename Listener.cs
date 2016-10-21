@@ -395,6 +395,11 @@ namespace StarChef.MSMQService
                     entityTypeWrapper = EnumHelper.EntityTypeWrapper.MealPeriod;
                     entityId = msg.ProductID;
                     break;
+                case (int)Constants.EntityType.Group:
+                    entityTypeId = (int)Constants.EntityType.Group;
+                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.Group;
+                    entityId = msg.ProductID;
+                    break;
             }
 
             if (entityTypeWrapper.HasValue && 
