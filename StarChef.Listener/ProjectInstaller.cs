@@ -22,18 +22,23 @@ namespace StarChef.Listener
 
         public string Password { get; set; }
 
+        public bool ConfigExist { get; set; }
+
         public bool MustStartServiceByDefault
         {
             get
             {
-                //var machineName = Environment.MachineName;
-                //var startService = false;
-                //if (!string.IsNullOrEmpty(machineName))
-                //    machineName = machineName.Trim();
-                //if (!string.IsNullOrEmpty(machineName) && !string.IsNullOrEmpty(StartServiceIfServerNameEndsWith))
-                //    startService = machineName.EndsWith(StartServiceIfServerNameEndsWith);
-                //return startService;
-                return true;
+                var machineName = Environment.MachineName;
+                var startService = false;
+                if (!string.IsNullOrEmpty(machineName))
+                {
+                    machineName = machineName.Trim();
+                }
+                if (!string.IsNullOrEmpty(machineName) && !string.IsNullOrEmpty(StartServiceIfServerNameEndsWith))
+                {
+                    startService = machineName.EndsWith(StartServiceIfServerNameEndsWith);
+                }
+                return startService;
             }
         }
 
@@ -47,39 +52,45 @@ namespace StarChef.Listener
                 LoadServiceProperties();
 
                 InitializeComponent();
-
-                //Override the service name and display name (so that we can install several copies of the service on the same machine, which was needed for the Yesterday and Training portals).
-                foreach (Installer installer in Installers)
+                if (ConfigExist)
                 {
-                    var installer1 = installer as ServiceInstaller;
-                    if (installer1 == null)
-                        continue;
 
-                    var serviceInstaller = installer1;
-                    //serviceInstaller.DisplayName = DisplayName;
-                    //serviceInstaller.ServiceName = ServiceName;
+                    if (!string.IsNullOrEmpty(DisplayName))
+                    {
+                        listenerServiceInstaller.DisplayName = DisplayName;
+                    }
+
+                    if (!string.IsNullOrEmpty(ServiceName))
+                    {
+                        listenerServiceInstaller.ServiceName = ServiceName;
+                    }
+
+
+                    listenerProcessInstaller.Account = ServiceAccount;
+
+                    if (!string.IsNullOrEmpty(UserName) && !string.IsNullOrEmpty(Password))
+                    {
+                        listenerProcessInstaller.Password = Password;
+                        listenerProcessInstaller.Username = UserName;
+                    }
+
+                    //Set the startup type depending of the server name.
+                    //Please check also the method SchedulerServiceInstaller_AfterInstall right below.
+                    listenerServiceInstaller.StartType = MustStartServiceByDefault
+                        ? ServiceStartMode.Automatic
+                        : ServiceStartMode.Manual;
                 }
-
-                //Set the account type and credentials to the service process installer
-                //serviceProcessInstaller1.Account = ServiceAccount;
-                //serviceProcessInstaller1.Username = UserName;
-                //serviceProcessInstaller1.Password = Password;
-
-                //Set the startup type depending of the server name.
-                //Please check also the method SchedulerServiceInstaller_AfterInstall right below.
-                schedulerServiceInstaller.StartType = MustStartServiceByDefault ? ServiceStartMode.Automatic : ServiceStartMode.Manual;
             }
             catch (Exception)
             {
                 throw;
             }
-            
         }
 
         private string GetInstallationTarget()
         {
             var location = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var folder = location.Replace(System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.Name, "");
+            var folder = location.Replace(System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.Name, string.Empty);
             return folder;
         }
 
@@ -88,6 +99,7 @@ namespace StarChef.Listener
             var configFile = GetInstallationTarget() + "WindowsServiceCredentials.config";
             if (System.IO.File.Exists(configFile))
             {
+                ConfigExist = true;
                 using (var reader = XmlReader.Create(configFile))
                 {
                     while (reader.Read())
@@ -99,14 +111,21 @@ namespace StarChef.Listener
                         {
                             case "UserName":
                                 if (reader.Read())
+                                {
                                     UserName = reader.Value;
+                                }
                                 break;
                             case "Password":
                                 if (reader.Read())
+                                {
                                     Password = reader.Value;
+                                }
                                 break;
                             case "StartServiceIfServerNameEndsWith":
-                                if (reader.Read()) StartServiceIfServerNameEndsWith = reader.Value;
+                                if (reader.Read())
+                                {
+                                    StartServiceIfServerNameEndsWith = reader.Value;
+                                }
                                 break;
                             case "ServiceAccount":
                                 if (reader.Read())
@@ -129,42 +148,31 @@ namespace StarChef.Listener
                                 }
                                 break;
                             case "ServiceName":
-                                if (reader.Read()) ServiceName = reader.Value;
+                                if (reader.Read())
+                                {
+                                    ServiceName = reader.Value;
+                                }
                                 break;
                             case "DisplayName":
-                                if (reader.Read()) DisplayName = reader.Value;
+                                if (reader.Read())
+                                {
+                                    DisplayName = reader.Value;
+                                }
                                 break;
                         }
                     }
                 }
             }
         }
-
-        private void serviceProcessInstaller1_AfterInstall(object sender, InstallEventArgs e)
-        {
-        }
         
-        private void SchedulerServiceInstaller_AfterInstall(object sender, InstallEventArgs e)
-        {
-            try
-            {
-                if (MustStartServiceByDefault) StartTheService();
-            }
-            catch (Exception ex)
-            {
-                //If the service fails to start we do not want to revert the installation, so we just log the error
-                WriteMessageLog("Unexpected error after installing JobSchedulerWindowsService.", EventLogEntryType.Error, ex);
-            }
-        }
-
-        private void StartTheService()
+      private void StartTheService()
         {
             try
             {
                 var controller = new ServiceController
                 {
                     MachineName = ".",
-                    ServiceName = schedulerServiceInstaller.ServiceName
+                    ServiceName = listenerServiceInstaller.ServiceName
                 };
                 controller.Start();
             }
