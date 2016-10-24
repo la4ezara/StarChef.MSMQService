@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 
 namespace StarChef.Common
@@ -35,6 +36,38 @@ namespace StarChef.Common
             }
 
             return retval;
+        }
+
+        public DataSet ExecuteMultiResultset(
+            string connectionString, 
+            string spName, 
+            params SqlParameter[] parameterValues
+            )
+        {
+            //create & open a SqlConnection, and dispose of it after we are done.
+            using (var cn = new SqlConnection(connectionString))
+            {
+                DataSet dataSet = new DataSet();
+                
+                cn.Open();
+
+                // need a command with sensible timeout value (10 minutes), as some 
+                // of these procs may take several minutes to complete
+                var cmd = new SqlCommand(spName, cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                // add params
+                if (parameterValues != null)
+                    foreach (var param in parameterValues)
+                        cmd.Parameters.Add(param);
+
+                // run proc
+                SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                adapter.Fill(dataSet);
+                return dataSet;
+            }
         }
 
         public IDataReader ExecuteReader(

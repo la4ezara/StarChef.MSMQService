@@ -15,5 +15,11 @@ namespace StarChef.Common
            string spName,
            params SqlParameter[] parameterValues
            );
+
+        DataSet ExecuteMultiResultset(
+           string connectionString,
+           string spName,
+           params SqlParameter[] parameterValues
+           );
     }
 }

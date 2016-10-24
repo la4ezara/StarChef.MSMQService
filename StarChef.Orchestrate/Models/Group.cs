@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using Fourth.Orchestration.Model.Menus;
 using System;
+using System.Data;
 
 namespace StarChef.Orchestrate.Models
 {
@@ -23,63 +24,75 @@ namespace StarChef.Orchestrate.Models
             var builder = Events.GroupUpdated.CreateBuilder();
 
             var dbManager = new DatabaseManager();
-            var reader = dbManager.ExecuteReader(connectionString,
+            var dataset = dbManager.ExecuteMultiResultset(connectionString,
                                     "sc_event_group",
                                     new SqlParameter("@entity_id", Id));
-            if (reader.Read())
+
+            var groupTable = dataset.Tables[0];
+            var supplierTable = dataset.Tables[1];
+            var ingredientTable = dataset.Tables[2];
+            var recipeTable = dataset.Tables[3];
+            var menuTable = dataset.Tables[4];
+
+            if (groupTable != null)  //Group Info
             {
-                builder.SetCustomerId(cust.ExternalId)
-                .SetCustomerName(cust.Name)
-                .SetExternalId(reader[1].ToString())
-                .SetGroupName(reader[2].ToString())
-                .SetGroupCode(reader[3].ToString())
-                .SetDescription(reader[4].ToString())
-                .SetCurrencyIso4217Code(reader[5].ToString())
-                .SetLanguageIso6391Code(reader[6].ToString())
-                .SetSource(Events.SourceSystem.STARCHEF)
-                .SetSequenceNumber(rand.Next(1,int.MaxValue));
+                if(groupTable.Rows.Count > 0)
+                {
+                    var dr = dataset.Tables[0].Rows[0];
+
+                    builder.SetCustomerId(cust.ExternalId)
+                    .SetCustomerName(cust.Name)
+                    .SetExternalId(dr[1].ToString())
+                    .SetGroupName(dr[2].ToString())
+                    .SetGroupCode(dr[3].ToString())
+                    .SetDescription(dr[4].ToString())
+                    .SetCurrencyIso4217Code(dr[5].ToString())
+                    .SetLanguageIso6391Code(dr[6].ToString())
+                    .SetSource(Events.SourceSystem.STARCHEF)
+                    .SetSequenceNumber(rand.Next(1, int.MaxValue));
+                }
             }
             
-            if (reader.NextResult())
+            if (supplierTable != null)  //Supplier
             {
-                while (reader.Read())
+                foreach(DataRow row in supplierTable.Rows)
                 {
                     var supBuilder = Events.GroupUpdated.Types.SupplierItem.CreateBuilder();
-                    supBuilder.SetExternalId(reader[0].ToString())
-                        .SetSupplierName(reader[1].ToString());
+                    supBuilder.SetExternalId(row[0].ToString())
+                        .SetSupplierName(row[1].ToString());
                     builder.AddSuppliers(supBuilder);
                 }
             }
 
-            if (reader.NextResult())
+            if (ingredientTable != null)  //Ingredient
             {
-                while (reader.Read())
+                foreach (DataRow row in ingredientTable.Rows)
                 {
                     var ingBuilder = Events.GroupUpdated.Types.IngredientItem.CreateBuilder();
-                    ingBuilder.SetExternalId(reader[0].ToString())
-                        .SetIngredientName(reader[1].ToString());
+                    ingBuilder.SetExternalId(row[0].ToString())
+                        .SetIngredientName(row[1].ToString());
                     builder.AddIngredients(ingBuilder);
                 }
             }
 
-            if (reader.NextResult())
+            if (recipeTable != null)  //Recipe
             {
-                while (reader.Read())
+                foreach (DataRow row in recipeTable.Rows)
                 {
                     var recBuilder = Events.GroupUpdated.Types.RecipeItem.CreateBuilder();
-                    recBuilder.SetExternalId(reader[0].ToString())
-                        .SetRecipeName(reader[1].ToString());
+                    recBuilder.SetExternalId(row[0].ToString())
+                        .SetRecipeName(row[1].ToString());
                     builder.AddRecipes(recBuilder);
                 }
             }
 
-            if (reader.NextResult())
+            if (menuTable != null)  //Recipe
             {
-                while (reader.Read())
+                foreach (DataRow row in menuTable.Rows)
                 {
                     var mnuBuilder = Events.GroupUpdated.Types.MenuItem.CreateBuilder();
-                    mnuBuilder.SetExternalId(reader[0].ToString())
-                        .SetMenuName(reader[1].ToString());
+                    mnuBuilder.SetExternalId(row[0].ToString())
+                        .SetMenuName(row[1].ToString());
                     builder.AddMenus(mnuBuilder);
                 }
             }
