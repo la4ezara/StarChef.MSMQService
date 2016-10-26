@@ -16,7 +16,7 @@ namespace StarChef.Common
            params SqlParameter[] parameterValues
            );
 
-        DataSet ExecuteMultiResultset(
+        IDataReader ExecuteReaderMultiResultset(
            string connectionString,
            string spName,
            params SqlParameter[] parameterValues

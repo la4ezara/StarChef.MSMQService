@@ -38,7 +38,7 @@ namespace StarChef.Common
             return retval;
         }
 
-        public DataSet ExecuteMultiResultset(
+        public IDataReader ExecuteReaderMultiResultset(
             string connectionString, 
             string spName, 
             params SqlParameter[] parameterValues
@@ -48,7 +48,7 @@ namespace StarChef.Common
             using (var cn = new SqlConnection(connectionString))
             {
                 DataSet dataSet = new DataSet();
-                
+
                 cn.Open();
 
                 // need a command with sensible timeout value (10 minutes), as some 
@@ -66,7 +66,7 @@ namespace StarChef.Common
                 // run proc
                 SqlDataAdapter adapter = new SqlDataAdapter(cmd);
                 adapter.Fill(dataSet);
-                return dataSet;
+                return dataSet.CreateDataReader();
             }
         }
 
