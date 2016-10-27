@@ -90,6 +90,7 @@
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\Group.cs" />
     <Compile Include="Models\MealPeriod.cs" />
+    <Compile Include="Models\Menu.cs" />
     <Compile Include="StarChefMessageSender.cs" />
   </ItemGroup>
   <ItemGroup>

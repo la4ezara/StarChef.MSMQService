@@ -52,5 +52,20 @@ namespace StarChef.Orchestrate
             return eventObj;
 
         }
+
+        public static Events.MenuUpdated UpdateMenuEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+
+            Customer cust = new Customer(databaseId);
+            Menu menu = new Menu(entityId);
+            var rand = new Random();
+            var builder = menu.Build(cust, dbConnectionString);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+
+        }
     }
 }

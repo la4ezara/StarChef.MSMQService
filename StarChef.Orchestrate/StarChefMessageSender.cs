@@ -57,6 +57,10 @@ namespace StarChef.Orchestrate
                             var groupEventPayload = EventFactory.CreateGroupEvent(dbConnectionString, entityId, databaseId);
                             result = bus.Publish(groupEventPayload);
                             break;
+                        case EnumHelper.EntityTypeWrapper.Menu:
+                            var meuEventPayload = EventFactory.CreateGroupEvent(dbConnectionString, entityId, databaseId);
+                            result = bus.Publish(meuEventPayload);
+                            break;
 
                     }
                     
