@@ -1,5 +1,4 @@
 ﻿using StarChef.Common;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using Fourth.Orchestration.Model.Menus;
 using System;
@@ -23,9 +22,10 @@ namespace StarChef.Orchestrate.Models
             var builder = Events.GroupUpdated.CreateBuilder();
 
             var dbManager = new DatabaseManager();
-            var reader = dbManager.ExecuteReader(connectionString,
+            var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
                                     "sc_event_group",
                                     new SqlParameter("@entity_id", Id));
+
             if (reader.Read())
             {
                 builder.SetCustomerId(cust.ExternalId)
@@ -37,9 +37,10 @@ namespace StarChef.Orchestrate.Models
                 .SetCurrencyIso4217Code(reader[5].ToString())
                 .SetLanguageIso6391Code(reader[6].ToString())
                 .SetSource(Events.SourceSystem.STARCHEF)
-                .SetSequenceNumber(rand.Next(1,int.MaxValue));
+                .SetSequenceNumber(rand.Next(1, int.MaxValue));
+
             }
-            
+
             if (reader.NextResult())
             {
                 while (reader.Read())
