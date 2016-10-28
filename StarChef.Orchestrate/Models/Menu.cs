@@ -23,7 +23,7 @@
 
             var dbManager = new DatabaseManager();
             var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
-                                    "sc_event_group",
+                                    "sc_event_menu",
                                     new SqlParameter("@entity_id", Id));
 
             if (reader.Read())
