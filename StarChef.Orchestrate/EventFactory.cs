@@ -1,6 +1,7 @@
-﻿using Fourth.Orchestration.Model.Menus;
-using StarChef.Orchestrate.Models;
+﻿using StarChef.Orchestrate.Models;
 using System;
+using Fourth.Orchestration.Model.Examples;
+using Events = Fourth.Orchestration.Model.Menus.Events;
 
 namespace StarChef.Orchestrate
 {
@@ -21,7 +22,6 @@ namespace StarChef.Orchestrate
 
         public static Events.MealPeriodUpdated CreateMealPeriodEvent(string dbConnectionString, int entityId, int databaseId)
         {
-
             Customer cust = new Customer(databaseId);
             MealPeriod mp = new MealPeriod(entityId);
             
@@ -32,12 +32,10 @@ namespace StarChef.Orchestrate
             var eventObj = builder.Build();
 
             return eventObj;
-
         }
 
         public static Events.GroupUpdated CreateGroupEvent(string dbConnectionString, int entityId, int databaseId)
         {
-
             Customer cust = new Customer(databaseId);
             Group g = new Group(entityId);
 
@@ -50,7 +48,19 @@ namespace StarChef.Orchestrate
             var eventObj = builder.Build();
 
             return eventObj;
+        }
 
+        public static Events.UserUpdated CreateUserEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            Customer cust = new Customer(databaseId);
+            User u = new User(entityId);
+            
+            var builder = u.Build(cust, dbConnectionString);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
         }
     }
 }

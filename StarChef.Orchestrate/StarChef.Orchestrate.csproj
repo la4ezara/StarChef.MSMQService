@@ -85,11 +85,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandFactory.cs" />
     <Compile Include="EventFactory.cs" />
     <Compile Include="IStarChefMessageSender.cs" />
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\Group.cs" />
     <Compile Include="Models\MealPeriod.cs" />
+    <Compile Include="Models\User.cs" />
     <Compile Include="StarChefMessageSender.cs" />
   </ItemGroup>
   <ItemGroup>
