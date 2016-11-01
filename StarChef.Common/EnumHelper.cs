@@ -8,6 +8,7 @@
             Menu,
             Ingredient,
             User,
+            UserGroup,
             MealPeriod,
             Group
         }

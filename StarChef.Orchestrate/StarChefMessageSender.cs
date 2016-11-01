@@ -60,10 +60,8 @@ namespace StarChef.Orchestrate
                         case EnumHelper.EntityTypeWrapper.User:
                             var userEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
                             var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
-                            
                             result = bus.Publish(userEventPayload);
                             result = bus.Publish(userCommandCreateAccount);
-
                             break;
                     }
                     

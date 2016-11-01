@@ -9,13 +9,16 @@ namespace StarChef.Orchestrate.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string ExternalId { get; set; }
+        public string UserExternalLoginId { get; set; }
 
+        public IDatabaseManager dbManager { get; set; }
+
+        public string connectionString { get; set; }
         public Customer(int CustomerId)
         {
-            var dbManager = new DatabaseManager();
-
+            dbManager = new DatabaseManager();
             Id = CustomerId;
-            string connectionString = ConfigurationManager.AppSettings["DSN"];
+            connectionString = ConfigurationManager.AppSettings["DSN"];
 
             var reader = dbManager.ExecuteReader(connectionString,
                                     "sc_get_database_details",
@@ -23,9 +26,26 @@ namespace StarChef.Orchestrate.Models
             if(reader.Read())
             {
                 ExternalId = reader[1].ToString();
+                //only for debug
+                if (string.IsNullOrEmpty(ExternalId))
+                    ExternalId = "10AD1BA7-59F8-4406-B473-2CB58B3894A3";
                 Name = reader[2].ToString();
             }
         }
 
+        public string UserExternalId(int userId)
+        {
+            return "pgreen";
+            //var reader = dbManager.ExecuteReader(connectionString,
+            //                        "sc_get_user_login_details",
+            //                        new SqlParameter("@db_database_id", Id),
+            //                        new SqlParameter("@user_id", userId));
+            //if (reader.Read())
+            //{
+            //    UserExternalLoginId = reader[1].ToString();
+            //}
+
+            //return ExternalId;
+        }
     }
 }
