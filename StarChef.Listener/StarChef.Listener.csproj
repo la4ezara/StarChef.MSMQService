@@ -152,6 +152,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ListenerElement.cs" />
+    <Compile Include="Configuration\ListenersCollection.cs" />
+    <Compile Include="Configuration\AzureListenersSection.cs" />
     <Compile Include="MessageBusController.cs" />
     <Compile Include="PriceBandEventHandler.cs" />
     <Compile Include="Program.cs" />

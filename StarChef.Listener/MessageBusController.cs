@@ -1,10 +1,13 @@
 ﻿using System;
-using System.Configuration;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Messaging.Azure;
 using Fourth.Orchestration.Storage;
 using Fourth.Orchestration.Storage.Azure;
 using log4net;
+using StarChef.Listener.Configuration;
 
 namespace StarChef.Listener
 {
@@ -12,16 +15,14 @@ namespace StarChef.Listener
     {
         private static IMessagingFactory _factory;
         private static IMessageStore _messageStore;
-        private static IMessageListener _priceBandListener;
-        private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        private static string _priceBandEventSubscription;
+        private static readonly List<IMessageListener> _listeners = new List<IMessageListener>();
+        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static void Start()
         {
             try
             {
-                Logger.Info("Starting starchef listener");
+                Logger.Info("Starting Starchef listener");
 
                 // Create an instance on a remote store for large messages.
                 _messageStore = new AzureMessageStore();
@@ -29,16 +30,25 @@ namespace StarChef.Listener
                 // Create a messaging factory.
                 _factory = new AzureMessagingFactory(_messageStore);
 
-                _priceBandEventSubscription = ConfigurationManager.AppSettings["PriceBandEventSubscription"];
+                var listenersConfig = AzureListenersSection.GetConfiguration();
+                foreach (var pair in listenersConfig)
+                {
+                    var subscription = pair.Key;
+                    var handlerTypes = pair.Value;
 
-                // Create a listener instance for listening to messages
-                _priceBandListener = _factory.CreateMessageListener(_priceBandEventSubscription);
+                    // Create a listener instance for listening to messages
+                    var listener = _factory.CreateMessageListener(subscription);
+                    _listeners.Add(listener);
 
-                // Register command handler listeners for all events and commands
-                _priceBandListener.RegisterHandler(new PriceBandEventHandler());
+                    // Register command handler listeners for all events and commands
+                    var messageHandlers = handlerTypes.Select(Activator.CreateInstance).OfType<IMessageHandler>();
+                    foreach (var messageHandler in messageHandlers)
+                        listener.RegisterHandler(messageHandler);
+                }
 
                 //start listening
-                _priceBandListener.StartListener();
+                foreach (var messageListener in _listeners)
+                    messageListener.StartListener();
             }
             catch (Exception ex)
             {
@@ -51,13 +61,16 @@ namespace StarChef.Listener
         {
             Logger.Info("Stopping Starchef listener");
 
-            if (_priceBandListener != null)
+            if (_listeners.Any())
             {
-                _priceBandListener.StopListener();
-                _priceBandListener.Dispose();
+                foreach (var messageListener in _listeners)
+                {
+                    messageListener.StopListener();
+                    messageListener.Dispose();
+                }
             }
 
             _factory?.Dispose();
         }
-    }    
+    }
 }
