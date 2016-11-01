@@ -46,17 +46,9 @@ namespace StarChef.Listener
                     return MessageHandlerResult.Fatal;
                 }
 
-                var xmlString = new StringBuilder();
+                var xmlString = GetXmlString(priceBandUpdated);
 
-                foreach (var priceBand in priceBandUpdated.PriceBandsList)
-                {
-                    if (!priceBand.HasId || (!priceBand.HasMinimumPrice && !priceBand.HasMaximumPrice))
-                        continue;
-
-                    xmlString.Append($"<PriceBand><ProductGuid>{priceBand.Id}</ProductGuid><MinPrice>{priceBand.MinimumPrice}</MinPrice><MaxPrice>{priceBand.MaximumPrice}</MaxPrice></PriceBand>");
-                }
-
-                if (string.IsNullOrEmpty(xmlString.ToString()))
+                if (string.IsNullOrEmpty(xmlString))
                 {
                     Logger.Info($"There is no valid price band to process for the message, tracking id: {trackingId}, for customer {organisationGuid}");
                     return MessageHandlerResult.Success;
@@ -98,6 +90,20 @@ namespace StarChef.Listener
                 Logger.Error($"Failed to handle the event \"{priceBandUpdated.GetType().Name}\" [Customer Guid: {organisationGuid}].", ex);
                 return MessageHandlerResult.Retry;
             }
+        }
+
+        private static string GetXmlString(Events.PriceBandUpdated priceBandUpdated)
+        {
+            var xmlString = new StringBuilder();
+
+            foreach (var priceBand in priceBandUpdated.PriceBandsList)
+            {
+                if (!priceBand.HasId || (!priceBand.HasMinimumPrice && !priceBand.HasMaximumPrice))
+                    continue;
+
+                xmlString.Append($"<PriceBand><ProductGuid>{priceBand.Id}</ProductGuid><MinPrice>{priceBand.MinimumPrice}</MinPrice><MaxPrice>{priceBand.MaximumPrice}</MaxPrice></PriceBand>");
+            }
+            return xmlString.ToString();
         }
 
         private async Task<string> GetCustomerDbConnectionString(Guid organisationGuid)
