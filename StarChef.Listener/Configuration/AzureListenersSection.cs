@@ -19,6 +19,11 @@ namespace StarChef.Listener.Configuration
             RemoveItemName = "remove")]
         public ListenersCollection Listeners => (ListenersCollection) base["listeners"];
 
+        /// <summary>
+        /// Read the configuration from web.config and return the subscription and related handler types
+        /// </summary>
+        /// <param name="sectionName">(Optional) Configuration section name. By default it is "azureListeners".</param>
+        /// <returns></returns>
         public static IDictionary<string, IList<Type>> GetConfiguration(string sectionName = "azureListeners")
         {
             var result = new Dictionary<string, IList<Type>>();
