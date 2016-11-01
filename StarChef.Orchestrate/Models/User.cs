@@ -26,9 +26,6 @@ namespace StarChef.Orchestrate.Models
                                     new SqlParameter("@entity_id", Id));
             if (reader.Read())
             {
-                var b1 = int.Parse(reader[4].ToString())==1;
-                var b2 = reader.GetBoolean(5);
-
                 builder.SetCustomerId(cust.ExternalId)
                 .SetCustomerName(cust.Name)
                 .SetExternalId(cust.UserExternalId(Id))
