@@ -36,37 +36,14 @@ namespace StarChef.Listener
             try
             {
                 Logger.Info("Start message processing");
-
-                var connectionString = ConfigurationManager.ConnectionStrings["StarchefLogin"];
-
-                using (var sqlConnection = new SqlConnection(connectionString.ConnectionString))
+                try
                 {
-                    await sqlConnection.OpenAsync();
-
-                    using (var sqlCmd = new SqlCommand("sc_database_GetByOrgGuid", sqlConnection))
-                    {
-                        sqlCmd.CommandType = CommandType.StoredProcedure;
-                        sqlCmd.Parameters.Add("@OrganisationGuid", SqlDbType.UniqueIdentifier).Value = organisationGuid;
-
-                        try
-                        {
-                            var rtnVal = sqlCmd.ExecuteScalar();
-
-                            if (rtnVal == DBNull.Value)
-                            {
-                                Logger.Error($"There is no organisation with the given organisation Guid: {organisationGuid}");
-                            }
-                            else
-                            {
-                                transactionConnectionString = rtnVal.ToString();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error("Error getting database of organisation", ex);
-                            return MessageHandlerResult.Fatal;
-                        }
-                    }
+                    transactionConnectionString = await GetCustomerDbConnectionString(organisationGuid);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Error getting database of organisation", ex);
+                    return MessageHandlerResult.Fatal;
                 }
 
                 var xmlString = new StringBuilder();
@@ -120,6 +97,31 @@ namespace StarChef.Listener
             {
                 Logger.Error($"Failed to handle the event \"{priceBandUpdated.GetType().Name}\" [Customer Guid: {organisationGuid}].", ex);
                 return MessageHandlerResult.Retry;
+            }
+        }
+
+        private async Task<string> GetCustomerDbConnectionString(Guid organisationGuid)
+        {
+            var connectionString = ConfigurationManager.ConnectionStrings["StarchefLogin"];
+
+            using (var sqlConnection = new SqlConnection(connectionString.ConnectionString))
+            {
+                await sqlConnection.OpenAsync();
+
+                using (var sqlCmd = new SqlCommand("sc_database_GetByOrgGuid", sqlConnection))
+                {
+                    sqlCmd.CommandType = CommandType.StoredProcedure;
+                    sqlCmd.Parameters.Add("@OrganisationGuid", SqlDbType.UniqueIdentifier).Value = organisationGuid;
+
+                    var rtnVal = sqlCmd.ExecuteScalar();
+
+                    if (rtnVal == DBNull.Value)
+                    {
+                        Logger.Error($"There is no organisation with the given organisation Guid: {organisationGuid}");
+                        return null;
+                    }
+                    return rtnVal.ToString();
+                }
             }
         }
     }
