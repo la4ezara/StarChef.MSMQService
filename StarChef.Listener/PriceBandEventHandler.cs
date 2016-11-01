@@ -31,14 +31,15 @@ namespace StarChef.Listener
 
             var organisationGuid = new Guid(priceBandUpdated.CustomerId);
 
-            var transactionConnectionString = string.Empty;
-
             try
             {
                 Logger.Info("Start message processing");
+                string transactionConnectionString;
                 try
                 {
                     transactionConnectionString = await GetCustomerDbConnectionString(organisationGuid);
+                    if (string.IsNullOrEmpty(transactionConnectionString))
+                        return MessageHandlerResult.Success;
                 }
                 catch (Exception ex)
                 {
@@ -53,19 +54,16 @@ namespace StarChef.Listener
                     return MessageHandlerResult.Success;
                 }
 
-                if (!string.IsNullOrEmpty(transactionConnectionString))
+                try
                 {
-                    try
-                    {
-                        SaveDataToDb(transactionConnectionString, xmlDoc);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error($"Price band update failed: customer id: {organisationGuid}, tracking id: {trackingId}", ex);
-                        return MessageHandlerResult.Fatal;
-                    }
+                    SaveDataToDb(transactionConnectionString, xmlDoc);
+                    return MessageHandlerResult.Success;
                 }
-                return MessageHandlerResult.Success;
+                catch (Exception ex)
+                {
+                    Logger.Error($"Price band update failed: customer id: {organisationGuid}, tracking id: {trackingId}", ex);
+                    return MessageHandlerResult.Fatal;
+                }
             }
             catch (Exception ex)
             {
