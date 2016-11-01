@@ -72,9 +72,9 @@ namespace StarChef.Orchestrate
         {
             Customer cust = new Customer(databaseId);
 
-            var ug = new UserGroup(entityId);
+            var userGroup = new UserGroup(entityId);
 
-            foreach(var user in ug.GetUsersInGroup(dbConnectionString))
+            foreach(var user in userGroup.GetUsersInGroup(dbConnectionString))
             {
                 var builder = user.Build(cust, dbConnectionString);
 
