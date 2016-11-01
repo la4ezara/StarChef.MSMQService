@@ -81,7 +81,7 @@ namespace StarChef.Listener
                 using (var sqlCmd = new SqlCommand("sc_save_product_price_band_list", sqlConn))
                 {
                     sqlCmd.CommandType = CommandType.StoredProcedure;
-                    sqlCmd.Parameters.Add("@PriceBandListXml", SqlDbType.Xml).Value = xmlDoc.InnerXml;
+                    sqlCmd.Parameters.Add("@DataXml", SqlDbType.Xml).Value = xmlDoc.InnerXml;
 
                     await sqlCmd.ExecuteNonQueryAsync();
 
