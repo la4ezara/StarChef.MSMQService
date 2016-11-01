@@ -9,6 +9,7 @@ namespace StarChef.Orchestrate.Models
     public class User
     {
         public int Id { get; set; }
+        public User() { }
 
         public User(int userId)
         {
@@ -27,19 +28,19 @@ namespace StarChef.Orchestrate.Models
             if (reader.Read())
             {
                 builder.SetCustomerId(cust.ExternalId)
-                .SetCustomerName(cust.Name)
-                .SetExternalId(cust.UserExternalId(Id))
-                .SetFirstName(reader[1].ToString())
-                .SetLastName(reader[2].ToString())
-                .SetLanguage(reader[3].ToString())
-                .SetCanViewMenuCycle(int.Parse(reader[4].ToString()) == 1)
-                .SetCanCreateMenuCycle(int.Parse(reader[5].ToString()) == 1)
-                .SetCanEditMenuCycle(int.Parse(reader[6].ToString()) == 1)
-                .SetCanDeleteMenuCycle(int.Parse(reader[7].ToString()) == 1)
-                .SetCanViewRecipe(int.Parse(reader[8].ToString()) == 1)
-                .SetCanViewMenu(int.Parse(reader[9].ToString()) == 1)
-                .SetSource(Events.SourceSystem.STARCHEF)
-                .SetSequenceNumber(rand.Next(1, int.MaxValue));
+                       .SetCustomerName(cust.Name)
+                       .SetExternalId(cust.UserExternalId(Id))
+                       .SetFirstName(reader[1].ToString())
+                       .SetLastName(reader[2].ToString())
+                       .SetLanguage(reader[3].ToString())
+                       .SetCanViewMenuCycle(int.Parse(reader[4].ToString()) == 1)
+                       .SetCanCreateMenuCycle(int.Parse(reader[5].ToString()) == 1)
+                       .SetCanEditMenuCycle(int.Parse(reader[6].ToString()) == 1)
+                       .SetCanDeleteMenuCycle(int.Parse(reader[7].ToString()) == 1)
+                       .SetCanViewRecipe(int.Parse(reader[8].ToString()) == 1)
+                       .SetCanViewMenu(int.Parse(reader[9].ToString()) == 1)
+                       .SetSource(Events.SourceSystem.STARCHEF)
+                       .SetSequenceNumber(rand.Next(1, int.MaxValue));
             }
 
             if (reader.NextResult())
@@ -47,9 +48,10 @@ namespace StarChef.Orchestrate.Models
                 while (reader.Read())
                 {
                     var userGroupBuilder = Events.UserUpdated.Types.UserGroup.CreateBuilder();
-                    userGroupBuilder
-                        .SetExternalId(reader[1].ToString())
-                        .SetGroupName(reader[2].ToString());
+
+                    userGroupBuilder.SetExternalId(reader[1].ToString())
+                                    .SetGroupName(reader[2].ToString());
+
                     builder.AddGroups(userGroupBuilder);
                 }
             }

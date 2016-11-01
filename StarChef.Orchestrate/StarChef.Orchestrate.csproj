@@ -92,6 +92,7 @@
     <Compile Include="Models\Group.cs" />
     <Compile Include="Models\MealPeriod.cs" />
     <Compile Include="Models\User.cs" />
+    <Compile Include="Models\UserGroup.cs" />
     <Compile Include="StarChefMessageSender.cs" />
   </ItemGroup>
   <ItemGroup>
