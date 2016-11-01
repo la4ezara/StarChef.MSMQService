@@ -55,36 +55,40 @@ namespace StarChef.Listener
 
                 if (!string.IsNullOrEmpty(transactionConnectionString))
                 {
-                    using (var sqlConn = new SqlConnection(transactionConnectionString))
+                    try
                     {
-                        await sqlConn.OpenAsync();
-
-                        using (var sqlCmd = new SqlCommand("sc_save_product_price_band_list", sqlConn))
-                        {
-                            sqlCmd.CommandType = CommandType.StoredProcedure;
-                            sqlCmd.Parameters.Add("@PriceBandListXml", SqlDbType.Xml).Value = xmlDoc.InnerXml;
-
-                            try
-                            {
-                                await sqlCmd.ExecuteNonQueryAsync();
-
-                                Logger.Info($"Successfully updated price band details: customer id: {organisationGuid}, tracking id: {trackingId}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Error($"Price band update failed: customer id: {organisationGuid}, tracking id: {trackingId}", ex);
-                                return MessageHandlerResult.Fatal;
-                            }
-                        }
+                        SaveDataToDb(transactionConnectionString, xmlDoc);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"Price band update failed: customer id: {organisationGuid}, tracking id: {trackingId}", ex);
+                        return MessageHandlerResult.Fatal;
                     }
                 }
-
                 return MessageHandlerResult.Success;
             }
             catch (Exception ex)
             {
                 Logger.Error($"Failed to handle the event \"{priceBandUpdated.GetType().Name}\" [Customer Guid: {organisationGuid}].", ex);
                 return MessageHandlerResult.Retry;
+            }
+        }
+
+        private async void SaveDataToDb(string transactionConnectionString, XmlDocument xmlDoc)
+        {
+            using (var sqlConn = new SqlConnection(transactionConnectionString))
+            {
+                await sqlConn.OpenAsync();
+
+                using (var sqlCmd = new SqlCommand("sc_save_product_price_band_list", sqlConn))
+                {
+                    sqlCmd.CommandType = CommandType.StoredProcedure;
+                    sqlCmd.Parameters.Add("@PriceBandListXml", SqlDbType.Xml).Value = xmlDoc.InnerXml;
+
+                    await sqlCmd.ExecuteNonQueryAsync();
+
+                    Logger.Info($"Successfully updated price band details: customer id: {organisationGuid}, tracking id: {trackingId}");
+                }
             }
         }
 
