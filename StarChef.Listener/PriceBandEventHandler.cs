@@ -46,16 +46,12 @@ namespace StarChef.Listener
                     return MessageHandlerResult.Fatal;
                 }
 
-                var xmlString = GetXmlString(priceBandUpdated);
-
-                if (string.IsNullOrEmpty(xmlString))
+                var xmlDoc = GetXmlDoc(priceBandUpdated);
+                if (xmlDoc == null)
                 {
                     Logger.Info($"There is no valid price band to process for the message, tracking id: {trackingId}, for customer {organisationGuid}");
                     return MessageHandlerResult.Success;
                 }
-
-                var xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml($"<PriceBandList>{xmlString}</PriceBandList>");
 
                 if (!string.IsNullOrEmpty(transactionConnectionString))
                 {
@@ -92,7 +88,7 @@ namespace StarChef.Listener
             }
         }
 
-        private static string GetXmlString(Events.PriceBandUpdated priceBandUpdated)
+        private static XmlDocument GetXmlDoc(Events.PriceBandUpdated priceBandUpdated)
         {
             var xmlString = new StringBuilder();
 
@@ -103,7 +99,15 @@ namespace StarChef.Listener
 
                 xmlString.Append($"<PriceBand><ProductGuid>{priceBand.Id}</ProductGuid><MinPrice>{priceBand.MinimumPrice}</MinPrice><MaxPrice>{priceBand.MaximumPrice}</MaxPrice></PriceBand>");
             }
-            return xmlString.ToString();
+
+            if (xmlString.Length > 0)
+            {
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml($"<PriceBandList>{xmlString}</PriceBandList>");
+                return xmlDoc;
+            }
+
+            return null;
         }
 
         private async Task<string> GetCustomerDbConnectionString(Guid organisationGuid)
