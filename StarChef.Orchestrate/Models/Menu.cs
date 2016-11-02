@@ -23,7 +23,7 @@
 
             var dbManager = new DatabaseManager();
             var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
-                                    "sc_event_group",
+                                    "sc_event_menu",
                                     new SqlParameter("@entity_id", Id));
 
             if (reader.Read())
@@ -32,7 +32,7 @@
                 .SetCustomerName(cust.Name)
                 .SetExternalId(reader[1].ToString())
                 .SetMenuName(reader[2].ToString())
-                .SetMenuType((int)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET)
+                .SetMenuType((byte)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET)
                 .SetSource(Events.SourceSystem.STARCHEF)
                 .SetSequenceNumber(rand.Next(1, int.MaxValue));
             }
