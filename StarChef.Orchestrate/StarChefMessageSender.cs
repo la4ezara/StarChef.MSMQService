@@ -78,6 +78,10 @@ namespace StarChef.Orchestrate
                                 logged = true;
                             }
                             break;
+                        case EnumHelper.EntityTypeWrapper.Menu:
+                            var meuEventPayload = EventFactory.UpdateMenuEvent(dbConnectionString, entityId, databaseId);
+                            result = bus.Publish(meuEventPayload);
+                            break;
                     }
                 }
 

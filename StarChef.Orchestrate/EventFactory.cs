@@ -10,8 +10,6 @@ namespace StarChef.Orchestrate
     {
         public static Events.RecipeUpdated CreateRecipeEvent()
         {
-            var rand = new Random();
-
             // Create a builder for the event
             var builder = Events.RecipeUpdated.CreateBuilder();
 
@@ -28,7 +26,6 @@ namespace StarChef.Orchestrate
             
             var builder = mp.Build(cust, dbConnectionString);
 
-                       
             // Build the immutable data object
             var eventObj = builder.Build();
 
@@ -39,9 +36,6 @@ namespace StarChef.Orchestrate
         {
             Customer cust = new Customer(databaseId);
             Group g = new Group(entityId);
-
-            var rand = new Random();
-
 
             var builder = g.Build(cust, dbConnectionString);
             
@@ -83,6 +77,18 @@ namespace StarChef.Orchestrate
 
                 yield return eventObj;
             }
+        }
+
+        public static Events.MenuUpdated UpdateMenuEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            Customer cust = new Customer(databaseId);
+            Menu menu = new Menu(entityId);
+            var builder = menu.Build(cust, dbConnectionString);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
         }
     }
 }
