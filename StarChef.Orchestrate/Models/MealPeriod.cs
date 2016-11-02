@@ -33,6 +33,7 @@ namespace StarChef.Orchestrate.Models
                 .SetExternalId(reader[1].ToString())
                 .SetMealPeriodName(reader[2].ToString())
                 .SetSource(Events.SourceSystem.STARCHEF)
+                .SetChangeType(Events.ChangeType.UPDATE)
                 .SetSequenceNumber(rand.Next(1, int.MaxValue));
             }
             return builder;

@@ -2,6 +2,7 @@
 using System;
 using Fourth.Orchestration.Model.Examples;
 using Events = Fourth.Orchestration.Model.Menus.Events;
+using System.Collections.Generic;
 
 namespace StarChef.Orchestrate
 {
@@ -61,6 +62,27 @@ namespace StarChef.Orchestrate
             var eventObj = builder.Build();
 
             return eventObj;
+        }
+
+        public static IEnumerable<Events.UserUpdated> CreateUserGroupEvent(
+            string dbConnectionString, 
+            int entityId, 
+            int databaseId
+            )
+        {
+            Customer cust = new Customer(databaseId);
+
+            var userGroup = new UserGroup(entityId);
+
+            foreach(var user in userGroup.GetUsersInGroup(dbConnectionString))
+            {
+                var builder = user.Build(cust, dbConnectionString);
+
+                // Build the immutable data object
+                var eventObj = builder.Build();
+
+                yield return eventObj;
+            }
         }
     }
 }
