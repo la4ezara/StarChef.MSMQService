@@ -38,6 +38,8 @@ namespace StarChef.Orchestrate
         {
             var result = false;
 
+            var logged = false;
+
             try
             {
                 using (IMessageBus bus = _messagingFactory.CreateMessageBus())
@@ -57,19 +59,40 @@ namespace StarChef.Orchestrate
                             var groupEventPayload = EventFactory.CreateGroupEvent(dbConnectionString, entityId, databaseId);
                             result = bus.Publish(groupEventPayload);
                             break;
+                        case EnumHelper.EntityTypeWrapper.User:
+                            var userEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
+                            var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
+                            result = bus.Publish(userEventPayload);
+                            result = bus.Publish(userCommandCreateAccount);
+                            break;
+                        case EnumHelper.EntityTypeWrapper.UserGroup:
+                            var userGroupEventPayload = EventFactory.CreateUserGroupEvent(dbConnectionString, entityId, databaseId);
+                            foreach(var user in userGroupEventPayload)
+                            {
+                                result = bus.Publish(user);
+                                LogDatabase(dbConnectionString,
+                                                        entityTypeId,
+                                                        entityId,
+                                                        messageArrivedTime,
+                                                        result);
+                                logged = true;
+                            }
+                            break;
                         case EnumHelper.EntityTypeWrapper.Menu:
                             var meuEventPayload = EventFactory.CreateGroupEvent(dbConnectionString, entityId, databaseId);
                             result = bus.Publish(meuEventPayload);
                             break;
-
                     }
-                    
                 }
-                LogDatabase(dbConnectionString,
+
+                if(!logged)
+                {
+                    LogDatabase(dbConnectionString,
                                         entityTypeId,
                                         entityId,
                                         messageArrivedTime,
                                         result);
+                }
             }
             catch(Exception ex)
             {

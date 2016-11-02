@@ -375,6 +375,11 @@ namespace StarChef.MSMQService
                     entityId = msg.ProductID;
                     entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
                     break;
+                case (int)Constants.EntityType.UserGroup:
+                    entityTypeId = (int)Constants.EntityType.UserGroup;
+                    entityId = msg.ProductID;
+                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserGroup;
+                    break;
                 case (int) Constants.EntityType.Ingredient:
                     entityTypeId = (int) Constants.EntityType.Ingredient;
                     entityId = msg.ProductID;
