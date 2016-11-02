@@ -52,24 +52,24 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Fourth.Orchestration, Version=1.1.43.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.43\lib\net45\Fourth.Orchestration.dll</HintPath>
+    <Reference Include="Fourth.Orchestration, Version=1.1.44.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.44\lib\net45\Fourth.Orchestration.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.43.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.43\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.44.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.44\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.43.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.43\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.44.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.44\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Model, Version=1.1.43.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.Model.1.1.43\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Model, Version=1.1.44.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.Model.1.1.44\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.43.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.43\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.44.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.44\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Google.ProtocolBuffers">
@@ -172,7 +172,9 @@
     </None>
     <Content Include="Install\install.bat" />
     <Content Include="Install\uninstall.bat" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="WindowsServiceCredentials.config">

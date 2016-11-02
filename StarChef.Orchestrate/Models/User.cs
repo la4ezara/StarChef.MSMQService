@@ -40,6 +40,7 @@ namespace StarChef.Orchestrate.Models
                        .SetCanViewRecipe(int.Parse(reader[8].ToString()) == 1)
                        .SetCanViewMenu(int.Parse(reader[9].ToString()) == 1)
                        .SetSource(Events.SourceSystem.STARCHEF)
+                       .SetChangeType(Events.ChangeType.UPDATE)
                        .SetSequenceNumber(rand.Next(1, int.MaxValue));
             }
 
