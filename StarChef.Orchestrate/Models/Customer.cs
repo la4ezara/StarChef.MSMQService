@@ -41,7 +41,7 @@ namespace StarChef.Orchestrate.Models
                 UserExternalLoginId = reader[1].ToString();
             }
 
-            return ExternalId;
+            return UserExternalLoginId;
         }
     }
 }
