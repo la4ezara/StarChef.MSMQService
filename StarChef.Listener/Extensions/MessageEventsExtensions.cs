@@ -2,10 +2,15 @@
 using System.Xml;
 using Fourth.Orchestration.Model.Recipes;
 
-namespace StarChef.Listener.Types
+namespace StarChef.Listener.Extensions
 {
     public static class MessageEventsExtensions
     {
+        /// <summary>
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="XmlException">There is a load or parse error in the XML. In this case, the document remains empty. </exception>
         public static XmlDocument ToXml(this Events.PriceBandUpdated data)
         {
             var xmlString = new StringBuilder();
