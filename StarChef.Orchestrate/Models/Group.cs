@@ -37,6 +37,7 @@ namespace StarChef.Orchestrate.Models
                 .SetCurrencyIso4217Code(reader[5].ToString())
                 .SetLanguageIso6391Code(reader[6].ToString())
                 .SetSource(Events.SourceSystem.STARCHEF)
+                .SetChangeType(Events.ChangeType.UPDATE)
                 .SetSequenceNumber(rand.Next(1, int.MaxValue));
 
             }

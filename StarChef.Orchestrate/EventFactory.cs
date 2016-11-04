@@ -2,6 +2,7 @@
 using System;
 using Fourth.Orchestration.Model.Examples;
 using Events = Fourth.Orchestration.Model.Menus.Events;
+using System.Collections.Generic;
 
 namespace StarChef.Orchestrate
 {
@@ -9,8 +10,6 @@ namespace StarChef.Orchestrate
     {
         public static Events.RecipeUpdated CreateRecipeEvent()
         {
-            var rand = new Random();
-
             // Create a builder for the event
             var builder = Events.RecipeUpdated.CreateBuilder();
 
@@ -27,7 +26,6 @@ namespace StarChef.Orchestrate
             
             var builder = mp.Build(cust, dbConnectionString);
 
-                       
             // Build the immutable data object
             var eventObj = builder.Build();
 
@@ -38,9 +36,6 @@ namespace StarChef.Orchestrate
         {
             Customer cust = new Customer(databaseId);
             Group g = new Group(entityId);
-
-            var rand = new Random();
-
 
             var builder = g.Build(cust, dbConnectionString);
             
@@ -56,6 +51,39 @@ namespace StarChef.Orchestrate
             User u = new User(entityId);
             
             var builder = u.Build(cust, dbConnectionString);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+        }
+
+        public static IEnumerable<Events.UserUpdated> CreateUserGroupEvent(
+            string dbConnectionString, 
+            int entityId, 
+            int databaseId
+            )
+        {
+            Customer cust = new Customer(databaseId);
+
+            var userGroup = new UserGroup(entityId);
+
+            foreach(var user in userGroup.GetUsersInGroup(dbConnectionString))
+            {
+                var builder = user.Build(cust, dbConnectionString);
+
+                // Build the immutable data object
+                var eventObj = builder.Build();
+
+                yield return eventObj;
+            }
+        }
+
+        public static Events.MenuUpdated UpdateMenuEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            Customer cust = new Customer(databaseId);
+            Menu menu = new Menu(entityId);
+            var builder = menu.Build(cust, dbConnectionString);
 
             // Build the immutable data object
             var eventObj = builder.Build();
