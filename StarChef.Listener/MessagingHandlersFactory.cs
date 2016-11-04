@@ -11,16 +11,6 @@ using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpda
 
 namespace StarChef.Listener
 {
-    interface IMessagingHandlersFactory
-    {
-        /// <summary>
-        /// Create a handler for message of the given type
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <exception cref="NotSupportedMessageException">Raised when message type is not supported</exception>
-        /// <returns></returns>
-        IMessageHandler CreateHandler<T>();
-    }
     class MessagingHandlersFactory : IMessagingHandlersFactory
     {
         /// <exception cref="NotSupportedMessageException">Raised when message type is not supported</exception>

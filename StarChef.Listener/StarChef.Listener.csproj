@@ -173,6 +173,7 @@
     <Compile Include="Commands\Impl\DatabaseCommands.cs" />
     <Compile Include="Commands\ICustomerDbCommands.cs" />
     <Compile Include="Handlers\ListenerEventHandler.cs" />
+    <Compile Include="IMessagingHandlersFactory.cs" />
     <Compile Include="MessageBusController.cs" />
     <Compile Include="Extensions\MessageEventsExtensions.cs" />
     <Compile Include="Handlers\PriceBandEventHandler.cs" />
