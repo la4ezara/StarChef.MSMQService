@@ -132,7 +132,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\AzureListenersSectionTests.cs" />
     <Compile Include="Configuration\Handlers\FirstHandlerType.cs" />
     <Compile Include="Configuration\Handlers\SecondHandlerType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

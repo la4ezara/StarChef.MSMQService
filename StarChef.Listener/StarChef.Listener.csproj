@@ -158,15 +158,13 @@
     <Compile Include="Commands\Impl\AccountUpdatedCommands.cs" />
     <Compile Include="Commands\Impl\AccountUpdateFailedCommands.cs" />
     <Compile Include="Commands\Impl\ConnectionStringProvider.cs" />
-    <Compile Include="Configuration\ListenerElement.cs" />
-    <Compile Include="Configuration\ListenersCollection.cs" />
-    <Compile Include="Configuration\AzureListenersSection.cs" />
     <Compile Include="Exceptions\ConnectionStringNotFoundException.cs" />
     <Compile Include="Exceptions\CustomerDbNotFoundException.cs" />
     <Compile Include="Exceptions\CustomerDbLookupException.cs" />
     <Compile Include="Exceptions\ListenerException.cs" />
     <Compile Include="Exceptions\LoginDbLookupException.cs" />
     <Compile Include="Exceptions\LoginDbNotFoundException.cs" />
+    <Compile Include="Exceptions\NotSupportedMessageException.cs" />
     <Compile Include="Handlers\AccountCreatedEventHandler.cs" />
     <Compile Include="Handlers\AccountCreateFailedEventHandler.cs" />
     <Compile Include="Handlers\AccountUpdatedEventHandler.cs" />
@@ -174,9 +172,11 @@
     <Compile Include="Commands\ILoginDbCommands.cs" />
     <Compile Include="Commands\Impl\DatabaseCommands.cs" />
     <Compile Include="Commands\ICustomerDbCommands.cs" />
+    <Compile Include="Handlers\ListenerEventHandler.cs" />
     <Compile Include="MessageBusController.cs" />
     <Compile Include="Extensions\MessageEventsExtensions.cs" />
     <Compile Include="Handlers\PriceBandEventHandler.cs" />
+    <Compile Include="MessagingHandlersFactory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>

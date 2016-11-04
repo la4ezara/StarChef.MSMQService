@@ -13,19 +13,16 @@ using StarChef.Listener.Extensions;
 
 namespace StarChef.Listener.Handlers
 {
-    public class PriceBandEventHandler : IMessageHandler<Events.PriceBandUpdated>
+    public class PriceBandEventHandler : ListenerEventHandler, IMessageHandler<Events.PriceBandUpdated>
     {
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly ICustomerDbCommands _customerDb;
 
-        public PriceBandEventHandler() 
+        public PriceBandEventHandler()
         {
-            _customerDb = new PriceBandCommands(new ConnectionStringProvider());
         }
 
-        public PriceBandEventHandler(ICustomerDbCommands customerDb)
+        public PriceBandEventHandler(IDatabaseCommands customerDb) : base(customerDb)
         {
-            _customerDb = customerDb;
         }
 
         public async Task<MessageHandlerResult> HandleAsync(Events.PriceBandUpdated priceBandUpdated, string trackingId)
@@ -58,7 +55,7 @@ namespace StarChef.Listener.Handlers
                     Logger.Info(string.Format("There is no valid price band to process for the message, tracking id: {0}, for customer {1}", trackingId, organisationGuid));
                     return MessageHandlerResult.Success;
                 }
-                await _customerDb.SaveData(organisationGuid, xmlDoc);
+                await DbCommands.SaveData(organisationGuid, xmlDoc);
                 Logger.Info(string.Format("Successfully updated price band details: customer id: {0}, tracking id: {1}", organisationGuid, trackingId));
                 return MessageHandlerResult.Success;
             }

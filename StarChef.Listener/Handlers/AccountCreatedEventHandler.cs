@@ -5,11 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Model.People;
+using StarChef.Listener.Commands;
 
 namespace StarChef.Listener.Handlers
 {
-    public class AccountCreatedEventHandler : IMessageHandler<Events.AccountCreated>
+    public class AccountCreatedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountCreated>
     {
+        public AccountCreatedEventHandler()
+        {
+        }
+
+        public AccountCreatedEventHandler(IDatabaseCommands customerDb) : base(customerDb)
+        {
+        }
+
         public Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
         {
             //Q: What subscription is used for new and Modified users?

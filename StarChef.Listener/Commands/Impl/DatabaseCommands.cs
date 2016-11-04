@@ -10,7 +10,7 @@ using StarChef.Listener.Exceptions;
 
 namespace StarChef.Listener.Commands.Impl
 {
-    internal abstract class DatabaseCommands : ICustomerDbCommands
+    internal abstract class DatabaseCommands : IDatabaseCommands
     {
         private readonly IConnectionStringProvider _csProvider;
 

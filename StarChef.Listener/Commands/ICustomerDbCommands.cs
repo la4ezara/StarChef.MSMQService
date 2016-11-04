@@ -5,7 +5,7 @@ using StarChef.Listener.Exceptions;
 
 namespace StarChef.Listener.Commands
 {
-    public interface ICustomerDbCommands
+    public interface IDatabaseCommands
     {
         /// <summary>
         /// Save data to organization database
