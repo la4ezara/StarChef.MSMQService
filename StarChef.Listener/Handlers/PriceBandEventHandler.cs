@@ -15,7 +15,7 @@ namespace StarChef.Listener.Handlers
 {
     public class PriceBandEventHandler : ListenerEventHandler, IMessageHandler<Events.PriceBandUpdated>
     {
-        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public PriceBandEventHandler()
         {
@@ -31,13 +31,13 @@ namespace StarChef.Listener.Handlers
 
             if (!priceBandUpdated.HasCustomerId)
             {
-                Logger.Error(string.Format("Price Band message, with tracking id {0}, received with no customer Id", trackingId));
+                _logger.Error(string.Format("Price Band message, with tracking id {0}, received with no customer Id", trackingId));
                 return MessageHandlerResult.Fatal;
             }
 
             if (priceBandUpdated.PriceBandsCount == 0)
             {
-                Logger.Error(string.Format("Price Band message, with tracking id: {0}, received for customer: {1}", trackingId, priceBandUpdated.CustomerId));
+                _logger.Error(string.Format("Price Band message, with tracking id: {0}, received for customer: {1}", trackingId, priceBandUpdated.CustomerId));
                 return MessageHandlerResult.Fatal;
             }
 
@@ -47,16 +47,16 @@ namespace StarChef.Listener.Handlers
 
             try
             {
-                Logger.Info("Start message processing");
+                _logger.Info("Start message processing");
 
                 var xmlDoc = priceBandUpdated.ToXml();
                 if (xmlDoc == null)
                 {
-                    Logger.Info(string.Format("There is no valid price band to process for the message, tracking id: {0}, for customer {1}", trackingId, organisationGuid));
+                    _logger.Info(string.Format("There is no valid price band to process for the message, tracking id: {0}, for customer {1}", trackingId, organisationGuid));
                     return MessageHandlerResult.Success;
                 }
                 await DbCommands.SaveData(organisationGuid, xmlDoc);
-                Logger.Info(string.Format("Successfully updated price band details: customer id: {0}, tracking id: {1}", organisationGuid, trackingId));
+                _logger.Info(string.Format("Successfully updated price band details: customer id: {0}, tracking id: {1}", organisationGuid, trackingId));
                 return MessageHandlerResult.Success;
             }
             catch (CustomerDbNotFoundException) {
@@ -64,17 +64,17 @@ namespace StarChef.Listener.Handlers
             }
             catch (LoginDbNotFoundException ex)
             {
-                Logger.Error("Error getting login database", ex);
+                _logger.Error("Error getting login database", ex);
                 return MessageHandlerResult.Fatal;
             }
             catch (DataNotSavedException ex)
             {
-                Logger.Error(string.Format("Price band update failed: customer id: {0}, tracking id: {1}", organisationGuid, trackingId), ex);
+                _logger.Error(string.Format("Price band update failed: customer id: {0}, tracking id: {1}", organisationGuid, trackingId), ex);
                 return MessageHandlerResult.Fatal;
             }
             catch (Exception ex)
             {
-                Logger.Error(string.Format("Failed to handle the event \"{0}\" [Customer Guid: {1}].", priceBandUpdated.GetType().Name, organisationGuid), ex);
+                _logger.Error(string.Format("Failed to handle the event \"{0}\" [Customer Guid: {1}].", priceBandUpdated.GetType().Name, organisationGuid), ex);
                 return MessageHandlerResult.Retry;
             }
         }

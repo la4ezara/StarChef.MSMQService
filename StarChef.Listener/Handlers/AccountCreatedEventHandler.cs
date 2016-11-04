@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Model.People;
+using log4net;
 using StarChef.Listener.Commands;
 
 namespace StarChef.Listener.Handlers
 {
     public class AccountCreatedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountCreated>
     {
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public AccountCreatedEventHandler()
         {
         }
@@ -21,7 +25,6 @@ namespace StarChef.Listener.Handlers
 
         public Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
         {
-            //Q: What subscription is used for new and Modified users?
             throw new NotImplementedException();
             /*
              * for new user these checks are executed 
