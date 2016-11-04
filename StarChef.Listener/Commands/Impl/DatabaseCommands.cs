@@ -21,6 +21,14 @@ namespace StarChef.Listener.Commands.Impl
 
         protected abstract string SaveStoredProcedureName { get; }
 
+        public virtual Task<object> GetUser(Guid organisationId, int userId)
+        {
+            /*
+            exec sc_admin_get_user_detail @m_userId=430,@getugroupdetail=1
+
+            */
+        }
+
         /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>
         /// <exception cref="CustomerDbNotFoundException">Raised when Customer DB connection string is not found for the given organization ID.</exception>
         /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
