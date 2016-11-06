@@ -21,7 +21,7 @@ namespace StarChef.Listener.Handlers
         {
         }
 
-        public PriceBandEventHandler(IDatabaseCommands customerDb) : base(customerDb)
+        public PriceBandEventHandler(IDatabaseCommands dbCommands) : base(dbCommands)
         {
         }
 

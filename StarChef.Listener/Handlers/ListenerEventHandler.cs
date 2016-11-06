@@ -17,9 +17,9 @@ namespace StarChef.Listener.Handlers
             DbCommands = new PriceBandCommands(new ConnectionStringProvider());
         }
 
-        protected ListenerEventHandler(IDatabaseCommands customerDb)
+        protected ListenerEventHandler(IDatabaseCommands dbCommands)
         {
-            DbCommands = customerDb;
+            DbCommands = dbCommands;
         }
     }
 }

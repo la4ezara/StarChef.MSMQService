@@ -12,7 +12,7 @@ namespace StarChef.Listener.Handlers
         {
         }
 
-        public AccountCreateFailedEventHandler(IDatabaseCommands customerDb) : base(customerDb)
+        public AccountCreateFailedEventHandler(IDatabaseCommands dbCommands) : base(dbCommands)
         {
         }
 

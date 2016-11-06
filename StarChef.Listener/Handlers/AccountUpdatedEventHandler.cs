@@ -12,7 +12,7 @@ namespace StarChef.Listener.Handlers
         {
         }
 
-        public AccountUpdatedEventHandler(IDatabaseCommands customerDb) : base(customerDb)
+        public AccountUpdatedEventHandler(IDatabaseCommands dbCommands) : base(dbCommands)
         {
         }
 
