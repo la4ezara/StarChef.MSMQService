@@ -17,11 +17,7 @@ namespace StarChef.Listener.Handlers
     {
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public PriceBandEventHandler()
-        {
-        }
-
-        public PriceBandEventHandler(IDatabaseCommands dbCommands) : base(dbCommands)
+        public PriceBandEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
         }
 

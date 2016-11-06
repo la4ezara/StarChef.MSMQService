@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 using System.Threading.Tasks;
+using AutoMapper;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Model.People;
 using log4net;
 using StarChef.Listener.Commands;
+using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener.Handlers
 {
@@ -15,23 +13,26 @@ namespace StarChef.Listener.Handlers
     {
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AccountCreatedEventHandler()
+        public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
         }
 
-        public AccountCreatedEventHandler(IDatabaseCommands dbCommands) : base(dbCommands)
+        public async Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
         {
-        }
+            if (Validator.IsStarChefEvent(payload))
+                if (Validator.IsValid(payload))
+                {
+                    var user = Mapper.Map<UserTransferObject>(payload);
+                    await DbCommands.UpdateExternalId(user);
+                    await MessagingLogger.RegisterSuccess(payload, trackingId);
+                    return MessageHandlerResult.Success;
+                }
 
-        public Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
-        {
-            if (payload.Source == Events.SourceSystem.STARCHEF)
-            {
-                var loginId = payload.InternalId;
-            }
-            
+            var errors = Validator.GetErrors();
+            _logger.Error(string.Format("AccountCreated message is received, but cannot be read. Tracking ID: {0}", trackingId));
+            await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
+            return MessageHandlerResult.Fatal;
 
-            throw new NotImplementedException();
             /*
              * for new user these checks are executed 
              * 

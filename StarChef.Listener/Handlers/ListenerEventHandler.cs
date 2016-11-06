@@ -11,15 +11,14 @@ namespace StarChef.Listener.Handlers
     public abstract class ListenerEventHandler
     {
         protected readonly IDatabaseCommands DbCommands;
+        protected IEventValidator Validator;
+        protected IMessagingLogger MessagingLogger;
 
-        protected ListenerEventHandler()
-        {
-            DbCommands = new PriceBandCommands(new ConnectionStringProvider());
-        }
-
-        protected ListenerEventHandler(IDatabaseCommands dbCommands)
+        protected ListenerEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger)
         {
             DbCommands = dbCommands;
+            Validator = validator;
+            MessagingLogger = messagingLogger;
         }
     }
 }

@@ -8,8 +8,9 @@ namespace StarChef.Orchestrate.Models.TransferObjects
 {
     public class UserTransferObject
     {
-        public int? Id { get; set; }
-        public int? OrganizationId { get; set; }
+        public int Id { get; set; }
+        public Guid OrganizationId { get; set; }
+        public string Username { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string EmailAddress { get; set; }

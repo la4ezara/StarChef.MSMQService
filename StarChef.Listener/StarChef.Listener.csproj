@@ -177,6 +177,8 @@
     <Compile Include="Commands\ILoginDbCommands.cs" />
     <Compile Include="Commands\Impl\DatabaseCommands.cs" />
     <Compile Include="Commands\ICustomerDbCommands.cs" />
+    <Compile Include="IEventValidator.cs" />
+    <Compile Include="IMessagingLogger.cs" />
     <Compile Include="Handlers\ListenerEventHandler.cs" />
     <Compile Include="IMessagingHandlersFactory.cs" />
     <Compile Include="MessageBusController.cs" />
@@ -192,6 +194,13 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\Impl\PriceBandCommands.cs" />
+    <Compile Include="Types\AccountCreatedValidator.cs" />
+    <Compile Include="Types\AccountCreateFailedValidator.cs" />
+    <Compile Include="Types\AccountUpdatedValidator.cs" />
+    <Compile Include="Types\AccountUpdateFailedValidator.cs" />
+    <Compile Include="Types\AlwaysTrueEventValidator.cs" />
+    <Compile Include="Types\EventValidator.cs" />
+    <Compile Include="Types\MessagingLogger.cs" />
     <Compile Include="WindowsServiceClass.cs">
       <SubType>Component</SubType>
     </Compile>

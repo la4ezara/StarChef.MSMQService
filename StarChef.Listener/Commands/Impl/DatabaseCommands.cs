@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using log4net;
 using StarChef.Listener.Exceptions;
+using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener.Commands.Impl
 {
@@ -21,13 +22,14 @@ namespace StarChef.Listener.Commands.Impl
 
         protected abstract string SaveStoredProcedureName { get; }
 
-        public virtual Task<object> GetUser(Guid organisationId, int userId)
+        public Task RecordMessagingEvent(string trackingId, OperationFailedTransferObject operationFailed)
         {
-            /*
-            exec sc_admin_get_user_detail @m_userId=430,@getugroupdetail=1
+            throw new NotImplementedException();
+        }
 
-            */
-            return Task.FromResult(new object());
+        public Task RecordMessagingEvent(string trackingId, string jsonEvent, bool isSuccessful, string details = null)
+        {
+            throw new NotImplementedException();
         }
 
         /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>
@@ -73,6 +75,16 @@ namespace StarChef.Listener.Commands.Impl
             }
             if (exception != null)
                 throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
+        }
+
+        public Task UpdateExternalId(UserTransferObject user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateUser(UserTransferObject user)
+        {
+            throw new NotImplementedException();
         }
     }
 }
