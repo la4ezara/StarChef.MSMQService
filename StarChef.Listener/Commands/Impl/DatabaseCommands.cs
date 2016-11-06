@@ -11,16 +11,14 @@ using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener.Commands.Impl
 {
-    internal abstract class DatabaseCommands : IDatabaseCommands
+    internal class DatabaseCommands : IDatabaseCommands
     {
         private readonly IConnectionStringProvider _csProvider;
 
-        protected DatabaseCommands(IConnectionStringProvider csProvider)
+        public DatabaseCommands(IConnectionStringProvider csProvider)
         {
             _csProvider = csProvider;
         }
-
-        protected abstract string SaveStoredProcedureName { get; }
 
         public Task RecordMessagingEvent(string trackingId, OperationFailedTransferObject operationFailed)
         {
@@ -35,7 +33,7 @@ namespace StarChef.Listener.Commands.Impl
         /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>
         /// <exception cref="CustomerDbNotFoundException">Raised when Customer DB connection string is not found for the given organization ID.</exception>
         /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
-        public async Task SaveData(Guid organisationId, XmlDocument xmlDoc)
+        public async Task SavePriceBandData(Guid organisationId, XmlDocument xmlDoc)
         {
             Exception exception = null;
             try
@@ -52,7 +50,7 @@ namespace StarChef.Listener.Commands.Impl
                 {
                     await sqlConn.OpenAsync();
 
-                    using (var sqlCmd = new SqlCommand(SaveStoredProcedureName, sqlConn))
+                    using (var sqlCmd = new SqlCommand("sc_save_product_price_band_list", sqlConn))
                     {
                         sqlCmd.CommandType = CommandType.StoredProcedure;
                         sqlCmd.Parameters.Add("@DataXml", SqlDbType.Xml).Value = xmlDoc.InnerXml;

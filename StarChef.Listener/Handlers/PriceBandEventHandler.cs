@@ -51,7 +51,7 @@ namespace StarChef.Listener.Handlers
                     _logger.Info(string.Format("There is no valid price band to process for the message, tracking id: {0}, for customer {1}", trackingId, organisationGuid));
                     return MessageHandlerResult.Success;
                 }
-                await DbCommands.SaveData(organisationGuid, xmlDoc);
+                await DbCommands.SavePriceBandData(organisationGuid, xmlDoc);
                 _logger.Info(string.Format("Successfully updated price band details: customer id: {0}, tracking id: {1}", organisationGuid, trackingId));
                 return MessageHandlerResult.Success;
             }

@@ -17,10 +17,10 @@ namespace StarChef.Listener
         public IMessageHandler CreateHandler<T>()
         {
             var csProvider = new ConnectionStringProvider();
+            var dbCommands = new DatabaseCommands(csProvider);
 
             if (typeof(T) == typeof(PriceBandUpdated))
             {
-                var dbCommands = new PriceBandCommands(csProvider);
                 var validator = new AlwaysTrueEventValidator();
                 var messagingLogger = new MessagingLogger(dbCommands);
                 return new PriceBandEventHandler(dbCommands, validator, messagingLogger);
@@ -28,7 +28,6 @@ namespace StarChef.Listener
 
             if (typeof(T) == typeof(AccountCreated))
             {
-                var dbCommands = new AccountCreatedCommands(csProvider);
                 var validator = new AccountCreatedValidator();
                 var messagingLogger = new MessagingLogger(dbCommands);
                 return new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
@@ -36,7 +35,6 @@ namespace StarChef.Listener
 
             if (typeof(T) == typeof(AccountCreateFailed))
             {
-                var dbCommands = new AccountCreateFailedCommands(csProvider);
                 var validator = new AccountCreateFailedValidator();
                 var messagingLogger = new MessagingLogger(dbCommands);
                 return new AccountCreateFailedEventHandler(dbCommands, validator, messagingLogger);
@@ -44,7 +42,6 @@ namespace StarChef.Listener
 
             if (typeof(T) == typeof(AccountUpdated))
             {
-                var dbCommands = new AccountUpdatedCommands(csProvider);
                 var validator = new AccountUpdatedValidator();
                 var messagingLogger = new MessagingLogger(dbCommands);
                 return new AccountUpdatedEventHandler(dbCommands, validator, messagingLogger);
@@ -52,7 +49,6 @@ namespace StarChef.Listener
 
             if (typeof(T) == typeof(AccountUpdateFailed))
             {
-                var dbCommands = new AccountUpdateFailedCommands(csProvider);
                 var validator = new AccountUpdateFailedValidator();
                 var messagingLogger = new MessagingLogger(dbCommands);
                 return new AccountUpdateFailedEventHandler(dbCommands, validator, messagingLogger);

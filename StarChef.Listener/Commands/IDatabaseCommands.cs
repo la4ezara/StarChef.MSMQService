@@ -16,7 +16,7 @@ namespace StarChef.Listener.Commands
         /// <exception cref="LoginDbNotFoundException">When connection string is not found Login Db</exception>
         /// <exception cref="CustomerDbNotFoundException">When connection string is not found for the given organization Id</exception>
         /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
-        Task SaveData(Guid organisationId, XmlDocument xmlDoc);
+        Task SavePriceBandData(Guid organisationId, XmlDocument xmlDoc);
 
         /// <summary>
         ///     Update some fields of user data
