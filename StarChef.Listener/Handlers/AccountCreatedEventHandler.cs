@@ -25,13 +25,15 @@ namespace StarChef.Listener.Handlers
                     var user = Mapper.Map<UserTransferObject>(payload);
                     await DbCommands.UpdateExternalId(user);
                     await MessagingLogger.RegisterSuccess(payload, trackingId);
-                    return MessageHandlerResult.Success;
                 }
-
-            var errors = Validator.GetErrors();
-            _logger.Error(string.Format("AccountCreated message is received, but cannot be read. Tracking ID: {0}", trackingId));
-            await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
-            return MessageHandlerResult.Fatal;
+                else
+                {
+                    var errors = Validator.GetErrors();
+                    _logger.Error(string.Format("AccountCreated message is received, but cannot be read. Tracking ID: {0}", trackingId));
+                    await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
+                    return MessageHandlerResult.Fatal;
+                }
+            return MessageHandlerResult.Success;
 
             /*
              * for new user these checks are executed 

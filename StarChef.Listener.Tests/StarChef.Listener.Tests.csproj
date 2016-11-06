@@ -137,12 +137,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigObjectMappingTests.cs" />
+    <Compile Include="Handlers\AccountCreatedEventHandlerTests.cs" />
     <Compile Include="MessagingHandlersFactoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Types\AccountUpdateFailedValidatorTests.cs" />
     <Compile Include="Types\AccountUpdatedValidatorTests.cs" />
     <Compile Include="Types\AccountCreateFailedValidatorTests.cs" />
     <Compile Include="Types\AccountCreatedValidatorTests.cs" />
+    <Compile Include="Types\EventValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
