@@ -25,6 +25,12 @@ namespace StarChef.Listener.Handlers
 
         public Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
         {
+            if (payload.Source == Events.SourceSystem.STARCHEF)
+            {
+                var loginId = payload.InternalId;
+            }
+            
+
             throw new NotImplementedException();
             /*
              * for new user these checks are executed 

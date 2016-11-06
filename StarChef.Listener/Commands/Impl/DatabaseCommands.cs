@@ -27,6 +27,7 @@ namespace StarChef.Listener.Commands.Impl
             exec sc_admin_get_user_detail @m_userId=430,@getugroupdetail=1
 
             */
+            return Task.FromResult(new object());
         }
 
         /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>

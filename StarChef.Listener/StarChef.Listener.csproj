@@ -52,6 +52,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutoMapper, Version=5.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.5.1.1\lib\net45\AutoMapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Fourth.Orchestration, Version=1.1.44.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Fourth.Orchestration.1.1.44\lib\net45\Fourth.Orchestration.dll</HintPath>
       <Private>True</Private>
@@ -158,6 +162,7 @@
     <Compile Include="Commands\Impl\AccountUpdatedCommands.cs" />
     <Compile Include="Commands\Impl\AccountUpdateFailedCommands.cs" />
     <Compile Include="Commands\Impl\ConnectionStringProvider.cs" />
+    <Compile Include="ConfigObjectMapping.cs" />
     <Compile Include="Exceptions\ConnectionStringNotFoundException.cs" />
     <Compile Include="Exceptions\CustomerDbNotFoundException.cs" />
     <Compile Include="Exceptions\CustomerDbLookupException.cs" />
@@ -236,7 +241,12 @@
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\StarChef.Orchestrate\StarChef.Orchestrate.csproj">
+      <Project>{89ef0b30-23af-4f8c-a073-7924d2b51167}</Project>
+      <Name>StarChef.Orchestrate</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -35,6 +35,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutoMapper, Version=5.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.5.1.1\lib\net45\AutoMapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Fourth.Orchestration, Version=1.1.43.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Fourth.Orchestration.1.1.43\lib\net45\Fourth.Orchestration.dll</HintPath>
       <Private>True</Private>
@@ -132,6 +136,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConfigObjectMappingTests.cs" />
     <Compile Include="MessagingHandlersFactoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
