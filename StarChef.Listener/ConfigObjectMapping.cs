@@ -31,7 +31,11 @@ namespace StarChef.Listener
                 c.CreateMap<AccountCreateFailed, OperationFailedTransferObject>()
                             .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.InternalId))
                             .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
-                            .ForMember(dest => dest.Description, o => o.MapFrom(src => src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]")))
+                            .ForMember(dest => dest.Description, o =>
+                            {
+                                o.Condition(src => src.DetailsCount > 0);
+                                o.MapFrom(src => src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]"));
+                            })
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 
@@ -49,7 +53,11 @@ namespace StarChef.Listener
                 c.CreateMap<AccountUpdateFailed, OperationFailedTransferObject>()
                             .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.ExternalId)) // todo is correct field?
                             .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
-                            .ForMember(dest => dest.Description, o => o.MapFrom(src => src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]")))
+                            .ForMember(dest => dest.Description, o =>
+                            {
+                                o.Condition(src => src.DetailsCount > 0);
+                                o.MapFrom(src => src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]"));
+                            })
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
             });

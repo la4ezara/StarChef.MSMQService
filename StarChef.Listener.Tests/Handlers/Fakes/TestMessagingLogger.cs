@@ -12,9 +12,11 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
         public bool IsInvalidModelRegistered { get; private set; } = false;
         public bool IsCalledAnyMethod { get; private set; } = false;
         public bool IsSuccessfulOperationRegistered { get; private set; } = false;
+        public bool IsFailedMessageRegistered { get; private set; } = false;
         public Task RegisterFailedMessage(OperationFailedTransferObject operationFailed, string trackingId)
         {
-            IsCalledAnyMethod = true;
+            IsFailedMessageRegistered =
+                IsCalledAnyMethod = true;
             return Task.CompletedTask;
         }
 

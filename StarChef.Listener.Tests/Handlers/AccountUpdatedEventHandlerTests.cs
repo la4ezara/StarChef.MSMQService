@@ -67,7 +67,7 @@ namespace StarChef.Listener.Tests.Handlers
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
             Assert.False(dbCommands.IsCalledAnyMethod);
-            Assert.False(messagingLogger.IsSuccessfulOperationRegistered);
+            Assert.False(messagingLogger.IsCalledAnyMethod);
         }
 
         [Fact]

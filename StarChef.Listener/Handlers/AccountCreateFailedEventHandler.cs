@@ -24,13 +24,15 @@ namespace StarChef.Listener.Handlers
                 {
                     var operationFailed = Mapper.Map<OperationFailedTransferObject>(payload);
                     await MessagingLogger.RegisterFailedMessage(operationFailed, trackingId);
-                    return MessageHandlerResult.Success;
                 }
-
-            var errors = Validator.GetErrors();
-            _logger.Error(string.Format("AccountCreateFailed message is received, but cannot be read. Tracking ID: {0}", trackingId));
-            await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
-            return MessageHandlerResult.Fatal;
+                else
+                {
+                    var errors = Validator.GetErrors();
+                    _logger.Error(string.Format("AccountCreateFailed message is received, but cannot be read. Tracking ID: {0}", trackingId));
+                    await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
+                    return MessageHandlerResult.Fatal;
+                }
+            return MessageHandlerResult.Success;
         }
     }
 }
