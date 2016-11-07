@@ -1,5 +1,4 @@
-﻿
-using System.Linq;
+﻿using System.Linq;
 using System.Management.Instrumentation;
 using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;

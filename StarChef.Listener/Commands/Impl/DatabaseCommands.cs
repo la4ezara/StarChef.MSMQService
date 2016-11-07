@@ -13,6 +13,8 @@ namespace StarChef.Listener.Commands.Impl
 {
     internal class DatabaseCommands : IDatabaseCommands
     {
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly IConnectionStringProvider _csProvider;
 
         public DatabaseCommands(IConnectionStringProvider csProvider)
