@@ -15,6 +15,11 @@ namespace StarChef.Listener.Types
                 SetLastError("InternalId is missing");
                 return false;
             }
+            if (!e.HasExternalId)
+            {
+                SetLastError("ExternalId is missing");
+                return false;
+            }
             if (!e.HasFirstName)
             {
                 SetLastError("FirstName is missing");
@@ -28,11 +33,6 @@ namespace StarChef.Listener.Types
             if (!e.HasEmailAddress)
             {
                 SetLastError("EmailAddress is missing");
-                return false;
-            }
-            if (!e.HasExternalId)
-            {
-                SetLastError("ExternalId is missing");
                 return false;
             }
             return true;

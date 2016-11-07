@@ -8,7 +8,8 @@ namespace StarChef.Orchestrate.Models.TransferObjects
 {
     public class OperationFailedTransferObject
     {
-        public string UserId { get; set; }
+        public int LoginId { get; set; }
+        public string ExtrenalLoginId { get; set; }
         public string ErrorCode { get; set; }
         public string Description { get; set; }
     }

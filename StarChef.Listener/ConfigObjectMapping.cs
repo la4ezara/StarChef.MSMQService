@@ -19,17 +19,17 @@ namespace StarChef.Listener
             {
                 #region AccountCreated => UserTransferObject
                 c.CreateMap<AccountCreated, UserTransferObject>()
-                            .ForMember(dest => dest.Id, o => o.MapFrom(src => int.Parse(src.InternalId)))
+                            .ForMember(dest => dest.LoginId, o => o.MapFrom(src => int.Parse(src.InternalId)))
                             .ForMember(dest => dest.FirstName, o => o.MapFrom(src => src.FirstName))
                             .ForMember(dest => dest.LastName, o => o.MapFrom(src => src.LastName))
                             .ForMember(dest => dest.EmailAddress, o => o.MapFrom(src => src.EmailAddress))
-                            .ForMember(dest => dest.OrganizationId, o => o.MapFrom(src => Guid.Parse(src.ExternalId)))
+                            .ForMember(dest => dest.ExtrenalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 
                 #region AccountCreateFailed => OperationFailedTransferObject
                 c.CreateMap<AccountCreateFailed, OperationFailedTransferObject>()
-                            .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.InternalId))
+                            .ForMember(dest => dest.LoginId, o => o.MapFrom(src => int.Parse(src.InternalId)))
                             .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
                             .ForMember(dest => dest.Description, o =>
                             {
@@ -45,13 +45,13 @@ namespace StarChef.Listener
                             .ForMember(dest => dest.FirstName, o => o.MapFrom(src => src.FirstName))
                             .ForMember(dest => dest.LastName, o => o.MapFrom(src => src.LastName))
                             .ForMember(dest => dest.EmailAddress, o => o.MapFrom(src => src.EmailAddress))
-                            .ForMember(dest => dest.OrganizationId, o => o.MapFrom(src => Guid.Parse(src.ExternalId)))
+                            .ForMember(dest => dest.ExtrenalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 
                 #region AccountUpdateFailed => OperationFailedTransferObject
                 c.CreateMap<AccountUpdateFailed, OperationFailedTransferObject>()
-                            .ForMember(dest => dest.UserId, o => o.MapFrom(src => src.ExternalId)) // todo is correct field?
+                            .ForMember(dest => dest.ExtrenalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
                             .ForMember(dest => dest.Description, o =>
                             {

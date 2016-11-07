@@ -1,4 +1,6 @@
-﻿using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
+﻿using System;
+using System.Collections.Specialized;
+using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 
 namespace StarChef.Listener.Types
 {
@@ -13,6 +15,11 @@ namespace StarChef.Listener.Types
             if (!e.HasUsername)
             {
                 SetLastError("Username is missing");
+                return false;
+            }
+            if (!e.HasExternalId)
+            {
+                SetLastError("ExternalId is missing");
                 return false;
             }
             if (!e.HasFirstName)
@@ -30,9 +37,9 @@ namespace StarChef.Listener.Types
                 SetLastError("EmailAddress is missing");
                 return false;
             }
-            if (!e.HasExternalId)
+            if (!string.Equals(e.Username, e.EmailAddress, StringComparison.InvariantCultureIgnoreCase))
             {
-                SetLastError("ExternalId is missing");
+                SetLastError("Username and EmailAddress are not equal");
                 return false;
             }
             return true;
