@@ -26,11 +26,14 @@ namespace StarChef.Listener.Handlers
                     await MessagingLogger.RegisterFailedMessage(operationFailed, trackingId);
                     return MessageHandlerResult.Success;
                 }
-
-            var errors = Validator.GetErrors();
-            _logger.Error(string.Format("AccountUpdateFailed message is received, but cannot be read. Tracking ID: {0}", trackingId));
-            await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
-            return MessageHandlerResult.Fatal;
+                else
+                {
+                    var errors = Validator.GetErrors();
+                    _logger.Error(string.Format("AccountUpdateFailed message is received, but cannot be read. Tracking ID: {0}", trackingId));
+                    await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
+                    return MessageHandlerResult.Fatal;
+                }
+            return MessageHandlerResult.Success;
         }
     }
 }
