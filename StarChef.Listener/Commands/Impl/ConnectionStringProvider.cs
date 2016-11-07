@@ -15,6 +15,39 @@ namespace StarChef.Listener.Commands.Impl
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <exception cref="CustomerDbLookupException">Error is occurred while getting a customer DB</exception>
+        public async Task<string> GetCustomerDb(int loginId, string connectionStringLoginDb)
+        {
+            using (var sqlConnection = new SqlConnection(connectionStringLoginDb))
+            {
+                Exception exception = null;
+                await sqlConnection.OpenAsync();
+                try
+                {
+                    using (var sqlCmd = new SqlCommand("sc_orchestration_get_database_by_login", sqlConnection))
+                    {
+                        sqlCmd.CommandType = CommandType.StoredProcedure;
+                        sqlCmd.Parameters.AddWithValue("@login_id", loginId);
+                        var rtnVal = sqlCmd.ExecuteScalar();
+                        return rtnVal.ToString();
+                    }
+                }
+                catch (InvalidCastException ex)
+                {
+                    exception = ex;
+                }
+                catch (SqlException ex)
+                {
+                    exception = ex;
+                }
+                catch (IOException ex)
+                {
+                    exception = ex;
+                }
+                throw new CustomerDbLookupException("Error is occurred while getting a customer DB", exception);
+            }
+        }
+
+        /// <exception cref="CustomerDbLookupException">Error is occurred while getting a customer DB</exception>
         public async Task<string> GetCustomerDb(Guid organizationId, string connectionStringLoginDb)
         {
             using (var sqlConnection = new SqlConnection(connectionStringLoginDb))

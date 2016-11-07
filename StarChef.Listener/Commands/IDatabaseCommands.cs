@@ -29,6 +29,8 @@ namespace StarChef.Listener.Commands
         ///     Set user identifier in the external system (such as Fourth Account Service)
         /// </summary>
         /// <param name="user"></param>
+        /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>
+        /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
         /// <returns></returns>
         Task UpdateExternalId(UserTransferObject user);
 

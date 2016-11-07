@@ -77,14 +77,91 @@ namespace StarChef.Listener.Commands.Impl
                 throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
         }
 
-        public Task UpdateExternalId(UserTransferObject user)
+        /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>
+        /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
+        public async Task UpdateExternalId(UserTransferObject user)
         {
-            throw new NotImplementedException();
+            Exception exception = null;
+            try
+            {
+                var loginDbConnectionString = await _csProvider.GetLoginDb();
+                if (string.IsNullOrEmpty(loginDbConnectionString))
+                    throw new LoginDbNotFoundException();
+
+                using (var sqlConn = new SqlConnection(loginDbConnectionString))
+                {
+                    await sqlConn.OpenAsync();
+
+                    using (var sqlCmd = new SqlCommand("sc_orchestration_update_login_external_id", sqlConn))
+                    {
+                        sqlCmd.CommandType = CommandType.StoredProcedure;
+                        sqlCmd.Parameters.AddWithValue("@login_id", user.LoginId);
+                        sqlCmd.Parameters.AddWithValue("@external_login_id", user.ExtrenalLoginId);
+
+                        await sqlCmd.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            catch (LoginDbLookupException ex)
+            {
+                exception = ex;
+            }
+            catch (CustomerDbLookupException ex)
+            {
+                exception = ex;
+            }
+            catch (DbException ex)
+            {
+                exception = ex;
+            }
+            if (exception != null)
+                throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
         }
 
-        public Task UpdateUser(UserTransferObject user)
+        /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>
+        /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
+        public async Task UpdateUser(UserTransferObject user)
         {
-            throw new NotImplementedException();
+            Exception exception = null;
+            try
+            {
+                var loginDbConnectionString = await _csProvider.GetLoginDb();
+                if (string.IsNullOrEmpty(loginDbConnectionString))
+                    throw new LoginDbNotFoundException();
+
+                var connectionString = await _csProvider.GetCustomerDb(user.LoginId, loginDbConnectionString);
+                if (string.IsNullOrEmpty(connectionString))
+                    throw new CustomerDbNotFoundException();
+
+                using (var sqlConn = new SqlConnection(loginDbConnectionString))
+                {
+                    await sqlConn.OpenAsync();
+
+                    using (var sqlCmd = new SqlCommand("sc_orchestration_update_user", sqlConn))
+                    {
+                        sqlCmd.CommandType = CommandType.StoredProcedure;
+                        sqlCmd.Parameters.AddWithValue("@userId", user.ExtrenalLoginId);
+                        sqlCmd.Parameters.AddWithValue("@email", user.EmailAddress);
+                        sqlCmd.Parameters.AddWithValue("@login_name", user.Username);
+                        sqlCmd.Parameters.AddWithValue("@forename", user.FirstName);
+                        sqlCmd.Parameters.AddWithValue("@lastname", user.LastName);
+                        await sqlCmd.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            catch (LoginDbLookupException ex)
+            {
+                exception = ex;
+            }
+            catch (DbException ex)
+            {
+                exception = ex;
+            }
+            catch (CustomerDbLookupException ex) {
+                exception = ex;
+            }
+            if (exception != null)
+                throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
         }
     }
 }
