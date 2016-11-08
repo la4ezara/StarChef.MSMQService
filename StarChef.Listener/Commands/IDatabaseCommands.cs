@@ -13,9 +13,9 @@ namespace StarChef.Listener.Commands
         /// </summary>
         /// <param name="organisationId">Organization Id</param>
         /// <param name="xmlDoc"></param>
-        /// <exception cref="LoginDbNotFoundException">When connection string is not found Login Db</exception>
-        /// <exception cref="CustomerDbNotFoundException">When connection string is not found for the given organization Id</exception>
-        /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
+        /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         Task SavePriceBandData(Guid organisationId, XmlDocument xmlDoc);
 
         /// <summary>
@@ -26,6 +26,10 @@ namespace StarChef.Listener.Commands
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <param name="emailAddress"></param>
+        /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
+        /// <exception cref="ListenerException">Exception in general logic of the listener</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         /// <returns></returns>
         Task UpdateUser(string extrenalLoginId, string username, string firstName, string lastName, string emailAddress);
 
@@ -33,8 +37,8 @@ namespace StarChef.Listener.Commands
         ///     Set user identifier in the external system (such as Fourth Account Service)
         /// </summary>
         /// <param name="user"></param>
-        /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>
-        /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
+        /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         /// <returns></returns>
         Task UpdateExternalId(AccountCreatedTransferObject user);
 
@@ -46,6 +50,8 @@ namespace StarChef.Listener.Commands
         /// <param name="code">Short unique name of the operation. The code may come from external system as well as from the SC itself</param>
         /// <param name="details">Additional details about the event, for examples errors description</param>
         /// <param name="payloadJson">(Optional) JSON representation of event's payload </param>
+        /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         /// <returns></returns>
         Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null);
     }

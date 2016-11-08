@@ -22,70 +22,47 @@ namespace StarChef.Listener.Commands.Impl
             _csProvider = csProvider;
         }
 
+        /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         public async Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null)
         {
-            Exception exception = null;
-            try
-            {
-                var loginDbConnectionString = await _csProvider.GetLoginDb();
-                if (string.IsNullOrEmpty(loginDbConnectionString))
-                    throw new ConnectionStringNotFoundException("Login connection string is not found");
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login connection string is not found");
 
-                await Exec(loginDbConnectionString, "sc_orchestration_record_messaging_event", p =>
-                {
-                    p.AddWithValue("@tracking_id", trackingId);
-                    p.AddWithValue("@is_successful", isSuccessful);
-                    p.AddWithValue("@code", code);
-                    if (!string.IsNullOrEmpty(details))
-                        p.AddWithValue("@description", details);
-                    if (!string.IsNullOrEmpty(payloadJson))
-                        p.AddWithValue("@payload", payloadJson);
-                });
-            }
-            catch (DbException ex)
+            await Exec(loginDbConnectionString, "sc_orchestration_record_messaging_event", p =>
             {
-                exception = ex;
-            }
-            if (exception != null)
-                throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
+                p.AddWithValue("@tracking_id", trackingId);
+                p.AddWithValue("@is_successful", isSuccessful);
+                p.AddWithValue("@code", code);
+                if (!string.IsNullOrEmpty(details))
+                    p.AddWithValue("@description", details);
+                if (!string.IsNullOrEmpty(payloadJson))
+                    p.AddWithValue("@payload", payloadJson);
+            });
         }
 
-        /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
+        /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         public async Task SavePriceBandData(Guid organisationId, XmlDocument xmlDoc)
         {
-            Exception exception = null;
-            try
-            {
-                var loginDbConnectionString = await _csProvider.GetLoginDb();
-                if (string.IsNullOrEmpty(loginDbConnectionString))
-                    throw new ConnectionStringNotFoundException("Login connection string is not found");
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login connection string is not found");
 
-                var connectionString = await _csProvider.GetCustomerDb(organisationId, loginDbConnectionString);
-                if (string.IsNullOrEmpty(connectionString))
-                    throw new ConnectionStringNotFoundException("Customer DB connection string is not found");
+            var connectionString = await _csProvider.GetCustomerDb(organisationId, loginDbConnectionString);
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ConnectionStringNotFoundException("Customer DB connection string is not found");
 
-                await Exec(connectionString, "sc_save_product_price_band_list", p => { p.Add("@DataXml", SqlDbType.Xml).Value = xmlDoc.InnerXml; });
-            }
-            catch (ListenerException ex) {
-                exception = ex;
-            }
-            catch (DbException ex) {
-                exception = ex;
-            }
-            catch (XmlException ex) {
-                exception = ex;
-            }
-            if (exception != null)
-                throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
+            await Exec(connectionString, "sc_save_product_price_band_list", p => { p.Add("@DataXml", SqlDbType.Xml).Value = xmlDoc.InnerXml; });
         }
 
-        /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
+        /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         public async Task UpdateExternalId(AccountCreatedTransferObject user)
         {
-            Exception exception = null;
-            try
-            {
-                var loginDbConnectionString = await _csProvider.GetLoginDb();
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
                 if (string.IsNullOrEmpty(loginDbConnectionString))
                     throw new ConnectionStringNotFoundException("Login DB connection string is not found");
 
@@ -94,65 +71,48 @@ namespace StarChef.Listener.Commands.Impl
                     p.AddWithValue("@login_id", user.LoginId);
                     p.AddWithValue("@external_login_id", user.ExtrenalLoginId);
                 });
-            }
-            catch (ConnectionStringLookupException ex) {
-                exception = ex;
-            }
-            catch (DbException ex) {
-                exception = ex;
-            }
-            if (exception != null)
-                throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
         }
 
-        /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
+        /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
+        /// <exception cref="ListenerException">Exception in general logic of the listener</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         public async Task UpdateUser(string extrenalLoginId, string username, string firstName, string lastName, string emailAddress)
         {
-            Exception exception = null;
-            try
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var ids = await GetLoginUserId(loginDbConnectionString, extrenalLoginId);
+            if (ids == null)
+                throw new ListenerException("Cannot map external account to the StarChef account");
+            var loginId = ids.Item1;
+            var userId = ids.Item2;
+
+            var connectionString = await _csProvider.GetCustomerDb(loginId, loginDbConnectionString);
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
+
+            using (var tran = new TransactionScope())
             {
-                var loginDbConnectionString = await _csProvider.GetLoginDb();
-                if (string.IsNullOrEmpty(loginDbConnectionString))
-                    throw new ConnectionStringNotFoundException("Login DB connection string is not found");
-
-                var ids = await GetLoginUserId(loginDbConnectionString, extrenalLoginId);
-                if (ids == null)
-                    throw new DataNotSavedException("Cannot map external account to the StarChef account");
-                var loginId = ids.Item1;
-                var userId = ids.Item2;
-
-                var connectionString = await _csProvider.GetCustomerDb(loginId, loginDbConnectionString);
-                if (string.IsNullOrEmpty(connectionString))
-                    throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
-
-                using (var tran = new TransactionScope())
+                await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
                 {
-                    await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
-                    {
-                        p.AddWithValue("@loginId", loginId);
-                        p.AddWithValue("@login_name", username);
-                    });
-                    await Exec(connectionString, "sc_orchestration_update_user", p =>
-                    {
-                        p.AddWithValue("@userId", userId);
-                        p.AddWithValue("@email", emailAddress);
-                        p.AddWithValue("@login_name", username);
-                        p.AddWithValue("@forename", firstName);
-                        p.AddWithValue("@lastname", lastName);
-                    });
-                    tran.Complete();
-                }
+                    p.AddWithValue("@loginId", loginId);
+                    p.AddWithValue("@login_name", username);
+                });
+                await Exec(connectionString, "sc_orchestration_update_user", p =>
+                {
+                    p.AddWithValue("@userId", userId);
+                    p.AddWithValue("@email", emailAddress);
+                    p.AddWithValue("@login_name", username);
+                    p.AddWithValue("@forename", firstName);
+                    p.AddWithValue("@lastname", lastName);
+                });
+                tran.Complete();
             }
-            catch (DbException ex) {
-                exception = ex;
-            }
-            catch (ConnectionStringLookupException ex) {
-                exception = ex;
-            }
-            if (exception != null)
-                throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
         }
 
+        /// <exception cref="DatabaseException">Database operation is failed</exception>
         private async Task<Tuple<int, int>> GetLoginUserId(string loginDbConnectionString, string extrenalLoginId)
         {
             var reader = await GetReader(loginDbConnectionString, "sc_orchestration_get_loginuser_id", p => p.AddWithValue("@external_login_id", extrenalLoginId));
@@ -170,33 +130,47 @@ namespace StarChef.Listener.Commands.Impl
             return null;
         }
 
+        /// <exception cref="DatabaseException">Database operation is failed</exception>
         private async Task Exec(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null)
         {
-            using (var sqlConn = new SqlConnection(connectionString))
+            try
             {
-                await sqlConn.OpenAsync();
-
-                using (var sqlCmd = new SqlCommand(spName, sqlConn))
+                using (var sqlConn = new SqlConnection(connectionString))
                 {
-                    sqlCmd.CommandType = CommandType.StoredProcedure;
-                    addParametersAction?.Invoke(sqlCmd.Parameters);
-                    await sqlCmd.ExecuteNonQueryAsync();
+                    await sqlConn.OpenAsync();
+
+                    using (var sqlCmd = new SqlCommand(spName, sqlConn))
+                    {
+                        sqlCmd.CommandType = CommandType.StoredProcedure;
+                        addParametersAction?.Invoke(sqlCmd.Parameters);
+                        await sqlCmd.ExecuteNonQueryAsync();
+                    }
                 }
+            }
+            catch (Exception ex) {
+                throw new DatabaseException(ex);
             }
         }
 
+        /// <exception cref="DatabaseException">Database operation is failed</exception>
         private async Task<SqlDataReader> GetReader(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null)
         {
-            using (var sqlConn = new SqlConnection(connectionString))
+            try
             {
-                await sqlConn.OpenAsync();
-
-                using (var sqlCmd = new SqlCommand(spName, sqlConn))
+                using (var sqlConn = new SqlConnection(connectionString))
                 {
-                    sqlCmd.CommandType = CommandType.StoredProcedure;
-                    addParametersAction?.Invoke(sqlCmd.Parameters);
-                    return await sqlCmd.ExecuteReaderAsync();
+                    await sqlConn.OpenAsync();
+
+                    using (var sqlCmd = new SqlCommand(spName, sqlConn))
+                    {
+                        sqlCmd.CommandType = CommandType.StoredProcedure;
+                        addParametersAction?.Invoke(sqlCmd.Parameters);
+                        return await sqlCmd.ExecuteReaderAsync();
+                    }
                 }
+            }
+            catch (Exception ex) {
+                throw new DatabaseException(ex);
             }
         }
     }

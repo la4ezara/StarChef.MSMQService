@@ -9,7 +9,6 @@ namespace StarChef.Listener.Commands
         /// <summary>
         /// Get connection string Login DB
         /// </summary>
-        /// <exception cref="LoginDbLookupException">Error is occurred while getting a login DB</exception>
         /// <returns></returns>
         Task<string> GetLoginDb();
 
