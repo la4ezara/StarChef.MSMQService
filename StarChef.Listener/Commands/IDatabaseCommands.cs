@@ -21,9 +21,13 @@ namespace StarChef.Listener.Commands
         /// <summary>
         ///     Update some fields of user data
         /// </summary>
-        /// <param name="user"></param>
+        /// <param name="extrenalLoginId"></param>
+        /// <param name="username"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="emailAddress"></param>
         /// <returns></returns>
-        Task UpdateUser(UserTransferObject user);
+        Task UpdateUser(string extrenalLoginId, string username, string firstName, string lastName, string emailAddress);
 
         /// <summary>
         ///     Set user identifier in the external system (such as Fourth Account Service)
@@ -32,24 +36,17 @@ namespace StarChef.Listener.Commands
         /// <exception cref="LoginDbNotFoundException">Raised when Login DB connection string is not found.</exception>
         /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
         /// <returns></returns>
-        Task UpdateExternalId(UserTransferObject user);
+        Task UpdateExternalId(AccountCreatedTransferObject user);
 
         /// <summary>
         ///     Record information about messaging
         /// </summary>
         /// <param name="trackingId">Caught event ID</param>
-        /// <param name="jsonEvent">String representation of event</param>
         /// <param name="isSuccessful">Set True if the message was successfully processed</param>
+        /// <param name="code">Short unique name of the operation. The code may come from external system as well as from the SC itself</param>
         /// <param name="details">Additional details about the event, for examples errors description</param>
+        /// <param name="payloadJson">(Optional) JSON representation of event's payload </param>
         /// <returns></returns>
-        Task RecordMessagingEvent(string trackingId, string jsonEvent, bool isSuccessful, string details = null);
-
-        /// <summary>
-        ///     Record information about message with information about failure in the external system
-        /// </summary>
-        /// <param name="trackingId">Caught event ID</param>
-        /// <param name="operationFailed">Information about failure</param>
-        /// <returns></returns>
-        Task RecordMessagingEvent(string trackingId, OperationFailedTransferObject operationFailed);
+        Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null);
     }
 }

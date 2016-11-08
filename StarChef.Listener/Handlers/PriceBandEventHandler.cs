@@ -55,14 +55,6 @@ namespace StarChef.Listener.Handlers
                 _logger.Info(string.Format("Successfully updated price band details: customer id: {0}, tracking id: {1}", organisationGuid, trackingId));
                 return MessageHandlerResult.Success;
             }
-            catch (CustomerDbNotFoundException) {
-                return MessageHandlerResult.Success;
-            }
-            catch (LoginDbNotFoundException ex)
-            {
-                _logger.Error("Error getting login database", ex);
-                return MessageHandlerResult.Fatal;
-            }
             catch (DataNotSavedException ex)
             {
                 _logger.Error(string.Format("Price band update failed: customer id: {0}, tracking id: {1}", organisationGuid, trackingId), ex);

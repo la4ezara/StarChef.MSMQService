@@ -23,17 +23,17 @@ namespace StarChef.Listener.Handlers
             if (Validator.IsStarChefEvent(payload))
                 if (Validator.IsValid(payload))
                 {
-                    var user = Mapper.Map<UserTransferObject>(payload);
+                    var user = Mapper.Map<AccountUpdatedTransferObject>(payload);
 
-                    await DbCommands.UpdateUser(user);
-                    await MessagingLogger.RegisterSuccess(payload, trackingId);
+                    await DbCommands.UpdateUser(TODO, TODO, TODO, TODO, TODO);
+                    await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                 }
                 else
                 {
 
                     var errors = Validator.GetErrors();
                     _logger.Error(string.Format("AccountUpdated message is received, but cannot be read. Tracking ID: {0}", trackingId));
-                    await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
+                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                     return MessageHandlerResult.Fatal;
                 }
             return MessageHandlerResult.Success;

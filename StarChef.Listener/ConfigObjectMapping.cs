@@ -17,8 +17,8 @@ namespace StarChef.Listener
         {
             Mapper.Initialize(c =>
             {
-                #region AccountCreated => UserTransferObject
-                c.CreateMap<AccountCreated, UserTransferObject>()
+                #region AccountCreated => AccountCreatedTransferObject
+                c.CreateMap<AccountCreated, AccountCreatedTransferObject>()
                             .ForMember(dest => dest.LoginId, o => o.MapFrom(src => int.Parse(src.InternalId)))
                             .ForMember(dest => dest.FirstName, o => o.MapFrom(src => src.FirstName))
                             .ForMember(dest => dest.LastName, o => o.MapFrom(src => src.LastName))
@@ -27,8 +27,8 @@ namespace StarChef.Listener
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 
-                #region AccountCreateFailed => OperationFailedTransferObject
-                c.CreateMap<AccountCreateFailed, OperationFailedTransferObject>()
+                #region AccountCreateFailed => AccountCreateFailedTransferObject
+                c.CreateMap<AccountCreateFailed, AccountCreateFailedTransferObject>()
                             .ForMember(dest => dest.LoginId, o => o.MapFrom(src => int.Parse(src.InternalId)))
                             .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
                             .ForMember(dest => dest.Description, o =>
@@ -39,8 +39,8 @@ namespace StarChef.Listener
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 
-                #region AccountUpdated => UserTransferObject
-                c.CreateMap<AccountUpdated, UserTransferObject>()
+                #region AccountUpdated => AccountUpdatedTransferObject
+                c.CreateMap<AccountUpdated, AccountUpdatedTransferObject>()
                             .ForMember(dest => dest.Username, o => o.MapFrom(src => src.Username))
                             .ForMember(dest => dest.FirstName, o => o.MapFrom(src => src.FirstName))
                             .ForMember(dest => dest.LastName, o => o.MapFrom(src => src.LastName))
@@ -49,8 +49,8 @@ namespace StarChef.Listener
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 
-                #region AccountUpdateFailed => OperationFailedTransferObject
-                c.CreateMap<AccountUpdateFailed, OperationFailedTransferObject>()
+                #region AccountUpdateFailed => AccountUpdateFailedTransferObject
+                c.CreateMap<AccountUpdateFailed, AccountUpdateFailedTransferObject>()
                             .ForMember(dest => dest.ExtrenalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
                             .ForMember(dest => dest.Description, o =>

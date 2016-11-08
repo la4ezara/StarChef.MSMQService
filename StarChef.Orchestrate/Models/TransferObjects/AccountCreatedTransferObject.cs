@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StarChef.Orchestrate.Models.TransferObjects
+﻿namespace StarChef.Orchestrate.Models.TransferObjects
 {
-    public class UserTransferObject
+    public class AccountCreatedTransferObject
     {
         public int LoginId { get; set; }
         public string ExtrenalLoginId { get; set; }

@@ -22,15 +22,15 @@ namespace StarChef.Listener.Handlers
             if (Validator.IsStarChefEvent(payload))
                 if (Validator.IsValid(payload))
                 {
-                    var operationFailed = Mapper.Map<OperationFailedTransferObject>(payload);
-                    await MessagingLogger.RegisterFailedMessage(operationFailed, trackingId);
+                    var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
+                    await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
                     return MessageHandlerResult.Success;
                 }
                 else
                 {
                     var errors = Validator.GetErrors();
                     _logger.Error(string.Format("AccountUpdateFailed message is received, but cannot be read. Tracking ID: {0}", trackingId));
-                    await MessagingLogger.RegisterInvalidModel(errors, payload, trackingId);
+                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                     return MessageHandlerResult.Fatal;
                 }
             return MessageHandlerResult.Success;

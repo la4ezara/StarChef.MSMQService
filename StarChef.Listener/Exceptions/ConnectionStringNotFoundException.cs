@@ -5,5 +5,8 @@
     /// </summary>
     internal class ConnectionStringNotFoundException : ListenerException
     {
+        public ConnectionStringNotFoundException(string message) : base(message)
+        {
+        }
     }
 }

@@ -91,8 +91,11 @@
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\Group.cs" />
     <Compile Include="Models\MealPeriod.cs" />
-    <Compile Include="Models\TransferObjects\OperationFailedTransferObject.cs" />
-    <Compile Include="Models\TransferObjects\UserTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\AccountCreatedTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\AccountCreateFailedTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\AccountUpdatedTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\AccountUpdateFailedTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\FailedTransferObject.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\UserGroup.cs" />
     <Compile Include="Models\Menu.cs" />

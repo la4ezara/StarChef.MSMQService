@@ -14,7 +14,7 @@ namespace StarChef.Listener.Commands.Impl
     {
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <exception cref="CustomerDbLookupException">Error is occurred while getting a customer DB</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         public async Task<string> GetCustomerDb(int loginId, string connectionStringLoginDb)
         {
             using (var sqlConnection = new SqlConnection(connectionStringLoginDb))
@@ -43,11 +43,11 @@ namespace StarChef.Listener.Commands.Impl
                 {
                     exception = ex;
                 }
-                throw new CustomerDbLookupException("Error is occurred while getting a customer DB", exception);
+                throw new ConnectionStringLookupException("Error is occurred while getting a customer DB", exception);
             }
         }
 
-        /// <exception cref="CustomerDbLookupException">Error is occurred while getting a customer DB</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         public async Task<string> GetCustomerDb(Guid organizationId, string connectionStringLoginDb)
         {
             using (var sqlConnection = new SqlConnection(connectionStringLoginDb))
@@ -78,11 +78,11 @@ namespace StarChef.Listener.Commands.Impl
                 catch (IOException ex) {
                     exception = ex;
                 }
-                throw new CustomerDbLookupException("Error is occurred while getting a customer DB", exception);
+                throw new ConnectionStringLookupException("Error is occurred while getting a customer DB", exception);
             }
         }
 
-        /// <exception cref="LoginDbLookupException">Error is occurred while getting a login DB</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a login DB</exception>
         public Task<string> GetLoginDb()
         {
             try
@@ -91,7 +91,7 @@ namespace StarChef.Listener.Commands.Impl
                 return Task.FromResult(connectionString);
             }
             catch (ConfigurationErrorsException ex) {
-                throw new LoginDbLookupException("Error is occurred while getting a login DB", ex);
+                throw new ConnectionStringLookupException("Error is occurred while getting a login DB", ex);
             }
         }
     }

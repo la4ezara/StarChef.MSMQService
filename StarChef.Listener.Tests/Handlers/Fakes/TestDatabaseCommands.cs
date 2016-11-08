@@ -18,7 +18,7 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
             return Task.CompletedTask;
         }
 
-        public Task RecordMessagingEvent(string trackingId, string jsonEvent, bool isSuccessful, string details = null)
+        public Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null)
         {
             IsCalledAnyMethod = true;
             return Task.CompletedTask;
@@ -30,14 +30,14 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
             return Task.CompletedTask;
         }
 
-        public Task UpdateExternalId(UserTransferObject user)
+        public Task UpdateExternalId(AccountCreatedTransferObject user)
         {
             IsExternalIdUpdated =
                 IsCalledAnyMethod = true;
             return Task.CompletedTask;
         }
 
-        public Task UpdateUser(UserTransferObject user)
+        public Task UpdateUser(string extrenalLoginId, string username, string firstName, string lastName, string emailAddress)
         {
             IsUserUpdated =
                 IsCalledAnyMethod = true;

@@ -146,6 +146,7 @@
       <HintPath>..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
@@ -159,12 +160,10 @@
     <Compile Include="Commands\IConnectionStringProvider.cs" />
     <Compile Include="Commands\Impl\ConnectionStringProvider.cs" />
     <Compile Include="ConfigObjectMapping.cs" />
+    <Compile Include="Exceptions\DataNotSavedException.cs" />
     <Compile Include="Exceptions\ConnectionStringNotFoundException.cs" />
-    <Compile Include="Exceptions\CustomerDbNotFoundException.cs" />
-    <Compile Include="Exceptions\CustomerDbLookupException.cs" />
+    <Compile Include="Exceptions\ConnectionStringLookupException.cs" />
     <Compile Include="Exceptions\ListenerException.cs" />
-    <Compile Include="Exceptions\LoginDbLookupException.cs" />
-    <Compile Include="Exceptions\LoginDbNotFoundException.cs" />
     <Compile Include="Exceptions\NotSupportedMessageException.cs" />
     <Compile Include="Handlers\AccountCreatedEventHandler.cs" />
     <Compile Include="Handlers\AccountCreateFailedEventHandler.cs" />
@@ -206,6 +205,7 @@
     </None>
     <Content Include="Install\install.bat" />
     <Content Include="Install\uninstall.bat" />
+    <None Include="Exceptions\ExceptionsHierarchy.cd" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

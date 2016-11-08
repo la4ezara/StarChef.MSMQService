@@ -14,21 +14,33 @@ namespace StarChef.Listener.Types
             _dbCommands = dbCommands;
         }
 
-        public async Task RegisterFailedMessage(OperationFailedTransferObject operationFailed, string trackingId)
+        public async Task ReceivedFailedMessage(FailedTransferObject operationFailed, string trackingId)
         {
-            await _dbCommands.RecordMessagingEvent(trackingId, operationFailed);
+            var json = SerializeObject(operationFailed);
+            await _dbCommands.RecordMessagingEvent(trackingId, true, operationFailed.ErrorCode, operationFailed.Description, json);
         }
 
-        public async Task RegisterInvalidModel(string error, object payload, string trackingId)
+        public async Task ReceivedInvalidModel(string trackingId, object payload, string error)
         {
-            var json = JsonConvert.SerializeObject(payload);
-            await _dbCommands.RecordMessagingEvent(trackingId, json, false, error);
+            var json = SerializeObject(payload);
+            await _dbCommands.RecordMessagingEvent(trackingId, false, Codes.InvalidModel, error, json);
         }
 
-        public async Task RegisterSuccess(object payload, string trackingId)
+        public async Task MessageProcessedSuccessfully(object payload, string trackingId)
         {
-            var json = JsonConvert.SerializeObject(payload);
-            await _dbCommands.RecordMessagingEvent(trackingId, json, true);
+            var json = SerializeObject(payload);
+            await _dbCommands.RecordMessagingEvent(trackingId, true, Codes.MessageProcessed, payloadJson: json);
+        }
+
+        private static string SerializeObject(object operationFailed)
+        {
+            return JsonConvert.SerializeObject(operationFailed, Formatting.Indented);
+        }
+
+        private static class Codes
+        {
+            public const string InvalidModel = "INVALID_MODEL";
+            public const string MessageProcessed = "PROCESSED";
         }
     }
 }
