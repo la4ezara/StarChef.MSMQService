@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using StarChef.Common;
 using StarChef.Orchestrate.Models;
 using Commands = Fourth.Orchestration.Model.People.Commands;
-using System.Data.SqlClient;
 using Fourth.Orchestration.Model.TeamHoursImport;
 
 namespace StarChef.Orchestrate.Tests
