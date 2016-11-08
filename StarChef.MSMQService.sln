@@ -16,6 +16,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1A6CB306-E432-4D0D-A03C-21AC845A4FF6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Listener.Tests", "StarChef.Listener.Tests\StarChef.Listener.Tests.csproj", "{FC22A393-E58F-44A3-9070-FD5EA7845175}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Orchestrate.Tests", "StarChef.Orchestrate.Tests\StarChef.Orchestrate.Tests.csproj", "{A34DF251-1525-4FE3-8D0E-5BC8EE366265}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +44,10 @@ Global
 		{FC22A393-E58F-44A3-9070-FD5EA7845175}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC22A393-E58F-44A3-9070-FD5EA7845175}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC22A393-E58F-44A3-9070-FD5EA7845175}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
