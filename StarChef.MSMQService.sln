@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.MSMQService", "StarChef.MSMQService.csproj", "{0291CFD0-1F05-4D49-ABC5-BC4E9D5F375B}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StarChef.Listener", "StarChef.Listener", "{89F2975A-15E7-41B6-A67B-AD5E73EC4F79}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Listener", "StarChef.Listener\StarChef.Listener.csproj", "{0D8B1DE7-8B3C-4D46-9615-114F360675CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Orchestrate.Tests", "StarChef.Orchestrate.Tests\StarChef.Orchestrate.Tests.csproj", "{A34DF251-1525-4FE3-8D0E-5BC8EE366265}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
