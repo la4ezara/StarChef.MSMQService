@@ -55,7 +55,7 @@ namespace StarChef.Listener.Commands.Impl
             if (string.IsNullOrEmpty(connectionString))
                 throw new ConnectionStringNotFoundException("Customer DB connection string is not found");
 
-            await Exec(connectionString, "sc_save_product_price_band_list", p => { p.Add("@DataXml", SqlDbType.Xml).Value = xmlDoc.InnerXml; });
+            await Exec(connectionString, "sc_save_product_price_band_list", p => { p.Add("@PriceBandListXml", SqlDbType.Xml).Value = xmlDoc.InnerXml; });
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
