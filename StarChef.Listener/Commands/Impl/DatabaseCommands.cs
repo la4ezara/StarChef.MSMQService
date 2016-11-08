@@ -22,9 +22,32 @@ namespace StarChef.Listener.Commands.Impl
             _csProvider = csProvider;
         }
 
-        public Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null)
+        public async Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null)
         {
-            throw new NotImplementedException();
+            Exception exception = null;
+            try
+            {
+                var loginDbConnectionString = await _csProvider.GetLoginDb();
+                if (string.IsNullOrEmpty(loginDbConnectionString))
+                    throw new ConnectionStringNotFoundException("Login connection string is not found");
+
+                await Exec(loginDbConnectionString, "sc_orchestration_record_messaging_event", p =>
+                {
+                    p.AddWithValue("@tracking_id", trackingId);
+                    p.AddWithValue("@is_successful", isSuccessful);
+                    p.AddWithValue("@code", code);
+                    if (!string.IsNullOrEmpty(details))
+                        p.AddWithValue("@description", details);
+                    if (!string.IsNullOrEmpty(payloadJson))
+                        p.AddWithValue("@payload", payloadJson);
+                });
+            }
+            catch (DbException ex)
+            {
+                exception = ex;
+            }
+            if (exception != null)
+                throw new DataNotSavedException("Error is occurred while saving data to DB.", exception);
         }
 
         /// <exception cref="DataNotSavedException">Error is occurred while saving data to DB.</exception>
@@ -41,7 +64,7 @@ namespace StarChef.Listener.Commands.Impl
                 if (string.IsNullOrEmpty(connectionString))
                     throw new ConnectionStringNotFoundException("Customer DB connection string is not found");
 
-                await Exec(loginDbConnectionString, "sc_save_product_price_band_list", p => { p.Add("@DataXml", SqlDbType.Xml).Value = xmlDoc.InnerXml; });
+                await Exec(connectionString, "sc_save_product_price_band_list", p => { p.Add("@DataXml", SqlDbType.Xml).Value = xmlDoc.InnerXml; });
             }
             catch (ListenerException ex) {
                 exception = ex;

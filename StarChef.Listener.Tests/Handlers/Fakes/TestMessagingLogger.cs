@@ -13,13 +13,6 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
         public bool IsCalledAnyMethod { get; private set; } = false;
         public bool IsSuccessfulOperationRegistered { get; private set; } = false;
         public bool IsFailedMessageRegistered { get; private set; } = false;
-        public Task ReceivedFailedMessage(AccountCreateFailedTransferObject operationFailed, string trackingId)
-        {
-            IsFailedMessageRegistered =
-                IsCalledAnyMethod = true;
-            return Task.CompletedTask;
-        }
-
         public Task ReceivedInvalidModel(string trackingId, object payload, string error)
         {
             IsInvalidModelRegistered =
@@ -30,6 +23,13 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
         public Task MessageProcessedSuccessfully(object payload, string trackingId)
         {
             IsSuccessfulOperationRegistered =
+                IsCalledAnyMethod = true;
+            return Task.CompletedTask;
+        }
+
+        public Task ReceivedFailedMessage(FailedTransferObject operationFailed, string trackingId)
+        {
+            IsFailedMessageRegistered =
                 IsCalledAnyMethod = true;
             return Task.CompletedTask;
         }

@@ -25,7 +25,7 @@ namespace StarChef.Listener.Handlers
                 {
                     var user = Mapper.Map<AccountUpdatedTransferObject>(payload);
 
-                    await DbCommands.UpdateUser(TODO, TODO, TODO, TODO, TODO);
+                    await DbCommands.UpdateUser(user.ExtrenalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
                     await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                 }
                 else

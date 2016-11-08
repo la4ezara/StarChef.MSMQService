@@ -12,12 +12,6 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
         public bool IsExternalIdUpdated { get; private set; } = false;
         public bool IsUserUpdated { get; private set; } = false;
 
-        public Task RecordMessagingEvent(string trackingId, OperationFailedTransferObject operationFailed)
-        {
-            IsCalledAnyMethod = true;
-            return Task.CompletedTask;
-        }
-
         public Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null)
         {
             IsCalledAnyMethod = true;
