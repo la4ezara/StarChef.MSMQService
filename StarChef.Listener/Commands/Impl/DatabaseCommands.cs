@@ -83,7 +83,7 @@ namespace StarChef.Listener.Commands.Impl
             if (string.IsNullOrEmpty(loginDbConnectionString))
                 throw new ConnectionStringNotFoundException("Login DB connection string is not found");
 
-            var ids = await GetLoginUserId(loginDbConnectionString, externalLoginId);
+            var ids = await GetLoginUserId(loginDbConnectionString, externalLoginId: externalLoginId);
             if (ids == null)
                 throw new ListenerException("Cannot map external account to the StarChef account");
             var loginId = ids.Item1;

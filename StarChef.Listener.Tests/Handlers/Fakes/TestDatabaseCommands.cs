@@ -11,6 +11,14 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
         public bool IsCalledAnyMethod { get; private set; } = false;
         public bool IsExternalIdUpdated { get; private set; } = false;
         public bool IsUserUpdated { get; private set; } = false;
+        public bool IsUserDisabled { get; private set; } = false;
+
+        public Task DisableLogin(int? loginId = default(int?), string externalLoginId = null)
+        {
+            IsUserDisabled =
+                IsCalledAnyMethod = true;
+            return Task.CompletedTask;
+        }
 
         public Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null)
         {
