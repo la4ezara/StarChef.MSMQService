@@ -6,6 +6,7 @@ using Fourth.Orchestration.Model.People;
 using log4net;
 using StarChef.Listener.Commands;
 using StarChef.Orchestrate.Models.TransferObjects;
+using System.Transactions;
 
 namespace StarChef.Listener.Handlers
 {
@@ -23,8 +24,12 @@ namespace StarChef.Listener.Handlers
                 if (Validator.IsValid(payload))
                 {
                     var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
-                    await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
-                    return MessageHandlerResult.Success;
+                    using (var tran = new TransactionScope())
+                    {
+                        await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
+                        await DbCommands.DisableLogin(externalLoginId: operationFailed.ExternalLoginId);
+                        tran.Complete();
+                    }
                 }
                 else
                 {

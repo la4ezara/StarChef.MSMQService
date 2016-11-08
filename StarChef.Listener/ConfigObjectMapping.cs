@@ -23,7 +23,7 @@ namespace StarChef.Listener
                             .ForMember(dest => dest.FirstName, o => o.MapFrom(src => src.FirstName))
                             .ForMember(dest => dest.LastName, o => o.MapFrom(src => src.LastName))
                             .ForMember(dest => dest.EmailAddress, o => o.MapFrom(src => src.EmailAddress))
-                            .ForMember(dest => dest.ExtrenalLoginId, o => o.MapFrom(src => src.ExternalId))
+                            .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 
@@ -45,13 +45,13 @@ namespace StarChef.Listener
                             .ForMember(dest => dest.FirstName, o => o.MapFrom(src => src.FirstName))
                             .ForMember(dest => dest.LastName, o => o.MapFrom(src => src.LastName))
                             .ForMember(dest => dest.EmailAddress, o => o.MapFrom(src => src.EmailAddress))
-                            .ForMember(dest => dest.ExtrenalLoginId, o => o.MapFrom(src => src.ExternalId))
+                            .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 
                 #region AccountUpdateFailed => AccountUpdateFailedTransferObject
                 c.CreateMap<AccountUpdateFailed, AccountUpdateFailedTransferObject>()
-                            .ForMember(dest => dest.ExtrenalLoginId, o => o.MapFrom(src => src.ExternalId))
+                            .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
                             .ForMember(dest => dest.Description, o =>
                             {

@@ -19,9 +19,21 @@ namespace StarChef.Listener.Commands
         Task SavePriceBandData(Guid organisationId, XmlDocument xmlDoc);
 
         /// <summary>
+        /// Disable login
+        /// </summary>
+        /// <param name="loginId"></param>
+        /// <param name="externalLoginId"></param>
+        /// <returns>If both identifiers are specified, the login id is used</returns>
+        /// <exception cref="DatabaseException">Database operation is failed</exception>
+        /// <exception cref="ConnectionStringNotFoundException">Customer DB connections string is not found</exception>
+        /// <exception cref="ListenerException">Cannot map external account to the StarChef account</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
+        Task DisableLogin(int? loginId = null, string externalLoginId = null);
+
+        /// <summary>
         ///     Update some fields of user data
         /// </summary>
-        /// <param name="extrenalLoginId"></param>
+        /// <param name="externalLoginId"></param>
         /// <param name="username"></param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
@@ -31,7 +43,7 @@ namespace StarChef.Listener.Commands
         /// <exception cref="ListenerException">Exception in general logic of the listener</exception>
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         /// <returns></returns>
-        Task UpdateUser(string extrenalLoginId, string username, string firstName, string lastName, string emailAddress);
+        Task UpdateUser(string externalLoginId, string username, string firstName, string lastName, string emailAddress);
 
         /// <summary>
         ///     Set user identifier in the external system (such as Fourth Account Service)

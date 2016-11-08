@@ -31,7 +31,7 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
             return Task.CompletedTask;
         }
 
-        public Task UpdateUser(string extrenalLoginId, string username, string firstName, string lastName, string emailAddress)
+        public Task UpdateUser(string externalLoginId, string username, string firstName, string lastName, string emailAddress)
         {
             IsUserUpdated =
                 IsCalledAnyMethod = true;

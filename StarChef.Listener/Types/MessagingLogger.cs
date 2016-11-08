@@ -1,6 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StarChef.Listener.Commands;
+using StarChef.Listener.Exceptions;
+using StarChef.Listener.Extensions;
 using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener.Types
@@ -14,27 +16,28 @@ namespace StarChef.Listener.Types
             _dbCommands = dbCommands;
         }
 
+        /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         public async Task ReceivedFailedMessage(FailedTransferObject operationFailed, string trackingId)
         {
-            var json = SerializeObject(operationFailed);
+            var json = operationFailed.ToJson();
             await _dbCommands.RecordMessagingEvent(trackingId, true, operationFailed.ErrorCode, operationFailed.Description, json);
         }
 
+        /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         public async Task ReceivedInvalidModel(string trackingId, object payload, string error)
         {
-            var json = SerializeObject(payload);
+            var json = payload.ToJson();
             await _dbCommands.RecordMessagingEvent(trackingId, false, Codes.InvalidModel, error, json);
         }
 
+        /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
+        /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         public async Task MessageProcessedSuccessfully(object payload, string trackingId)
         {
-            var json = SerializeObject(payload);
+            var json = payload.ToJson();
             await _dbCommands.RecordMessagingEvent(trackingId, true, Codes.MessageProcessed, payloadJson: json);
-        }
-
-        private static string SerializeObject(object operationFailed)
-        {
-            return JsonConvert.SerializeObject(operationFailed, Formatting.Indented);
         }
 
         private static class Codes

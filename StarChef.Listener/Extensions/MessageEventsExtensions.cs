@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Xml;
 using Fourth.Orchestration.Model.Recipes;
+using Newtonsoft.Json;
 
 namespace StarChef.Listener.Extensions
 {
@@ -31,6 +32,11 @@ namespace StarChef.Listener.Extensions
             }
 
             return null;
+        }
+
+        public static string ToJson(this object obj)
+        {
+            return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented);
         }
     }
 }

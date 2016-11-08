@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Threading.Tasks;
+using System.Transactions;
 using AutoMapper;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Model.People;
@@ -23,7 +24,13 @@ namespace StarChef.Listener.Handlers
                 if (Validator.IsValid(payload))
                 {
                     var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
-                    await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
+
+                    using (var tran = new TransactionScope())
+                    {
+                        await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
+                        await DbCommands.DisableLogin(operationFailed.LoginId);
+                        tran.Complete();
+                    }
                 }
                 else
                 {

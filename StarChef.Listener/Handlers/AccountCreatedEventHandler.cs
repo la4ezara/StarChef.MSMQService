@@ -5,7 +5,10 @@ using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Model.People;
 using log4net;
 using StarChef.Listener.Commands;
+using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
+using StarChef.Listener.Extensions;
+using System.Transactions;
 
 namespace StarChef.Listener.Handlers
 {
@@ -23,8 +26,21 @@ namespace StarChef.Listener.Handlers
                 if (Validator.IsValid(payload))
                 {
                     var user = Mapper.Map<AccountCreatedTransferObject>(payload);
-                    await DbCommands.UpdateExternalId(user);
-                    await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
+                    try
+                    {
+                        using (var tran = new TransactionScope())
+                        {
+                            await DbCommands.UpdateExternalId(user);
+                            await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
+                            tran.Complete();
+                        }
+                    }
+                    catch (ListenerException ex)
+                    {
+                        _logger.Error(string.Format("Exception of type {0} is occurred with message: {1}. Tracking ID: {2}", ex.GetType(), ex.Message, trackingId));
+                        _logger.Error(string.Format("Exception data: {0}", user.ToJson()));
+                        return MessageHandlerResult.Fatal;
+                    }
                 }
                 else
                 {
