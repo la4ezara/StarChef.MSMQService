@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Listener", "StarCh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Orchestrate.Tests", "StarChef.Orchestrate.Tests\StarChef.Orchestrate.Tests.csproj", "{A34DF251-1525-4FE3-8D0E-5BC8EE366265}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataExport", "DataExport", "{D1B093BC-0B77-4BFC-86D3-52A60A4A0149}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataExported", "DataExport\DataExported\DataExported.csproj", "{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,11 +45,16 @@ Global
 		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A34DF251-1525-4FE3-8D0E-5BC8EE366265}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{0D8B1DE7-8B3C-4D46-9615-114F360675CF} = {89F2975A-15E7-41B6-A67B-AD5E73EC4F79}
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48} = {D1B093BC-0B77-4BFC-86D3-52A60A4A0149}
 	EndGlobalSection
 EndGlobal
