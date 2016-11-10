@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("StarChef.Orchestrate.Tests")]
+[assembly: AssemblyTitle("StarChef.Listener.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("StarChef.Orchestrate.Tests")]
+[assembly: AssemblyProduct("StarChef.Listener.Tests")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("a34df251-1525-4fe3-8d0e-5bc8ee366265")]
+[assembly: Guid("fc22a393-e58f-44a3-9070-fd5ea7845175")]
 
 // Version information for an assembly consists of the following four values:
 //

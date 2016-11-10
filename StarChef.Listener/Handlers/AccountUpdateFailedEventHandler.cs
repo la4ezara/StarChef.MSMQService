@@ -1,0 +1,44 @@
+using System.Reflection;
+using System.Threading.Tasks;
+using AutoMapper;
+using Fourth.Orchestration.Messaging;
+using Fourth.Orchestration.Model.People;
+using log4net;
+using StarChef.Listener.Commands;
+using StarChef.Orchestrate.Models.TransferObjects;
+using System.Transactions;
+
+namespace StarChef.Listener.Handlers
+{
+    public class AccountUpdateFailedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountUpdateFailed>
+    {
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public AccountUpdateFailedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
+        {
+        }
+
+        public async Task<MessageHandlerResult> HandleAsync(Events.AccountUpdateFailed payload, string trackingId)
+        {
+            if (Validator.IsStarChefEvent(payload))
+                if (Validator.IsValid(payload))
+                {
+                    var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
+                    using (var tran = new TransactionScope())
+                    {
+                        await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
+                        await DbCommands.DisableLogin(externalLoginId: operationFailed.ExternalLoginId);
+                        tran.Complete();
+                    }
+                }
+                else
+                {
+                    var errors = Validator.GetErrors();
+                    _logger.Error(string.Format("AccountUpdateFailed message is received, but cannot be read. Tracking ID: {0}", trackingId));
+                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
+                    return MessageHandlerResult.Fatal;
+                }
+            return MessageHandlerResult.Success;
+        }
+    }
+}
