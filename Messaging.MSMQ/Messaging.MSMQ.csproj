@@ -42,7 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Constants.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="Interface\IMessageBus.cs" />
     <Compile Include="Interface\IMessagingFactory.cs" />
     <Compile Include="Interface\IMsmqSender.cs" />

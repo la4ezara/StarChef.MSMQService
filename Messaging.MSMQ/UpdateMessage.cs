@@ -129,7 +129,7 @@ namespace Messaging.MSMQ
 
         public override string ToString()
         {
-            if (_message_type == (int)Constants.MessageActionType.CreatePackage)
+            if (_message_type == (int)Enums.MessageActionType.CreatePackage)
             {
                 return string.Format("database_id:{0},entity_id:{1},group_id:{2},user_id:{3},ugroup_id:{4},unique_ident:{5}",
                     this._database_id.ToString(),
@@ -139,18 +139,18 @@ namespace Messaging.MSMQ
                     this._ugroupId.ToString(),
                     this._uniqueIdent.ToString());
             }
-            if (_message_type == (int)Constants.MessageActionType.StarChefEventsUpdated)
+            if (_message_type == (int)Enums.MessageActionType.StarChefEventsUpdated)
             {
                 return string.Format("database_id: {0}, entity_id: {1}, group_id: {2}, action: {3}, sub action: {4}, entity_type_id: {5}",
                     this._database_id.ToString(),
                     this._product_id.ToString(),
                     this._group_id.ToString(),
-                    ((Constants.MessageActionType)_message_type).ToString(),
+                    ((Enums.MessageActionType)_message_type).ToString(),
                     this._sub_message_type.ToString(),
                     this._entity_type_id.ToString());
             }
 
-            return "database_id: " + _database_id.ToString() + ", product_id: " + _product_id.ToString() + ", group_id: " + _group_id.ToString() + ", action: " + ((Constants.MessageActionType)_message_type).ToString() + ", sub action: " + _sub_message_type.ToString();
+            return "database_id: " + _database_id.ToString() + ", product_id: " + _product_id.ToString() + ", group_id: " + _group_id.ToString() + ", action: " + ((Enums.MessageActionType)_message_type).ToString() + ", sub action: " + _sub_message_type.ToString();
         }
     }
 }
