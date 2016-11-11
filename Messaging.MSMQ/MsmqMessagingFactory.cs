@@ -46,29 +46,5 @@ namespace Messaging.MSMQ
 
             return _bus;
         }
-        public void Close()
-        {
-            if (this._bus != null)
-            {
-                this._bus.Dispose();
-            }
-        }
-
-        ~MsmqMessagingFactory()
-        {
-            this.Dispose(false);
-        }
-        private void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                this.Close();
-            }
-        }
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
     }
 }

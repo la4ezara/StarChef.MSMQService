@@ -54,6 +54,7 @@ namespace Messaging.MSMQ
                 using (var transaction = new MessageQueueTransaction())
                 {
                     transaction.Begin();
+                    
                     this.queue.Send(msg, message.ToString(), transaction);
                     this.queue.Peek();
                     transaction.Commit();

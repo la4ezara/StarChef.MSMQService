@@ -2,9 +2,8 @@
 
 namespace Messaging.MSMQ.Interface
 {
-    public interface IMessagingFactory : IDisposable
+    public interface IMessagingFactory
     {
         IMessageBus CreateMessageBus();
-        void Close();
     }
 }

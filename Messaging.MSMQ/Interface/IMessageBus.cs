@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Messaging.MSMQ.Interface
 {
-    public interface IMessageBus : IDisposable
+    public interface IMessageBus
     {
         Task<bool> SendAsync(IMessage message);
 

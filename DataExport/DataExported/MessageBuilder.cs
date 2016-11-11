@@ -1,46 +1,74 @@
-﻿using Messaging.MSMQ;
-using Messaging.MSMQ.Interface;
+﻿using Messaging.MSMQ.Interface;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Data;
+using Messaging.MSMQ;
+using static Messaging.MSMQ.Constants;
 
 namespace DataExported
 {
     public class MessageBuilder
     {
-        private static UpdateMessage MenuMessage()
+        private string dbDSN;
+        private int databaseId;
+        public MessageBuilder()
         {
-            return new UpdateMessage
-            {
 
-            };
         }
-        private static UpdateMessage GroupMessage(DataTable dataTable)
+        public MessageBuilder(string dsn, int databaseId)
         {
-            return new UpdateMessage();
+            this.dbDSN = dsn;
+            this.databaseId = databaseId;
         }
 
-
-        public static IMessage GetMessage(string entityName, ConcurrentDictionary<EntityEnum, DataTable> data)
+        private IList<IMessage> CreateMessage(Constants.EntityType entityType, DataTable dataTable)
         {
-            IMessage output = null;
+            IList<IMessage> messages = new List<IMessage>();
 
-            if(!string.IsNullOrEmpty(entityName))
+            foreach (var row in dataTable.Rows)
             {
-                EntityEnum entityEnum;
-                if (Enum.TryParse(entityName, out entityEnum))
+                var entityId = Convert.ToInt32(((DataRow)row)[0]);
+
+                messages.Add(new UpdateMessage(entityId,
+                                            this.dbDSN,
+                                            (int)Constants.MessageActionType.StarChefEventsUpdated,
+                                            this.databaseId,
+                                            (int)entityType));
+
+            }
+
+            return messages;
+        }
+
+        public IEnumerable<IMessage> GetMessages(
+            EntityEnum entity, 
+            ConcurrentDictionary<EntityEnum, DataTable> data
+            )
+        {
+            IList<IMessage> output = null;
+
+            if(data != null)
+            {
+                var record = data[entity];
+
+                switch (entity)
                 {
-                    var record = data[entityEnum];
-
-                    switch (entityEnum)
-                    {
-                        case EntityEnum.Menu:
-                            output = MenuMessage();
-                            break;
-                        case EntityEnum.Group:
-                            output = GroupMessage(record);
-                            break;
-                    }
+                    case EntityEnum.Menu:
+                        output = CreateMessage(EntityType.Menu, record);
+                        break;
+                    case EntityEnum.Group:
+                        output = CreateMessage(EntityType.Group, record);
+                        break;
+                    case EntityEnum.Recipe:
+                        output = CreateMessage(EntityType.Dish, record);
+                        break;
+                    case EntityEnum.User:
+                        output = CreateMessage(EntityType.User, record);
+                        break;
+                    case EntityEnum.MealPeriod:
+                        output = CreateMessage(EntityType.MealPeriodManagement, record);
+                        break;
                 }
             }
 

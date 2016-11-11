@@ -35,6 +35,8 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.bntExport = new System.Windows.Forms.Button();
             this.dgEntityInfo = new System.Windows.Forms.DataGridView();
+            this.label2 = new System.Windows.Forms.Label();
+            this.txtDatabaseId = new System.Windows.Forms.TextBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgEntityInfo)).BeginInit();
@@ -42,6 +44,8 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.txtDatabaseId);
+            this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.btnRetrieve);
             this.panel1.Controls.Add(this.txtConnectionString);
             this.panel1.Controls.Add(this.label1);
@@ -62,9 +66,9 @@
             // 
             // txtConnectionString
             // 
-            this.txtConnectionString.Location = new System.Drawing.Point(75, 1);
+            this.txtConnectionString.Location = new System.Drawing.Point(155, 6);
             this.txtConnectionString.Name = "txtConnectionString";
-            this.txtConnectionString.Size = new System.Drawing.Size(649, 20);
+            this.txtConnectionString.Size = new System.Drawing.Size(569, 20);
             this.txtConnectionString.TabIndex = 1;
             // 
             // label1
@@ -72,9 +76,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(56, 13);
+            this.label1.Size = new System.Drawing.Size(137, 13);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Database:";
+            this.label1.Text = "Database connectionstring:";
             // 
             // panel2
             // 
@@ -94,6 +98,7 @@
             this.bntExport.TabIndex = 1;
             this.bntExport.Text = "Export";
             this.bntExport.UseVisualStyleBackColor = true;
+            this.bntExport.Click += new System.EventHandler(this.bntExport_Click_1);
             // 
             // dgEntityInfo
             // 
@@ -105,6 +110,22 @@
             this.dgEntityInfo.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgEntityInfo.Size = new System.Drawing.Size(688, 150);
             this.dgEntityInfo.TabIndex = 0;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 45);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(68, 13);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "Database Id:";
+            // 
+            // txtDatabaseId
+            // 
+            this.txtDatabaseId.Location = new System.Drawing.Point(155, 41);
+            this.txtDatabaseId.Name = "txtDatabaseId";
+            this.txtDatabaseId.Size = new System.Drawing.Size(71, 20);
+            this.txtDatabaseId.TabIndex = 2;
             // 
             // Form1
             // 
@@ -132,6 +153,8 @@
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.DataGridView dgEntityInfo;
         private System.Windows.Forms.Button bntExport;
+        private System.Windows.Forms.TextBox txtDatabaseId;
+        private System.Windows.Forms.Label label2;
     }
 }
 
