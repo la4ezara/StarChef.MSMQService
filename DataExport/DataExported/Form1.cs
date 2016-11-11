@@ -40,9 +40,20 @@ namespace DataExported
                 @"Initial Catalog=SCNET_abokado;Data Source=10.10.10.109\DEVTEST;User ID=sl_web_user; Password=reddevil;";
 
             this.btnRetrieve.Click += btnRetrieve_Click;
+            this.bntExport.Click += BntExport_Click;
         }
 
-        
+        private async void  BntExport_Click(object sender, EventArgs e)
+        {
+            var rows = dgEntityInfo.Rows.Cast<DataGridViewRow>().Where(x => Convert.ToBoolean(x.Cells[2].Value));
+            var selectedQueryData = new ConcurrentDictionary<EntityEnum, DataTable>();
+            foreach (var r in rows)
+            {
+                var entity =  (EntityEnum)Enum.Parse(typeof(EntityEnum), r.Cells[0].Value.ToString(), true);
+                selectedQueryData[entity] = this.QueryData[entity];
+            }
+        }
+
         private async void btnRetrieve_Click(object sender, EventArgs e)
         {
             await Task.WhenAll(this.GetQueries());
@@ -131,11 +142,6 @@ namespace DataExported
             }
         }
 
-        private void AddMessage()
-        {
-            
-        }
-
         class EntityInfo
         {
             public string Name { get; set; }
@@ -147,11 +153,6 @@ namespace DataExported
         {
             public EntityEnum Name { get; set; }
             public string Query { get; set; }
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-
         }
     }
 
