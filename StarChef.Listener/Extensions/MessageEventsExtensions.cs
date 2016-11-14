@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Xml;
 using Fourth.Orchestration.Model.Recipes;
+using Google.ProtocolBuffers;
 using Newtonsoft.Json;
 
 namespace StarChef.Listener.Extensions
@@ -36,7 +38,11 @@ namespace StarChef.Listener.Extensions
 
         public static string ToJson(this object obj)
         {
-            return JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.Indented);
+            var messageLite = obj as IMessageLite;
+            if (messageLite != null)
+                return Google.ProtocolBuffers.Extensions.ToJson(messageLite);
+
+            return JsonConvert.SerializeObject(obj);
         }
     }
 }

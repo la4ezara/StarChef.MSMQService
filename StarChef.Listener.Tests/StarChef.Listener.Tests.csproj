@@ -145,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigObjectMappingTests.cs" />
+    <Compile Include="Extensions\MessageEventsExtensionsTests.cs" />
     <Compile Include="Fixtures\ObjectMappingFixture.cs" />
     <Compile Include="Handlers\AccountUpdateFailedEventHandlerTests.cs" />
     <Compile Include="Handlers\AccountCreateFailedEventHandlerTests.cs" />
