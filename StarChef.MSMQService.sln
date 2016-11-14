@@ -19,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataExport", "DataExport", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataExported", "DataExport\DataExported\DataExported.csproj", "{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.MSMQ", "Messaging.MSMQ\Messaging.MSMQ.csproj", "{1E56F100-B0FF-47EC-9E78-583FC3454148}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.MSMQ", "DataExport\Messaging.MSMQ\Messaging.MSMQ.csproj", "{1E56F100-B0FF-47EC-9E78-583FC3454148}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

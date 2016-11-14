@@ -84,8 +84,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Messaging.MSMQ\Messaging.MSMQ.csproj">
-      <Project>{1E56F100-B0FF-47EC-9E78-583FC3454148}</Project>
+    <ProjectReference Include="..\Messaging.MSMQ\Messaging.MSMQ.csproj">
+      <Project>{1e56f100-b0ff-47ec-9e78-583fc3454148}</Project>
       <Name>Messaging.MSMQ</Name>
     </ProjectReference>
   </ItemGroup>
