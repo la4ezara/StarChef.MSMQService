@@ -88,6 +88,7 @@ namespace DataExported
                     //Send message to MSMQ
                     SendMessageToMsmq(payloadMessages);
                 }
+                MessageBox.Show("Data exported successfully");
             }
             catch (Exception ex)
             {
