@@ -8,7 +8,8 @@
             Group,
             Recipe,
             User,
-            MealPeriod
+            MealPeriod,
+            Login
         };
 
         public enum MessageActionType

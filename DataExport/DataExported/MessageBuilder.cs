@@ -98,7 +98,9 @@ namespace DataExported
 
         public IEnumerable<IMessage> GetMessages(
             EntityEnum entity, 
-            ConcurrentDictionary<EntityEnum, DataTable> data
+            ConcurrentDictionary<EntityEnum, DataTable> data,
+            int skip,
+            int take
             )
         {
             IList<IMessage> output = null;

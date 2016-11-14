@@ -16,47 +16,113 @@ namespace DataExported
     public partial class Form1 : Form
     {
         private SortedDictionary<EntityEnum, QueryDetails> Entities { get; }
-
-        private ConcurrentDictionary<EntityEnum, DataTable> QueryData { get; set; }
-
-        private IMessagingFactory MessagingFactory;
-        private MessageBuilder MessageBuilder;
+        private ConcurrentDictionary<EntityEnum, DataTable> QueryData { get;}
+        private IMessagingFactory MessagingFactory { get;}
+        private MessageBuilder MessageBuilder { get; set; }
 
         public Form1()
         {
+            InitializeComponent();
 
             this.Entities = this.MapEntities();
             this.QueryData = new ConcurrentDictionary<EntityEnum, DataTable>();
+            this.MapEntities();
 
-            InitializeComponent();
-            var ds = this.MapEntities();
-            txtConnectionString.Text =
-                @"Initial Catalog=SCNET_abokado;Data Source=10.10.10.109\DEVTEST;User ID=sl_web_user; Password=reddevil;";
-            txtDatabaseId.Text = "182";
+            txtConnectionString.Text = @"Data Source=10.10.10.109\devtest;User ID=sl_web_user; Password=reddevil; Initial Catalog=sl_login;";
 
-            MessageBuilder = new MessageBuilder(txtConnectionString.Text, Convert.ToInt32(txtDatabaseId.Text));
+            this.MessagingFactory = new MsmqMessagingFactory();
+
+            //txtDatabaseId.Text = "182";
+
+            //MessageBuilder = new MessageBuilder(txtConnectionString.Text, Convert.ToInt32(txtDatabaseId.Text));
 
             this.btnRetrieve.Click += btnRetrieve_Click;
             this.bntExport.Click += BntExport_Click;
+            this.btnRetrieveExportDetails.Click += BtnRetrieveExportDetails_Click;
+            txtSkip.Text = "0";
+            txtTake.Text = "100";
+        }
+
+        private async void BtnRetrieveExportDetails_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                txtLog.Text = string.Empty;
+                var selectedCustomer = Convert.ToInt16(ddlCustomers.SelectedValue);
+                var constring = GetCustomerDbConnectionString(selectedCustomer);
+                MessageBuilder = new MessageBuilder(constring, selectedCustomer);
+                await Task.WhenAll(this.GetQueries(constring));
+                var l = new List<EntityInfo>();
+                foreach (var q in this.QueryData.Where(x => x.Key != EntityEnum.Login))
+                {
+                    l.Add(new EntityInfo
+                    {
+                        Name = q.Key.ToString(),
+                        RowCount = q.Value.Rows.Count,
+                        Selected = false
+                    });
+                }
+                dgEntityInfo.DataSource = new BindingSource(new BindingList<EntityInfo>(l), null);
+            }
+            catch (Exception ex)
+            {
+                txtLog.Text = ex.Message;
+            }
         }
 
         private void BntExport_Click(object sender, EventArgs e)
         {
-            this.MessagingFactory = new MsmqMessagingFactory();
-            var rows = dgEntityInfo.Rows.Cast<DataGridViewRow>().Where(x => Convert.ToBoolean(x.Cells[2].Value));
-            foreach (var r in rows)
+            try
             {
-                var entity =  (EntityEnum)Enum.Parse(typeof(EntityEnum), r.Cells[0].Value.ToString(), true);
+                txtLog.Text = string.Empty;
+                var skip = int.Parse(txtSkip.Text);
+                var take = int.Parse(txtTake.Text);
+                var rows = dgEntityInfo.Rows.Cast<DataGridViewRow>().Where(x => Convert.ToBoolean(x.Cells[2].Value));
+                foreach (var r in rows)
+                {
+                    var entity = (EntityEnum)Enum.Parse(typeof(EntityEnum), r.Cells[0].Value.ToString(), true);
 
-                //Create entity based message
-                var payloadMessages = MessageBuilder.GetMessages(entity,this.QueryData);
+                    //Create entity based message
+                    var payloadMessages = MessageBuilder.GetMessages(entity, this.QueryData, skip, take);
 
-                //Send message to MSMQ
-                SendMessageToMSMQ(payloadMessages);
+                    //Send message to MSMQ
+                    SendMessageToMsmq(payloadMessages);
+                }
+            }
+            catch (Exception ex)
+            {
+                txtLog.Text = ex.Message;
+
             }
         }
 
-        private void SendMessageToMSMQ(IEnumerable<IMessage> messages)
+        private async void btnRetrieve_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                txtLog.Text = string.Empty;
+                await this.ExecuteQuery(txtConnectionString.Text, this.Entities[EntityEnum.Login]);
+                var customers = this.QueryData[EntityEnum.Login];
+                this.ddlCustomers.DataSource = customers;
+                this.ddlCustomers.DisplayMember = "database_desc";
+                this.ddlCustomers.ValueMember = "db_database_id";
+            }
+            catch (Exception ex)
+            {
+                txtLog.Text = ex.Message;
+            }
+        }
+
+        private string GetCustomerDbConnectionString(short dbId)
+        {
+            var row = (from r in this.QueryData[EntityEnum.Login].AsEnumerable()
+                where r.Field<short>("db_database_id") == dbId
+                select r).FirstOrDefault();
+
+            return $"{row[1]};{row[2]}";
+        }
+
+        private void SendMessageToMsmq(IEnumerable<IMessage> messages)
         {
             IMessageBus bus = this.MessagingFactory.CreateMessageBus();
 
@@ -66,29 +132,13 @@ namespace DataExported
             }
         }
 
-        private async void btnRetrieve_Click(object sender, EventArgs e)
-        {
-            await Task.WhenAll(this.GetQueries());
-            var l = new List<EntityInfo>();
-            foreach (var q in this.QueryData)
-            {
-                l.Add(new EntityInfo
-                {
-                    Name = q.Key.ToString(),
-                    RowCount = q.Value.Rows.Count,
-                    Selected = false
-                });
-            }
-            dgEntityInfo.DataSource = new BindingSource(new BindingList<EntityInfo>(l), null);
-        }
-
-        private List<Task> GetQueries()
+        private List<Task> GetQueries(string customerConnectionString)
         {
             var tasks = new List<Task>();
 
-            foreach (var e in this.Entities)
+            foreach (var e in this.Entities.Where(x=>!x.Value.IsInternal))
             {
-                tasks.Add(this.ExecuteQuery(txtConnectionString.Text, e.Value));
+                tasks.Add(this.ExecuteQuery(customerConnectionString, e.Value));
             }
 
             return tasks;
@@ -132,12 +182,19 @@ namespace DataExported
                         Name = EntityEnum.MealPeriod,
                         Query = "select meal_period_id from [meal_period]"
                     }
+                },
+                {
+                    EntityEnum.Login, new QueryDetails
+                    {
+                        Name = EntityEnum.Login,
+                        Query = "select * from db_database order by database_desc",
+                        IsInternal = true
+                    }
                 }
             };
 
             return entities;
         }
-
 
         private async Task ExecuteQuery(string connectionString, QueryDetails query)
         {
@@ -165,6 +222,7 @@ namespace DataExported
         {
             public EntityEnum Name { get; set; }
             public string Query { get; set; }
+            public bool IsInternal { get; set; }
         }
 
         private void bntExport_Click_1(object sender, EventArgs e)
