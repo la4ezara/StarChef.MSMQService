@@ -22,31 +22,33 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
         {
+            _logger.EventReceived(trackingId, payload);
+
             if (Validator.IsStarChefEvent(payload))
                 if (Validator.IsValid(payload))
                 {
                     var user = Mapper.Map<AccountCreatedTransferObject>(payload);
                     try
                     {
-                        using (var tran = new TransactionScope())
+                        using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                         {
                             await DbCommands.UpdateExternalId(user);
                             await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                             tran.Complete();
+                            _logger.Processed(trackingId, payload);
                         }
                     }
                     catch (ListenerException ex)
                     {
-                        _logger.Error(string.Format("Exception of type {0} is occurred with message: {1}. Tracking ID: {2}", ex.GetType(), ex.Message, trackingId));
-                        _logger.Error(string.Format("Exception data: {0}", user.ToJson()));
+                        _logger.ListenerException(ex, trackingId, user);
                         return MessageHandlerResult.Fatal;
                     }
                 }
                 else
                 {
-                    var error = Validator.GetErrors();
-                    _logger.Error(string.Format("AccountCreated message is received, but cannot be read. Tracking ID: {0}", trackingId));
-                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, error);
+                    var errors = Validator.GetErrors();
+                    _logger.InvalidModel(trackingId, payload, errors);
+                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                     return MessageHandlerResult.Fatal;
                 }
             return MessageHandlerResult.Success;

@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace StarChef.Listener.Exceptions
 {
-    internal class ListenerException : Exception
+    public class ListenerException : Exception
     {
         public ListenerException()
         {

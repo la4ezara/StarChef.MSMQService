@@ -7,6 +7,7 @@ using log4net;
 using StarChef.Listener.Commands;
 using StarChef.Orchestrate.Models.TransferObjects;
 using System.Transactions;
+using StarChef.Listener.Extensions;
 
 namespace StarChef.Listener.Handlers
 {
@@ -20,21 +21,24 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountUpdateFailed payload, string trackingId)
         {
+            _logger.EventReceived(trackingId, payload);
+
             if (Validator.IsStarChefEvent(payload))
                 if (Validator.IsValid(payload))
                 {
                     var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
-                    using (var tran = new TransactionScope())
+                    using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                     {
                         await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
                         await DbCommands.DisableLogin(externalLoginId: operationFailed.ExternalLoginId);
                         tran.Complete();
+                        _logger.Processed(trackingId, payload);
                     }
                 }
                 else
                 {
                     var errors = Validator.GetErrors();
-                    _logger.Error(string.Format("AccountUpdateFailed message is received, but cannot be read. Tracking ID: {0}", trackingId));
+                    _logger.InvalidModel(trackingId, payload, errors);
                     await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                     return MessageHandlerResult.Fatal;
                 }

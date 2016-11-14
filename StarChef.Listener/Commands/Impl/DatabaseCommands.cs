@@ -93,7 +93,7 @@ namespace StarChef.Listener.Commands.Impl
             if (string.IsNullOrEmpty(connectionString))
                 throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
 
-            using (var tran = new TransactionScope())
+            using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
                 {
@@ -132,7 +132,7 @@ namespace StarChef.Listener.Commands.Impl
             if (string.IsNullOrEmpty(connectionString))
                 throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
 
-            using (var tran = new TransactionScope())
+            using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 await Exec(loginDbConnectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@loginId", existingLoginId));
                 await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@userId", existingUserId));
