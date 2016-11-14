@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using Messaging.MSMQ;
 using static DataExported.Constants;
+using System.Linq;
 
 namespace DataExported
 {
@@ -77,13 +78,16 @@ namespace DataExported
             this.databaseId = databaseId;
         }
 
-        private IList<IMessage> CreateMessage(EntityType entityType, DataTable dataTable)
+        private IList<IMessage> CreateMessage(
+            EntityType entityType, 
+            IEnumerable<DataRow> rows
+            )
         {
             IList<IMessage> messages = new List<IMessage>();
 
-            foreach (var row in dataTable.Rows)
+            foreach (var row in rows)
             {
-                var entityId = Convert.ToInt32(((DataRow)row)[0]);
+                var entityId = Convert.ToInt32(row[0]);
 
                 messages.Add(new UpdateMessage(entityId,
                                             this.dbDSN,
@@ -107,24 +111,27 @@ namespace DataExported
 
             if(data != null)
             {
-                var record = data[entity];
+                var records = data[entity]
+                                    .AsEnumerable()
+                                    .Skip(skip)
+                                    .Take(take);
 
                 switch (entity)
                 {
                     case EntityEnum.Menu:
-                        output = CreateMessage(EntityType.Menu, record);
+                        output = CreateMessage(EntityType.Menu, records);
                         break;
                     case EntityEnum.Group:
-                        output = CreateMessage(EntityType.Group, record);
+                        output = CreateMessage(EntityType.Group, records);
                         break;
                     case EntityEnum.Recipe:
-                        output = CreateMessage(EntityType.Dish, record);
+                        output = CreateMessage(EntityType.Dish, records);
                         break;
                     case EntityEnum.User:
-                        output = CreateMessage(EntityType.User, record);
+                        output = CreateMessage(EntityType.User, records);
                         break;
                     case EntityEnum.MealPeriod:
-                        output = CreateMessage(EntityType.MealPeriodManagement, record);
+                        output = CreateMessage(EntityType.MealPeriodManagement, records);
                         break;
                 }
             }
