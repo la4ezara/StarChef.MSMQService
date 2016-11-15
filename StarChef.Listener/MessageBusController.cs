@@ -1,63 +1,60 @@
 ﻿using System;
-using System.Configuration;
+using System.Reflection;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Messaging.Azure;
 using Fourth.Orchestration.Storage;
 using Fourth.Orchestration.Storage.Azure;
 using log4net;
 
+using PriceBandUpdated = Fourth.Orchestration.Model.Recipes.Events.PriceBandUpdated;
+using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
+using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
+using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
+using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
+
 namespace StarChef.Listener
 {
     public class MessageBusController
     {
-        private static IMessagingFactory _factory;
-        private static IMessageStore _messageStore;
-        private static IMessageListener _priceBandListener;
-        private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        private static string _priceBandEventSubscription;
+        private static readonly Lazy<IMessageStore> _messageStore = new Lazy<IMessageStore>(() => new AzureMessageStore());
+        private static readonly Lazy<IMessagingFactory> _factory = new Lazy<IMessagingFactory>(() => new AzureMessagingFactory(_messageStore.Value));
+        private static readonly Lazy<IMessagingHandlersFactory> _handlersFactory = new Lazy<IMessagingHandlersFactory>(() => new MessagingHandlersFactory());
+        private static readonly Lazy<IMessageListener> _listener = new Lazy<IMessageListener>(() => _factory.Value.CreateMessageListener("StarChef.AzureListener"));
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static void Start()
         {
             try
             {
-                Logger.Info("Starting starchef listener");
+                _logger.Info("Starting Starchef listener");
 
                 // Create an instance on a remote store for large messages.
-                _messageStore = new AzureMessageStore();
-
                 // Create a messaging factory.
-                _factory = new AzureMessagingFactory(_messageStore);
+                _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<PriceBandUpdated>());
+                _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountCreated>());
+                _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountCreateFailed>());
+                _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountUpdated>());
+                _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountUpdateFailed>());
 
-                _priceBandEventSubscription = ConfigurationManager.AppSettings["PriceBandEventSubscription"];
-
-                // Create a listener instance for listening to messages
-                _priceBandListener = _factory.CreateMessageListener(_priceBandEventSubscription);
-
-                // Register command handler listeners for all events and commands
-                _priceBandListener.RegisterHandler(new PriceBandEventHandler());
-
-                //start listening
-                _priceBandListener.StartListener();
+                _listener.Value.StartListener();
             }
             catch (Exception ex)
             {
-                Logger.Error("Failed to start listener due to unexpected error", ex);
+                _logger.Error("Failed to start listener due to unexpected error", ex);
                 throw;
             }
         }
 
         public static void Stop()
         {
-            Logger.Info("Stopping Starchef listener");
-
-            if (_priceBandListener != null)
+            _logger.Info("Stopping Starchef listener");
+            if (_listener.IsValueCreated)
             {
-                _priceBandListener.StopListener();
-                _priceBandListener.Dispose();
+                _listener.Value.StopListener();
+                _listener.Value.Dispose();
             }
-
-            _factory?.Dispose();
+            if (_factory.IsValueCreated)
+                _factory.Value.Dispose();
         }
-    }    
+    }
 }

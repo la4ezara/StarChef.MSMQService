@@ -63,7 +63,7 @@ namespace StarChef.Orchestrate
                             var userEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
                             var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
                             result = bus.Publish(userEventPayload);
-                            result = bus.Publish(userCommandCreateAccount);
+                            result = bus.Send(userCommandCreateAccount);
                             break;
                         case EnumHelper.EntityTypeWrapper.UserGroup:
                             var userGroupEventPayload = EventFactory.CreateUserGroupEvent(dbConnectionString, entityId, databaseId);

@@ -14,6 +14,7 @@ namespace StarChef.Listener
         {
             // Set the application ID that is reported on every log message
             log4net.GlobalContext.Properties["ApplicationId"] = "StarChef.Listener";
+            ConfigObjectMapping.Init();
 
             Logger.Info("Starting StarChef.Listener service");
 

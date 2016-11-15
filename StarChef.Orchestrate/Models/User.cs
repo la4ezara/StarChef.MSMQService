@@ -105,7 +105,7 @@ namespace StarChef.Orchestrate.Models
                                     "sc_event_user",
                                     new SqlParameter("@entity_id", Id));
 
-            var connectionStringLogin = ConfigurationManager.ConnectionStrings["StarchefLogin"];
+            var connectionStringLogin = ConfigurationManager.AppSettings["DSN"];
             SqlParameter[] parameters = { new SqlParameter { ParameterName = "@user_id", Value = Id}, new SqlParameter { ParameterName = "@db_database_id", Value = cust.Id } };
             var readerLogin = dbManager.ExecuteReader(connectionStringLogin.ToString(),
                                    "sc_get_user_login_details", parameters);
@@ -136,7 +136,7 @@ namespace StarChef.Orchestrate.Models
                                     "sc_event_user",
                                     new SqlParameter("@entity_id", Id));
 
-            var connectionStringLogin = ConfigurationManager.ConnectionStrings["StarchefLogin"];
+            var connectionStringLogin = ConfigurationManager.AppSettings["DSN"];
             SqlParameter[] parameters = { new SqlParameter { ParameterName = "@user_id", Value = Id }, new SqlParameter { ParameterName = "@db_database_id", Value = cust.Id } };
             var readerLogin = dbManager.ExecuteReader(connectionStringLogin.ToString(),
                                    "sc_get_user_login_details", parameters);
