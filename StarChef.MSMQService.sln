@@ -5,6 +5,24 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.MSMQService", "StarChef.MSMQService.csproj", "{0291CFD0-1F05-4D49-ABC5-BC4E9D5F375B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Common", "StarChef.Common\StarChef.Common.csproj", "{6FD83544-9EA6-41B9-A29C-E9117AAFEF35}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Orchestrate", "StarChef.Orchestrate\StarChef.Orchestrate.csproj", "{89EF0B30-23AF-4F8C-A073-7924D2B51167}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StarChef.Listener", "StarChef.Listener", "{89F2975A-15E7-41B6-A67B-AD5E73EC4F79}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Listener", "StarChef.Listener\StarChef.Listener.csproj", "{0D8B1DE7-8B3C-4D46-9615-114F360675CF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1A6CB306-E432-4D0D-A03C-21AC845A4FF6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Listener.Tests", "StarChef.Listener.Tests\StarChef.Listener.Tests.csproj", "{FC22A393-E58F-44A3-9070-FD5EA7845175}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataExported", "DataExported", "{72EDAC8A-03EF-4541-B6C5-CC91FA8C0766}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataExported", "DataExport\DataExported\DataExported.csproj", "{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.MSMQ", "DataExport\Messaging.MSMQ\Messaging.MSMQ.csproj", "{1E56F100-B0FF-47EC-9E78-583FC3454148}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,8 +33,38 @@ Global
 		{0291CFD0-1F05-4D49-ABC5-BC4E9D5F375B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0291CFD0-1F05-4D49-ABC5-BC4E9D5F375B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0291CFD0-1F05-4D49-ABC5-BC4E9D5F375B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FD83544-9EA6-41B9-A29C-E9117AAFEF35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FD83544-9EA6-41B9-A29C-E9117AAFEF35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FD83544-9EA6-41B9-A29C-E9117AAFEF35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FD83544-9EA6-41B9-A29C-E9117AAFEF35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89EF0B30-23AF-4F8C-A073-7924D2B51167}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89EF0B30-23AF-4F8C-A073-7924D2B51167}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89EF0B30-23AF-4F8C-A073-7924D2B51167}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89EF0B30-23AF-4F8C-A073-7924D2B51167}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC22A393-E58F-44A3-9070-FD5EA7845175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC22A393-E58F-44A3-9070-FD5EA7845175}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC22A393-E58F-44A3-9070-FD5EA7845175}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC22A393-E58F-44A3-9070-FD5EA7845175}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E56F100-B0FF-47EC-9E78-583FC3454148}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E56F100-B0FF-47EC-9E78-583FC3454148}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E56F100-B0FF-47EC-9E78-583FC3454148}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E56F100-B0FF-47EC-9E78-583FC3454148}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0D8B1DE7-8B3C-4D46-9615-114F360675CF} = {89F2975A-15E7-41B6-A67B-AD5E73EC4F79}
+		{FC22A393-E58F-44A3-9070-FD5EA7845175} = {1A6CB306-E432-4D0D-A03C-21AC845A4FF6}
+		{87BEC530-A5DE-46D3-B0E8-1B4466FAFC48} = {72EDAC8A-03EF-4541-B6C5-CC91FA8C0766}
+		{1E56F100-B0FF-47EC-9E78-583FC3454148} = {72EDAC8A-03EF-4541-B6C5-CC91FA8C0766}
 	EndGlobalSection
 EndGlobal
