@@ -10,7 +10,9 @@
             User,
             UserGroup,
             MealPeriod,
-            Group
+            Group,
+            UserCreated,
+            UserUpdated
         }
     }
 }

@@ -45,5 +45,10 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
                 IsCalledAnyMethod = true;
             return Task.CompletedTask;
         }
+        public Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId)
+        {
+            IsCalledAnyMethod = true;
+            return Task.FromResult(new Tuple<int, int, string>(1,1,"test"));
+        }
     }
 }

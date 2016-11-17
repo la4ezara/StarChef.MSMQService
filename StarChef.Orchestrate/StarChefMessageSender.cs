@@ -60,10 +60,13 @@ namespace StarChef.Orchestrate
                             result = bus.Publish(groupEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.User:
-                            var userEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
                             var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(userEventPayload);
                             result = bus.Send(userCommandCreateAccount);
+                            break;
+                        case EnumHelper.EntityTypeWrapper.UserCreated:
+                        case EnumHelper.EntityTypeWrapper.UserUpdated:
+                            var userCreatedEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
+                            result = bus.Publish(userCreatedEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.UserGroup:
                             var userGroupEventPayload = EventFactory.CreateUserGroupEvent(dbConnectionString, entityId, databaseId);

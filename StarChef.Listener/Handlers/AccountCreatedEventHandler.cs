@@ -9,6 +9,7 @@ using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
 using System.Transactions;
+using StarChef.Data;
 
 namespace StarChef.Listener.Handlers
 {
@@ -37,6 +38,8 @@ namespace StarChef.Listener.Handlers
                             tran.Complete();
                             _logger.Processed(trackingId, payload);
                         }
+
+                        await SendMsmqMessage(user.LoginId);
                     }
                     catch (ListenerException ex)
                     {
@@ -52,6 +55,18 @@ namespace StarChef.Listener.Handlers
                     return MessageHandlerResult.Fatal;
                 }
             return MessageHandlerResult.Success;
+        }
+
+        private async Task SendMsmqMessage(int loginId)
+        {
+            var userDetail = await DbCommands.GetLoginUserIdAndCustomerDb(loginId);
+
+            var msg = new UpdateMessage(productId: userDetail.Item1,
+                                        entityTypeId: (int)Constants.EntityType.User,
+                                        action: (int)Constants.MessageActionType.SalesForceUserCreated,
+                                        dbDSN: userDetail.Item3,
+                                        databaseId: userDetail.Item2);
+            MSMQHelper.Send(msg);
         }
     }
 }

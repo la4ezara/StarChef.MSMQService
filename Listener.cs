@@ -243,6 +243,9 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.StarChefEventsUpdated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
+                    case (int)Constants.MessageActionType.SalesForceUserCreated:
+                        ProcessStarChefEventsUpdated(msg, true);
+                        break;
                 }
             }
         }
@@ -360,7 +363,7 @@ namespace StarChef.MSMQService
                 new SqlParameter("@product_id", msg.ProductID));
         }
 
-        private void ProcessStarChefEventsUpdated(UpdateMessage msg)
+        private void ProcessStarChefEventsUpdated(UpdateMessage msg, bool isSalesForceEvent = false)
         {
             var entityTypeId = 0;
             var entityId = 0;
@@ -373,7 +376,8 @@ namespace StarChef.MSMQService
                 case (int) Constants.EntityType.User:
                     entityTypeId = (int) Constants.EntityType.User;
                     entityId = msg.ProductID;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
+                    entityTypeWrapper = isSalesForceEvent ? EnumHelper.EntityTypeWrapper.UserUpdated
+                                                          : EnumHelper.EntityTypeWrapper.User;
                     break;
                 case (int)Constants.EntityType.UserGroup:
                     entityTypeId = (int)Constants.EntityType.UserGroup;
@@ -407,8 +411,7 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (entityTypeWrapper.HasValue && 
-                IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+            if (entityTypeWrapper.HasValue && IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
             {
                 _messageSender.Send(entityTypeWrapper.Value,
                                     msg.DSN,
