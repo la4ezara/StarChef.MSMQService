@@ -243,6 +243,10 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.StarChefEventsUpdated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
+                    case (int)Constants.MessageActionType.UserCreated:
+                    case (int)Constants.MessageActionType.UserUpdated:
+                    case (int)Constants.MessageActionType.UserActivated:
+                    case (int)Constants.MessageActionType.UserDeActivated:
                     case (int)Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg, true);
                         break;
