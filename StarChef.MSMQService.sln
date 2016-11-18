@@ -23,6 +23,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataExported", "DataExport\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.MSMQ", "DataExport\Messaging.MSMQ\Messaging.MSMQ.csproj", "{1E56F100-B0FF-47EC-9E78-583FC3454148}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdPartyReferences", "ThirdPartyReferences", "{D60935D0-DE86-427B-8248-96CDAC3D03A6}"
+	ProjectSection(SolutionItems) = preProject
+		ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.dll = ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.dll
+		ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces.dll = ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces.dll
+		ThirdPartyReferences\StarChef.Data.dll = ThirdPartyReferences\StarChef.Data.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

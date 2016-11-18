@@ -141,28 +141,25 @@ namespace StarChef.Listener.Commands.Impl
             }
         }
 
+        /// <exception cref="DatabaseException">Database operation is failed</exception>
         public async Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId)
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
 
-            var reader = await GetReader(loginDbConnectionString, "sc_database_GetByLoginId", p =>
-            {
-                p.AddWithValue("@login_id", loginId);
-            });
-
-            try
-            {
-                if (reader.HasRows)
+            var f = await UseReader(loginDbConnectionString, "sc_database_GetByLoginId",
+                parametres =>
+                {
+                    parametres.AddWithValue("@login_id", loginId);
+                },
+                async reader =>
                 {
                     await reader.ReadAsync();
                     var dbUserId = reader.GetInt32(0);
                     var dbDatabaseId = reader.GetInt32(1);
                     var dbCustomerConnectionString = reader.GetString(2);
                     return new Tuple<int, int, string>(dbUserId, dbDatabaseId, dbCustomerConnectionString);
-                }
-            }
-            finally { reader.Close(); }
-            return null;
+                });
+            return f;
         }
 
         #region private methods
