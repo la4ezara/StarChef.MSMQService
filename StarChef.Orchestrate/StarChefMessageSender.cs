@@ -3,6 +3,7 @@ using log4net;
 using StarChef.Common;
 using System;
 using System.Data.SqlClient;
+using Google.ProtocolBuffers;
 
 namespace StarChef.Orchestrate
 {
@@ -62,6 +63,7 @@ namespace StarChef.Orchestrate
                         case EnumHelper.EntityTypeWrapper.User:
                             var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
                             result = bus.Send(userCommandCreateAccount);
+                            Logger.InfoFormat("Command '{0}' sent: {1}", userCommandCreateAccount.GetType().Name, userCommandCreateAccount.ToJson());
                             break;
                         case EnumHelper.EntityTypeWrapper.UserUpdated:
                             var userCreatedEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
