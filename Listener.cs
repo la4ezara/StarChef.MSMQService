@@ -240,7 +240,20 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
+                    case (int)Constants.MessageActionType.UserCreated:
+                        ProcessStarChefEventsUpdated(msg, true);
+                        break;
                     case (int)Constants.MessageActionType.StarChefEventsUpdated:
+                        if(msg.EntityTypeId == (int)Constants.EntityType.User)
+                            ProcessStarChefEventsUpdated(msg, true);
+                        else
+                            ProcessStarChefEventsUpdated(msg);
+                        break;
+                    
+                    case (int)Constants.MessageActionType.UserUpdated:
+                    case (int)Constants.MessageActionType.UserActivated:
+                    case (int)Constants.MessageActionType.UserDeActivated:
+                    case (int)Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
                 }
@@ -360,7 +373,7 @@ namespace StarChef.MSMQService
                 new SqlParameter("@product_id", msg.ProductID));
         }
 
-        private void ProcessStarChefEventsUpdated(UpdateMessage msg)
+        private void ProcessStarChefEventsUpdated(UpdateMessage msg, bool waitForExternalId = false)
         {
             var entityTypeId = 0;
             var entityId = 0;
@@ -373,7 +386,8 @@ namespace StarChef.MSMQService
                 case (int) Constants.EntityType.User:
                     entityTypeId = (int) Constants.EntityType.User;
                     entityId = msg.ProductID;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
+                    entityTypeWrapper = waitForExternalId ? EnumHelper.EntityTypeWrapper.User
+                                                          : EnumHelper.EntityTypeWrapper.UserUpdated;
                     break;
                 case (int)Constants.EntityType.UserGroup:
                     entityTypeId = (int)Constants.EntityType.UserGroup;
@@ -407,8 +421,7 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (entityTypeWrapper.HasValue && 
-                IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+            if (entityTypeWrapper.HasValue && IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
             {
                 _messageSender.Send(entityTypeWrapper.Value,
                                     msg.DSN,
