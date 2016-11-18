@@ -28,6 +28,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdPartyReferences", "Thi
 		ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.dll = ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.dll
 		ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces.dll = ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.Interfaces.dll
 		ThirdPartyReferences\StarChef.Data.dll = ThirdPartyReferences\StarChef.Data.dll
+		ThirdPartyReferences\StarChef.Localization.dll = ThirdPartyReferences\StarChef.Localization.dll
 	EndProjectSection
 EndProject
 Global

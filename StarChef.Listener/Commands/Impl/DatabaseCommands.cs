@@ -146,7 +146,7 @@ namespace StarChef.Listener.Commands.Impl
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
 
-            var f = await UseReader(loginDbConnectionString, "sc_database_GetByLoginId",
+            var result = await UseReader(loginDbConnectionString, "sc_database_GetByLoginId",
                 parametres =>
                 {
                     parametres.AddWithValue("@login_id", loginId);
@@ -155,11 +155,11 @@ namespace StarChef.Listener.Commands.Impl
                 {
                     await reader.ReadAsync();
                     var dbUserId = reader.GetInt32(0);
-                    var dbDatabaseId = reader.GetInt32(1);
+                    var dbDatabaseId = reader.GetInt16(1);
                     var dbCustomerConnectionString = reader.GetString(2);
                     return new Tuple<int, int, string>(dbUserId, dbDatabaseId, dbCustomerConnectionString);
                 });
-            return f;
+            return result;
         }
 
         #region private methods
