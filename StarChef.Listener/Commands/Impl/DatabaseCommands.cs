@@ -140,6 +140,30 @@ namespace StarChef.Listener.Commands.Impl
             }
         }
 
+        public async Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+
+            var reader = await GetReader(loginDbConnectionString, "sc_database_GetByLoginId", p =>
+            {
+                p.AddWithValue("@login_id", loginId);
+            });
+
+            try
+            {
+                if (reader.HasRows)
+                {
+                    await reader.ReadAsync();
+                    var dbUserId = reader.GetInt32(0);
+                    var dbDatabaseId = reader.GetInt32(1);
+                    var dbCustomerConnectionString = reader.GetString(2);
+                    return new Tuple<int, int, string>(dbUserId, dbDatabaseId, dbCustomerConnectionString);
+                }
+            }
+            finally { reader.Close(); }
+            return null;
+        }
+
         #region private methods
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>
@@ -209,7 +233,6 @@ namespace StarChef.Listener.Commands.Impl
                 throw new DatabaseException(ex);
             }
         }
-
         #endregion
     }
 }

@@ -66,5 +66,10 @@ namespace StarChef.Listener.Commands
         /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         /// <returns></returns>
         Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null);
+
+        /// <summary>
+        ///     Get userId and customerDB details
+        /// </summary>
+        Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId);
     }
 }
