@@ -131,13 +131,6 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="StarChef.Data">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>ThirdPartyReferences\StarChef.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="StarChef.Localization">
-      <HintPath>ThirdPartyReferences\StarChef.Localization.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities" />
     <Reference Include="System.Configuration" />
@@ -256,6 +249,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\StarChef.MSMQService.csproj">
+      <Project>{0291cfd0-1f05-4d49-abc5-bc4e9d5f375b}</Project>
+      <Name>StarChef.MSMQService</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StarChef.Orchestrate\StarChef.Orchestrate.csproj">
       <Project>{89ef0b30-23af-4f8c-a073-7924d2b51167}</Project>
       <Name>StarChef.Orchestrate</Name>

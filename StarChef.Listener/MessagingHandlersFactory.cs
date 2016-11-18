@@ -8,6 +8,10 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
+using System.Threading.Tasks;
+using StarChef.MSMQService;
+using StarChef.MSMQService.Constants;
+using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener
 {
@@ -30,7 +34,9 @@ namespace StarChef.Listener
             {
                 var validator = new AccountCreatedValidator();
                 var messagingLogger = new MessagingLogger(dbCommands);
-                return new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
+                var handler = new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
+                handler.OnProcessed += SendMsmqMessage;
+                return handler;
             }
 
             if (typeof(T) == typeof(AccountCreateFailed))
@@ -55,6 +61,20 @@ namespace StarChef.Listener
             }
 
             throw new NotSupportedMessageException(string.Format("Message type {0} is not supported.", typeof(T).Name));
+        }
+
+        private async Task SendMsmqMessage(AccountCreatedEventHandler sender, AccountCreatedTransferObject user)
+        {
+            if (sender == null) return;
+
+            var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.LoginId);
+
+            var msg = new UpdateMessage(productId: userDetail.Item1,
+                                        entityTypeId: (int)EntityType.User,
+                                        action: (int)MessageActionType.SalesForceUserCreated,
+                                        dbDSN: userDetail.Item3,
+                                        databaseId: userDetail.Item2);
+            MSMQHelper.Send(msg);
         }
     }
 }

@@ -9,10 +9,13 @@ using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
 using System.Transactions;
-using StarChef.Data;
+using StarChef.MSMQService;
+using StarChef.MSMQService.Constants;
 
 namespace StarChef.Listener.Handlers
 {
+    public delegate Task AccountCreatedProcessedDelegate(AccountCreatedEventHandler sender, AccountCreatedTransferObject user);
+
     public class AccountCreatedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountCreated>
     {
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -20,6 +23,8 @@ namespace StarChef.Listener.Handlers
         public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
         }
+
+        public event AccountCreatedProcessedDelegate OnProcessed;
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
         {
@@ -39,7 +44,10 @@ namespace StarChef.Listener.Handlers
                             _logger.Processed(trackingId, payload);
                         }
 
-                        await SendMsmqMessage(user.LoginId);
+                        // run subscribed post-events
+                        var evt = OnProcessed;
+                        if (evt != null)
+                            await evt(this, user);
                     }
                     catch (ListenerException ex)
                     {
@@ -55,18 +63,6 @@ namespace StarChef.Listener.Handlers
                     return MessageHandlerResult.Fatal;
                 }
             return MessageHandlerResult.Success;
-        }
-
-        private async Task SendMsmqMessage(int loginId)
-        {
-            var userDetail = await DbCommands.GetLoginUserIdAndCustomerDb(loginId);
-
-            var msg = new UpdateMessage(productId: userDetail.Item1,
-                                        entityTypeId: (int)Constants.EntityType.User,
-                                        action: (int)Constants.MessageActionType.SalesForceUserCreated,
-                                        dbDSN: userDetail.Item3,
-                                        databaseId: userDetail.Item2);
-            MSMQHelper.Send(msg);
         }
     }
 }
