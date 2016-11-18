@@ -98,7 +98,7 @@ namespace StarChef.Listener.Commands.Impl
             {
                 await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
                 {
-                    p.AddWithValue("@loginId", loginId);
+                    p.AddWithValue("@login_id", loginId);
                     p.AddWithValue("@login_name", username);
                 });
                 await Exec(connectionString, "sc_orchestration_update_user", p =>
@@ -135,8 +135,8 @@ namespace StarChef.Listener.Commands.Impl
 
             using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                await Exec(loginDbConnectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@loginId", existingLoginId));
-                await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@userId", existingUserId));
+                await Exec(loginDbConnectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@login_id", existingLoginId));
+                await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@user_id", existingUserId));
                 tran.Complete();
             }
         }
