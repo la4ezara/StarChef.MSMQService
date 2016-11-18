@@ -278,9 +278,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ThirdPartyReferences\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PublishFile Include="StarChef.MSMQService.exe.config">
       <Visible>False</Visible>
