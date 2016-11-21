@@ -20,7 +20,7 @@ namespace StarChef.Listener.Types
         /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         public async Task ReceivedFailedMessage(FailedTransferObject operationFailed, string trackingId)
         {
-            var json = operationFailed.ToJson();
+            var json = string.Format("[{0}] {1}", operationFailed.GetType().Name, operationFailed.ToJson());
             await _dbCommands.RecordMessagingEvent(trackingId, true, operationFailed.ErrorCode, operationFailed.Description, json);
         }
 
@@ -28,7 +28,7 @@ namespace StarChef.Listener.Types
         /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         public async Task ReceivedInvalidModel(string trackingId, object payload, string error)
         {
-            var json = payload.ToJson();
+            var json = string.Format("[{0}] {1}", payload.GetType().Name, payload.ToJson());
             await _dbCommands.RecordMessagingEvent(trackingId, false, Codes.InvalidModel, error, json);
         }
 
@@ -36,7 +36,7 @@ namespace StarChef.Listener.Types
         /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         public async Task MessageProcessedSuccessfully(object payload, string trackingId)
         {
-            var json = payload.ToJson();
+            var json = string.Format("[{0}] {1}", payload.GetType().Name, payload.ToJson());
             await _dbCommands.RecordMessagingEvent(trackingId, true, Codes.MessageProcessed, payloadJson: json);
         }
 

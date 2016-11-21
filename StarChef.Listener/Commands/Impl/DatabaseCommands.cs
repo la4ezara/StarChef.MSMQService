@@ -9,6 +9,7 @@ using System.Xml;
 using log4net;
 using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
+using StarChef.Listener.Extensions;
 
 namespace StarChef.Listener.Commands.Impl
 {
@@ -97,7 +98,7 @@ namespace StarChef.Listener.Commands.Impl
             {
                 await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
                 {
-                    p.AddWithValue("@loginId", loginId);
+                    p.AddWithValue("@login_id", loginId);
                     p.AddWithValue("@login_name", username);
                 });
                 await Exec(connectionString, "sc_orchestration_update_user", p =>
@@ -134,34 +135,31 @@ namespace StarChef.Listener.Commands.Impl
 
             using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                await Exec(loginDbConnectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@loginId", existingLoginId));
-                await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@userId", existingUserId));
+                await Exec(loginDbConnectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@login_id", existingLoginId));
+                await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@user_id", existingUserId));
                 tran.Complete();
             }
         }
 
+        /// <exception cref="DatabaseException">Database operation is failed</exception>
         public async Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId)
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
 
-            var reader = await GetReader(loginDbConnectionString, "sc_database_GetByLoginId", p =>
-            {
-                p.AddWithValue("@login_id", loginId);
-            });
-
-            try
-            {
-                if (reader.HasRows)
+            var result = await UseReader(loginDbConnectionString, "sc_database_GetByLoginId",
+                parametres =>
+                {
+                    parametres.AddWithValue("@login_id", loginId);
+                },
+                async reader =>
                 {
                     await reader.ReadAsync();
                     var dbUserId = reader.GetInt32(0);
-                    var dbDatabaseId = reader.GetInt32(1);
+                    var dbDatabaseId = reader.GetInt16(1);
                     var dbCustomerConnectionString = reader.GetString(2);
                     return new Tuple<int, int, string>(dbUserId, dbDatabaseId, dbCustomerConnectionString);
-                }
-            }
-            finally { reader.Close(); }
-            return null;
+                });
+            return result;
         }
 
         #region private methods
@@ -169,25 +167,22 @@ namespace StarChef.Listener.Commands.Impl
         /// <exception cref="DatabaseException">Database operation is failed</exception>
         private async Task<Tuple<int, int>> GetLoginUserId(string loginDbConnectionString, int? loginId = default(int?), string externalLoginId = null)
         {
-            var reader = await GetReader(loginDbConnectionString, "sc_orchestration_get_loginuser_id", p =>
+            Action<SqlParameterCollection> addParametersAction = parameters =>
             {
                 if (loginId.HasValue)
-                    p.AddWithValue("@login_id", loginId.Value);
+                    parameters.AddWithValue("@login_id", loginId.Value);
                 else if (!string.IsNullOrEmpty(externalLoginId))
-                    p.AddWithValue("@external_login_id", externalLoginId);
-            });
-            try
+                    parameters.AddWithValue("@external_login_id", externalLoginId);
+            };
+            Func<SqlDataReader, Task<Tuple<int, int>>> processReader = async reader =>
             {
-                if (reader.HasRows)
-                {
-                    await reader.ReadAsync();
-                    var dbLoginId = reader.GetInt32(0);
-                    var dbUserId = reader.GetInt32(1);
-                    return new Tuple<int, int>(dbLoginId, dbUserId);
-                }
-            }
-            finally { reader.Close(); }
-            return null;
+                await reader.ReadAsync();
+                var dbLoginId = reader.GetInt32(0);
+                var dbUserId = reader.GetInt32(1);
+                return new Tuple<int, int>(dbLoginId, dbUserId);
+            };
+            var result = await UseReader(loginDbConnectionString, "sc_orchestration_get_loginuser_id", addParametersAction, processReader);
+            return result;
         }
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>
@@ -208,13 +203,15 @@ namespace StarChef.Listener.Commands.Impl
                 }
             }
             catch (Exception ex) {
+                _logger.DatabaseError(ex);
                 throw new DatabaseException(ex);
             }
         }
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>
-        private async Task<SqlDataReader> GetReader(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null)
+        private async Task<T> UseReader<T>(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null, Func<SqlDataReader, Task<T>> processReader = null)
         {
+            T result = default (T);
             try
             {
                 using (var sqlConn = new SqlConnection(connectionString))
@@ -225,11 +222,20 @@ namespace StarChef.Listener.Commands.Impl
                     {
                         sqlCmd.CommandType = CommandType.StoredProcedure;
                         addParametersAction?.Invoke(sqlCmd.Parameters);
-                        return await sqlCmd.ExecuteReaderAsync();
+                        using (var reader = await sqlCmd.ExecuteReaderAsync())
+                        {
+                            if (reader.HasRows && processReader != null) {
+                                result = await processReader(reader);
+                            }
+                            if (!reader.IsClosed)
+                                reader.Close();
+                        }
                     }
                 }
+                return result;
             }
             catch (Exception ex) {
+                _logger.DatabaseError(ex);
                 throw new DatabaseException(ex);
             }
         }

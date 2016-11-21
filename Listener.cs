@@ -446,7 +446,7 @@ namespace StarChef.MSMQService
                 var cmd = new SqlCommand(spName, cn)
                 {
                     CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
+                    CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
                 };
                 cmd.Parameters.Add(new SqlParameter("@entity_type_id", entityTypeId));
                 var rdr = cmd.ExecuteReader();
@@ -474,7 +474,7 @@ namespace StarChef.MSMQService
                 // of these procs may take several minutes to complete
                 SqlCommand cmd = new SqlCommand(spName, cn);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC; //600
+                cmd.CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC; //600
 
                 // add params
                 if (parameterValues != null)

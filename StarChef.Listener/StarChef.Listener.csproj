@@ -133,7 +133,7 @@
     </Reference>
     <Reference Include="StarChef.Data, Version=1.30.33.7, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ThirdPartyReferences\StarChef.Data.dll</HintPath>
+      <HintPath>ThirdPartyReferences\StarChef.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities" />
@@ -253,6 +253,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\StarChef.MSMQService.csproj">
+      <Project>{0291cfd0-1f05-4d49-abc5-bc4e9d5f375b}</Project>
+      <Name>StarChef.MSMQService</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StarChef.Orchestrate\StarChef.Orchestrate.csproj">
       <Project>{89ef0b30-23af-4f8c-a073-7924d2b51167}</Project>
       <Name>StarChef.Orchestrate</Name>
