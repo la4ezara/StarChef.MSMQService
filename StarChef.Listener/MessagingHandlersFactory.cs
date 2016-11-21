@@ -9,9 +9,10 @@ using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCrea
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
 using System.Threading.Tasks;
-using StarChef.MSMQService;
-using StarChef.MSMQService.Constants;
+using StarChef.Data;
 using StarChef.Orchestrate.Models.TransferObjects;
+using MSMQHelper = StarChef.MSMQService.MSMQHelper;
+using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 
 namespace StarChef.Listener
 {
@@ -70,8 +71,8 @@ namespace StarChef.Listener
             var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.LoginId);
 
             var msg = new UpdateMessage(productId: userDetail.Item1,
-                                        entityTypeId: (int)EntityType.User,
-                                        action: (int)MessageActionType.SalesForceUserCreated,
+                                        entityTypeId: (int)Constants.EntityType.User,
+                                        action: (int)Constants.MessageActionType.SalesForceUserCreated,
                                         dbDSN: userDetail.Item3,
                                         databaseId: userDetail.Item2);
             MSMQHelper.Send(msg);

@@ -10,7 +10,6 @@ using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
 using System.Transactions;
 using StarChef.MSMQService;
-using StarChef.MSMQService.Constants;
 
 namespace StarChef.Listener.Handlers
 {
