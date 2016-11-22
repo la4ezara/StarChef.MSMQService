@@ -22,14 +22,14 @@ namespace StarChef.MSMQService
 
 			try
 			{
-				mqm.mqTransactionBegin();
+//				mqm.mqTransactionBegin();
 				mqm.mqSend(msg, (MessagePriority)Convert.ToInt32(DbManager.GetSetting("CONFIG_MSMQ_MESSAGE_PRIORITY")));
-				mqm.mqTransactionCommit();
+				//mqm.mqTransactionCommit();
 				mqm.mqDisconnect();
 			}
 			catch (Exception e)
 			{
-				mqm.mqTransactionAbort();
+				//mqm.mqTransactionAbort();
 				mqm.mqDisconnect();
 				//ExceptionManager.Publish(e);
 				// don't throw exception while testing - MSMQ not installed as standard

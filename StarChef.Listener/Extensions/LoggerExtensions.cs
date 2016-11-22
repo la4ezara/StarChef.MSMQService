@@ -29,8 +29,13 @@ namespace StarChef.Listener.Extensions
 
         public static void Processed(this ILog logger, string trackingId, object payload)
         {
-            logger.InfoFormat("Message '{0}' processed. [{1}] {2}", payload.GetType(), trackingId, payload.ToJson());
+            logger.InfoFormat("The event '{0}' processed. [{1}] {2}", payload.GetType(), trackingId, payload.ToJson());
         }
 
+        public static void DatabaseError(this ILog logger, Exception exception)
+        {
+            logger.ErrorFormat("Database operation failed. [{0}] '{1}'", exception.GetType(), exception.Message);
+            logger.Error(exception);
+        }
     }
 }
