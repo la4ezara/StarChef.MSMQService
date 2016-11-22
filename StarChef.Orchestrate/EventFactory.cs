@@ -1,7 +1,6 @@
 ﻿using StarChef.Orchestrate.Models;
 using Events = Fourth.Orchestration.Model.Menus.Events;
 using System.Collections.Generic;
-using System;
 
 namespace StarChef.Orchestrate
 {
@@ -13,21 +12,14 @@ namespace StarChef.Orchestrate
             int databaseId
             )
         {
-            Customer cust = new Customer(databaseId);
-            Recipe recipe = new Recipe(entityId);
+            var cust = new Customer(databaseId);
+            var recipe = new Recipe(entityId);
+            var builder = recipe.Build(cust, dbConnectionString);
 
-            try
-            {
-                var builder = recipe.Build(cust, dbConnectionString);
+            // Build the immutable data object
+            var eventObj = builder.Build();
 
-                // Build the immutable data object
-                var eventObj = builder.Build();
-
-                return eventObj;
-            }
-            catch(Exception ex)
-            { }
-            return null;
+            return eventObj;
         }
 
         public static Events.MealPeriodUpdated CreateMealPeriodEvent(string dbConnectionString, int entityId, int databaseId)

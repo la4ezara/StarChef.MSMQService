@@ -43,7 +43,7 @@ namespace StarChef.Orchestrate.Models
                        .SetVatPercentage(reader.GetValueOrDefault<double>(11))
                        .SetSellingPrice(reader.GetValueOrDefault<double>(12))
                        .SetPricingModel(Events.PricingModel.Margin)
-                       .SetPricingModelValue(reader.GetValueOrDefault<double>(14))  //
+                       .SetPricingModelValue(reader.GetValueOrDefault<double>(14))  
                        .SetSuggestedSellingPrice(reader.GetValueOrDefault<double>(16))
                        .SetSuggestedPlu(reader[17].ToString())
                        .SetCreatedUserFirstName(reader[18].ToString())
@@ -53,7 +53,7 @@ namespace StarChef.Orchestrate.Models
                        .SetCaptureDate((DateTime.Parse(reader[22].ToString())).Ticks)
                        .SetModifiedDate((DateTime.Parse(reader[23].ToString())).Ticks)
                        .SetSource(Events.SourceSystem.STARCHEF)
-                       .SetChangeType(Events.ChangeType.UPDATE)    //
+                       .SetChangeType(Events.ChangeType.UPDATE)    
                        .SetSequenceNumber(rand.Next(1, int.MaxValue));
             }
 
@@ -87,21 +87,24 @@ namespace StarChef.Orchestrate.Models
             }
 
             //Category Type
+            string categoryTypeExternalId = string.Empty;
             var categoryTypeBuilder = Events.RecipeUpdated.Types.CategoryType.CreateBuilder();
             if (reader.NextResult())
             {
                 if (reader.Read())
                 {
-                    categoryTypeBuilder.SetExternalId(reader[0].ToString())
+                    categoryTypeExternalId = reader[0].ToString();
+                    categoryTypeBuilder.SetExternalId(categoryTypeExternalId)
                                        .SetCategoryTypeName(reader[1].ToString())
                                        .SetExportType(MapCategoryExportType(reader[2].ToString()))
                                        .SetIsFoodType(int.Parse(reader[3].ToString()) == 1);
                 }
             }
 
-            //Category
-            var categoryBuilder = Events.RecipeUpdated.Types.CategoryType
-                                                      .Types.Category.CreateBuilder();
+            //MainCategory
+            var mainCategoryBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
+
+            var categoryLinkedList = new LinkedList<Category>();
 
             var categoryList = new List<Category>();
             if (reader.NextResult())
@@ -117,29 +120,66 @@ namespace StarChef.Orchestrate.Models
                 }
             }
 
-            if (categoryList.Count > 0)
+            //CategoryType exists
+            if (categoryList.Count > 0 && !string.IsNullOrEmpty(categoryTypeExternalId))
             {
-                var lookupByParentId = categoryList.Where(x => x.ExternalId != x.ParentExternalId)
-                                                   .ToLookup(x => x.ParentExternalId);
+                BuildCategoryHierarchy(categoryTypeExternalId, 
+                                       categoryTypeBuilder, 
+                                       mainCategoryBuilder, 
+                                       categoryLinkedList, 
+                                       categoryList);
 
-                foreach (var item in categoryList)
-                {
-                    item.SubCategories = lookupByParentId[item.ExternalId].ToList();
-                }
-
-                var parent = categoryList.FirstOrDefault(x => x.ExternalId == x.ParentExternalId);
-
-                if(parent != null)
-                {
-                    BuildCategory(categoryBuilder, parent);
-
-                    categoryTypeBuilder.AddMainCategories(categoryBuilder);
-                }
+                builder.SetCategoryTypes(categoryTypeBuilder);
             }
 
-            builder.SetCategoryTypes(categoryTypeBuilder);
-
             return builder;
+        }
+
+        private static void BuildCategoryHierarchy(
+            string categoryTypeExternalId, 
+            Events.RecipeUpdated.Types.CategoryType.Builder categoryTypeBuilder, 
+            Events.RecipeUpdated.Types.CategoryType.Types.Category.Builder mainCategoryBuilder, 
+            LinkedList<Category> categoryLinkedList, 
+            List<Category> categoryList
+            )
+        {
+            var childCategory = categoryList.FirstOrDefault(x => x.ExternalId == categoryTypeExternalId);
+            categoryLinkedList.AddFirst(childCategory);
+            BuildObject(categoryList, childCategory.ParentExternalId, categoryLinkedList);
+
+            var categoryLastAdded = categoryLinkedList.Last();
+            categoryLinkedList.RemoveLast();
+            BuildTree(categoryLinkedList, categoryLastAdded);
+
+            if (categoryLastAdded != null)
+            {
+                BuildCategory(mainCategoryBuilder, categoryLastAdded);
+
+                categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
+            }
+        }
+
+        private static void BuildTree(LinkedList<Category> list, Category p)
+        {
+            if (list.Count > 0)
+            {
+                var c = list.Last();
+                p.SubCategories = new List<Category> { c };
+                list.RemoveLast();
+                BuildTree(list, c);
+            }
+        }
+
+        private static void BuildObject(
+            List<Category> categoryList, 
+            string childCategoryId,
+            LinkedList<Category> categoryLinkedList
+            )
+        {
+            var d = categoryList.Where(x => x.ExternalId == childCategoryId).FirstOrDefault();
+            categoryLinkedList.AddLast(d);
+            if (childCategoryId != d.ParentExternalId)
+                BuildObject(categoryList, d.ParentExternalId, categoryLinkedList);
         }
 
         private static void BuildCategory(
@@ -151,12 +191,11 @@ namespace StarChef.Orchestrate.Models
                            .SetCategoryName(item.Name)
                            .SetParentExternalId(item.ParentExternalId);
 
-            if(item.SubCategories.Count > 0)
+            if(item.SubCategories !=null && item.SubCategories.Count > 0)
             {
                 foreach(var subItem in item.SubCategories)
                 {
-                    var subCategoryBuilder = Events.RecipeUpdated.Types.CategoryType
-                                                              .Types.Category.CreateBuilder();
+                    var subCategoryBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
 
                     BuildCategory(subCategoryBuilder, subItem);
 
