@@ -48,7 +48,7 @@ namespace StarChef.Orchestrate
                     switch(entityTypeWrapper)
                     {
                         case EnumHelper.EntityTypeWrapper.Recipe:
-                            var recipeEventPayload = EventFactory.CreateRecipeEvent();
+                            var recipeEventPayload = EventFactory.CreateRecipeEvent(dbConnectionString, entityId, databaseId);
                             result = bus.Publish(recipeEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.MealPeriod:
