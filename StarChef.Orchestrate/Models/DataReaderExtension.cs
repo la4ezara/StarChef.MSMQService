@@ -10,9 +10,8 @@ namespace StarChef.Orchestrate.Models
             if (reader.IsDBNull(colIndex)) return default(T);
 
             object item = reader[colIndex];
-            return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
 
-           // return (T)(reader.IsDBNull(colIndex) ? default(T) : reader.GetValue(colIndex));
+            return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
         }
     }
 }
