@@ -65,7 +65,7 @@ namespace StarChef.Orchestrate.Models
             }
 
             //Kitchenarea
-            var kitchenAreaLookup = new Dictionary<int, IList<KitchenArea>>();
+            var kitchenAreaLookup = new Dictionary<int, List<KitchenArea>>();
             if (reader.NextResult())
             {
                 kitchenAreaLookup = KitchenAreaLookup(reader);
@@ -207,7 +207,7 @@ namespace StarChef.Orchestrate.Models
         private static void BuildIngredients(
             Events.RecipeUpdated.Builder builder, 
             List<RecipeIngredient> ingredientList, 
-            Dictionary<int, IList<KitchenArea>> kitchenAreaLookup
+            Dictionary<int, List<KitchenArea>> kitchenAreaLookup
             )
         {
             if (ingredientList.Count > 0)
@@ -240,17 +240,17 @@ namespace StarChef.Orchestrate.Models
             }
         }
 
-        private static Dictionary<int, IList<KitchenArea>> KitchenAreaLookup(IDataReader reader)
+        private static Dictionary<int, List<KitchenArea>> KitchenAreaLookup(IDataReader reader)
         {
-            var kitchenAreaLookup = new Dictionary<int, IList<KitchenArea>>();
+            var kitchenAreaLookup = new Dictionary<int, List<KitchenArea>>();
+            var kitchenAreasList = new List<KitchenArea>();
             while (reader.Read())
             {
                 var productPartId = int.Parse(reader[0].ToString());
-                var list = kitchenAreaLookup[productPartId];
-                if (list == null)
-                {
-                    kitchenAreaLookup[productPartId] = list = new List<KitchenArea>();
-                }
+                if (!kitchenAreaLookup.ContainsKey(productPartId))
+                    kitchenAreaLookup[productPartId] = new List<KitchenArea>();
+                else
+                    kitchenAreasList = kitchenAreaLookup[productPartId];
 
                 var kitchenArea = new KitchenArea
                 {
@@ -259,7 +259,8 @@ namespace StarChef.Orchestrate.Models
                     DisplayOrder = int.Parse(reader[3].ToString())
                 };
 
-                list.Add(kitchenArea);
+                kitchenAreasList.Add(kitchenArea);
+                kitchenAreaLookup[productPartId] = kitchenAreasList;
             }
 
             return kitchenAreaLookup;
