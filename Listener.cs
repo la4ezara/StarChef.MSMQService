@@ -40,9 +40,6 @@ namespace StarChef.MSMQService
             _QueuePath = sQueuePath;
             log.Source = "StarChef-Listner";
 
-            //Setup IOC container
-            SetupAutofac();
-
             // Start log4net up
             XmlConfigurator.Configure();
         }
@@ -61,6 +58,11 @@ namespace StarChef.MSMQService
                     msg = mqm.mqPeek(cursor, PeekAction.Current);
                     if (msg != null)
                     {
+                        // create sender only when there is a message
+                        var container = ContainerConfig.Configure();
+                        _scope = container.BeginLifetimeScope();
+                        _messageSender = _scope.Resolve<IStarChefMessageSender>();
+
                         msg.Formatter = format;
                         string messageId = msg.Id;
                         updmsg = (UpdateMessage) msg.Body;
@@ -158,23 +160,6 @@ namespace StarChef.MSMQService
                 mqm.mqDisconnect();
                 if(resetEvent != null)
                     ((ManualResetEvent)resetEvent).Set();
-            }
-        }
-
-        private void SetupAutofac()
-        {
-            try
-            {
-                // Set up the IOC container
-                var container = ContainerConfig.Configure();
-                _scope = container.BeginLifetimeScope();
-
-                _messageSender = _scope.Resolve<IStarChefMessageSender>();
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Fatal("Error while setting up IOC container in Lister", ex);
             }
         }
 

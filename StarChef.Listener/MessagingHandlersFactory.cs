@@ -1,4 +1,5 @@
-﻿using Fourth.Orchestration.Messaging;
+﻿using System.Reflection;
+using Fourth.Orchestration.Messaging;
 using StarChef.Listener.Commands.Impl;
 using StarChef.Listener.Exceptions;
 using StarChef.Listener.Handlers;
@@ -9,15 +10,19 @@ using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCrea
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
 using System.Threading.Tasks;
+using log4net;
 using StarChef.Data;
 using StarChef.Orchestrate.Models.TransferObjects;
 using MSMQHelper = StarChef.MSMQService.MSMQHelper;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
+using StarChef.Listener.Extensions;
 
 namespace StarChef.Listener
 {
     class MessagingHandlersFactory : IMessagingHandlersFactory
     {
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <exception cref="NotSupportedMessageException">Raised when message type is not supported</exception>
         public IMessageHandler CreateHandler<T>()
         {
@@ -76,6 +81,7 @@ namespace StarChef.Listener
                                         dbDSN: userDetail.Item3,
                                         databaseId: userDetail.Item2);
             MSMQHelper.Send(msg);
+            _logger.MessageSent(msg);
         }
     }
 }
