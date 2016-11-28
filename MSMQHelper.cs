@@ -1,7 +1,8 @@
 using System;
 using System.Messaging;
+using System.Reflection;
+using log4net;
 using StarChef.Data;
-
 
 namespace StarChef.MSMQService
 {
@@ -10,7 +11,9 @@ namespace StarChef.MSMQService
 	/// </summary>
 	public class MSMQHelper
 	{
-		public MSMQHelper()
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public MSMQHelper()
 		{			
 		}
 
@@ -27,7 +30,9 @@ namespace StarChef.MSMQService
 			}
 			catch (Exception e)
 			{
-				mqm.mqDisconnect();
+                _logger.Error(e);
+
+                mqm.mqDisconnect();
 				// don't throw exception while testing - MSMQ not installed as standard
 				throw e;
 			}
