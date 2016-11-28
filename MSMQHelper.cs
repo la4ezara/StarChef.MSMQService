@@ -22,16 +22,12 @@ namespace StarChef.MSMQService
 
 			try
 			{
-//				mqm.mqTransactionBegin();
 				mqm.mqSend(msg, (MessagePriority)Convert.ToInt32(DbManager.GetSetting("CONFIG_MSMQ_MESSAGE_PRIORITY")));
-				//mqm.mqTransactionCommit();
 				mqm.mqDisconnect();
 			}
 			catch (Exception e)
 			{
-				//mqm.mqTransactionAbort();
 				mqm.mqDisconnect();
-				//ExceptionManager.Publish(e);
 				// don't throw exception while testing - MSMQ not installed as standard
 				throw e;
 			}
@@ -56,8 +52,7 @@ namespace StarChef.MSMQService
 
 		public static void Send(int productId, int action, string dbDSN, int databaseId)
 		{
-			//ExceptionManager.Publish(new Exception("product_id " + productId.ToString() + ", action: " + action.ToString() + ", dsn: " + dbDSN));
-            UpdateMessage msg = new UpdateMessage(productId, dbDSN, action, databaseId);
+			UpdateMessage msg = new UpdateMessage(productId, dbDSN, action, databaseId);
 			Send(msg);
 		}
 	}
