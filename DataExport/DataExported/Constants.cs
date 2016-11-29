@@ -28,7 +28,11 @@
             UpdateAlternateIngredients = 10,
             CreatePackage = 11,
             StarChefEventsUpdated = 12,
-            UpdatedUser = 13
+            UserCreated = 13,
+            UserUpdated = 14,
+            UserActivated = 15,
+            UserDeActivated = 16,
+            SalesForceUserCreated = 17
         }
     }
 }
