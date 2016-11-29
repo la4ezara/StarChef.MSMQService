@@ -35,13 +35,9 @@ namespace StarChef.Listener.Handlers
                     var user = Mapper.Map<AccountCreatedTransferObject>(payload);
                     try
                     {
-                        using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                        {
-                            await DbCommands.UpdateExternalId(user);
-                            await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
-                            tran.Complete();
-                            _logger.Processed(trackingId, payload);
-                        }
+                        await DbCommands.UpdateExternalId(user);
+                        await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
+                        _logger.Processed(trackingId, payload);
 
                         // run subscribed post-events
                         var evt = OnProcessed;

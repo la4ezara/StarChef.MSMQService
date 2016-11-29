@@ -28,13 +28,9 @@ namespace StarChef.Listener.Handlers
                 {
                     var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
 
-                    using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                    {
-                        await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
-                        await DbCommands.DisableLogin(operationFailed.LoginId);
-                        tran.Complete();
-                        _logger.Processed(trackingId, payload);
-                    }
+                    await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
+                    await DbCommands.DisableLogin(operationFailed.LoginId);
+                    _logger.Processed(trackingId, payload);
                 }
                 else
                 {

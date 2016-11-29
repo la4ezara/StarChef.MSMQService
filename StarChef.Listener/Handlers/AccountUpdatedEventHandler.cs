@@ -32,13 +32,9 @@ namespace StarChef.Listener.Handlers
 
                     try
                     {
-                        using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                        {
-                            await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
-                            await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
-                            tran.Complete();
-                            _logger.Processed(trackingId, payload);
-                        }
+                        await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
+                        await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
+                        _logger.Processed(trackingId, payload);
                     }
                     catch (ListenerException ex)
                     {

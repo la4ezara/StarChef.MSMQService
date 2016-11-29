@@ -93,24 +93,20 @@ namespace StarChef.Listener.Commands.Impl
             var connectionString = await _csProvider.GetCustomerDb(loginId, loginDbConnectionString);
             if (string.IsNullOrEmpty(connectionString))
                 throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
-
-            using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            
+            await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
             {
-                await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
-                {
-                    p.AddWithValue("@login_id", loginId);
-                    p.AddWithValue("@login_name", username);
-                });
-                await Exec(connectionString, "sc_orchestration_update_user", p =>
-                {
-                    p.AddWithValue("@userId", userId);
-                    p.AddWithValue("@email", emailAddress);
-                    p.AddWithValue("@login_name", username);
-                    p.AddWithValue("@forename", firstName);
-                    p.AddWithValue("@lastname", lastName);
-                });
-                tran.Complete();
-            }
+                p.AddWithValue("@login_id", loginId);
+                p.AddWithValue("@login_name", username);
+            });
+            await Exec(connectionString, "sc_orchestration_update_user", p =>
+            {
+                p.AddWithValue("@userId", userId);
+                p.AddWithValue("@email", emailAddress);
+                p.AddWithValue("@login_name", username);
+                p.AddWithValue("@forename", firstName);
+                p.AddWithValue("@lastname", lastName);
+            });            
         }
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>
@@ -133,12 +129,8 @@ namespace StarChef.Listener.Commands.Impl
             if (string.IsNullOrEmpty(connectionString))
                 throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
 
-            using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                await Exec(loginDbConnectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@login_id", existingLoginId));
-                await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@user_id", existingUserId));
-                tran.Complete();
-            }
+            await Exec(loginDbConnectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@login_id", existingLoginId));
+            await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@user_id", existingUserId));
         }
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>

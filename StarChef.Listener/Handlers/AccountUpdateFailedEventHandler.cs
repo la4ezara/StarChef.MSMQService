@@ -27,13 +27,9 @@ namespace StarChef.Listener.Handlers
                 if (Validator.IsValid(payload))
                 {
                     var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
-                    using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                    {
-                        await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
-                        await DbCommands.DisableLogin(externalLoginId: operationFailed.ExternalLoginId);
-                        tran.Complete();
-                        _logger.Processed(trackingId, payload);
-                    }
+                    await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
+                    await DbCommands.DisableLogin(externalLoginId: operationFailed.ExternalLoginId);
+                    _logger.Processed(trackingId, payload);
                 }
                 else
                 {
