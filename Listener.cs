@@ -40,9 +40,6 @@ namespace StarChef.MSMQService
             _QueuePath = sQueuePath;
             log.Source = "StarChef-Listner";
 
-            //Setup IOC container
-            SetupAutofac();
-
             // Start log4net up
             XmlConfigurator.Configure();
         }
@@ -61,6 +58,11 @@ namespace StarChef.MSMQService
                     msg = mqm.mqPeek(cursor, PeekAction.Current);
                     if (msg != null)
                     {
+                        // create sender only when there is a message
+                        var container = ContainerConfig.Configure();
+                        _scope = container.BeginLifetimeScope();
+                        _messageSender = _scope.Resolve<IStarChefMessageSender>();
+
                         msg.Formatter = format;
                         string messageId = msg.Id;
                         updmsg = (UpdateMessage) msg.Body;
@@ -161,23 +163,6 @@ namespace StarChef.MSMQService
             }
         }
 
-        private void SetupAutofac()
-        {
-            try
-            {
-                // Set up the IOC container
-                var container = ContainerConfig.Configure();
-                _scope = container.BeginLifetimeScope();
-
-                _messageSender = _scope.Resolve<IStarChefMessageSender>();
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Fatal("Error while setting up IOC container in Lister", ex);
-            }
-        }
-
         private void SendMail(UpdateMessage message)
         {
             try
@@ -202,10 +187,9 @@ namespace StarChef.MSMQService
 
         private void ProcessMessage(UpdateMessage msg)
         {
-
             if (msg != null)
             {
-                switch ((int)msg.Action)
+                switch (msg.Action)
                 {
                     case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
                         ProcessUDUUpdate(msg);
@@ -240,16 +224,8 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UserCreated:
-                        ProcessStarChefEventsUpdated(msg, true);
-                        break;
                     case (int)Constants.MessageActionType.StarChefEventsUpdated:
-                        if(msg.EntityTypeId == (int)Constants.EntityType.User)
-                            ProcessStarChefEventsUpdated(msg, true);
-                        else
-                            ProcessStarChefEventsUpdated(msg);
-                        break;
-                    
+                    case (int)Constants.MessageActionType.UserCreated:
                     case (int)Constants.MessageActionType.UserUpdated:
                     case (int)Constants.MessageActionType.UserActivated:
                     case (int)Constants.MessageActionType.UserDeActivated:
@@ -373,21 +349,25 @@ namespace StarChef.MSMQService
                 new SqlParameter("@product_id", msg.ProductID));
         }
 
-        private void ProcessStarChefEventsUpdated(UpdateMessage msg, bool waitForExternalId = false)
+        private void ProcessStarChefEventsUpdated(UpdateMessage msg)
         {
             var entityTypeId = 0;
             var entityId = 0;
             var arrivedTime = msg.ArrivedTime;
 
             EnumHelper.EntityTypeWrapper? entityTypeWrapper = null;
-
             switch (msg.EntityTypeId)
             {
                 case (int) Constants.EntityType.User:
                     entityTypeId = (int) Constants.EntityType.User;
                     entityId = msg.ProductID;
-                    entityTypeWrapper = waitForExternalId ? EnumHelper.EntityTypeWrapper.User
-                                                          : EnumHelper.EntityTypeWrapper.UserUpdated;
+                    
+                    if (msg.Action == (int) Constants.MessageActionType.UserCreated
+                        || msg.Action == (int) Constants.MessageActionType.StarChefEventsUpdated)
+                        entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
+                    else
+                        entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserUpdated;
+
                     break;
                 case (int)Constants.EntityType.UserGroup:
                     entityTypeId = (int)Constants.EntityType.UserGroup;

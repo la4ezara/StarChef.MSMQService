@@ -1,7 +1,9 @@
 using System;
 using System.Messaging;
+using System.Reflection;
+using log4net;
+using StarChef.Common;
 using StarChef.Data;
-
 
 namespace StarChef.MSMQService
 {
@@ -10,28 +12,30 @@ namespace StarChef.MSMQService
 	/// </summary>
 	public class MSMQHelper
 	{
-		public MSMQHelper()
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public MSMQHelper()
 		{			
 		}
 
 		public static void Send(UpdateMessage msg)
 		{
-			MSMQManager mqm = new MSMQManager();
+		    var db = new DatabaseManager();
+			var mqm = new MSMQManager();
 			
 			if (msg == null) return;
 
 			try
 			{
-//				mqm.mqTransactionBegin();
-				mqm.mqSend(msg, (MessagePriority)Convert.ToInt32(DbManager.GetSetting("CONFIG_MSMQ_MESSAGE_PRIORITY")));
-				//mqm.mqTransactionCommit();
+			    var priority = db.GetSetting(msg.DSN, "CONFIG_MSMQ_MESSAGE_PRIORITY");
+				mqm.mqSend(msg, (MessagePriority)Convert.ToInt32(priority));
 				mqm.mqDisconnect();
 			}
 			catch (Exception e)
 			{
-				//mqm.mqTransactionAbort();
-				mqm.mqDisconnect();
-				//ExceptionManager.Publish(e);
+                _logger.Error(e);
+
+                mqm.mqDisconnect();
 				// don't throw exception while testing - MSMQ not installed as standard
 				throw e;
 			}
@@ -56,8 +60,7 @@ namespace StarChef.MSMQService
 
 		public static void Send(int productId, int action, string dbDSN, int databaseId)
 		{
-			//ExceptionManager.Publish(new Exception("product_id " + productId.ToString() + ", action: " + action.ToString() + ", dsn: " + dbDSN));
-            UpdateMessage msg = new UpdateMessage(productId, dbDSN, action, databaseId);
+			UpdateMessage msg = new UpdateMessage(productId, dbDSN, action, databaseId);
 			Send(msg);
 		}
 	}
