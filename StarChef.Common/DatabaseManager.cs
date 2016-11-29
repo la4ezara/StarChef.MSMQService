@@ -38,6 +38,14 @@ namespace StarChef.Common
             return retval;
         }
 
+        public string GetSetting(string connectionString, string settingName)
+        {
+            var reader = ExecuteReader(connectionString, "sc_get_db_setting", new SqlParameter("@setting_name", settingName));
+            if (reader.Read())
+                return reader.GetValue(0).ToString();
+            return null;
+        }
+
         public IDataReader ExecuteReaderMultiResultset(
             string connectionString, 
             string spName, 
