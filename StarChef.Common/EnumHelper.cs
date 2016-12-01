@@ -12,7 +12,9 @@
             MealPeriod,
             Group,
             UserCreated,
-            UserUpdated
+            UserUpdated,
+            UserActivated,
+            UserDeactivated
         }
     }
 }
