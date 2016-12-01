@@ -50,30 +50,29 @@ namespace StarChef.Orchestrate
                     {
                         case EnumHelper.EntityTypeWrapper.Recipe:
                             var recipeEventPayload = EventFactory.CreateRecipeEvent(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(recipeEventPayload);
+                            result = Publish(bus, recipeEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.MealPeriod:
                             var mealPeriodEventPayload = EventFactory.CreateMealPeriodEvent(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(mealPeriodEventPayload);
+                            result = Publish(bus, mealPeriodEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.Group:
                             var groupEventPayload = EventFactory.CreateGroupEvent(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(groupEventPayload);
+                            result = Publish(bus, groupEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.User:
                             var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
-                            result = bus.Send(userCommandCreateAccount);
-                            Logger.InfoFormat("Command '{0}' sent: {1}", userCommandCreateAccount.GetType().Name, userCommandCreateAccount.ToJson());
+                            result = Send(bus, userCommandCreateAccount);
                             break;
                         case EnumHelper.EntityTypeWrapper.UserUpdated:
                             var userCreatedEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(userCreatedEventPayload);
+                            result = Publish(bus, userCreatedEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.UserGroup:
                             var userGroupEventPayload = EventFactory.CreateUserGroupEvent(dbConnectionString, entityId, databaseId);
                             foreach(var user in userGroupEventPayload)
                             {
-                                result = bus.Publish(user);
+                                result = Publish(bus, user);
                                 LogDatabase(dbConnectionString,
                                                         entityTypeId,
                                                         entityId,
@@ -84,7 +83,7 @@ namespace StarChef.Orchestrate
                             break;
                         case EnumHelper.EntityTypeWrapper.Menu:
                             var meuEventPayload = EventFactory.UpdateMenuEvent(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(meuEventPayload);
+                            result = Publish(bus, meuEventPayload);
                             break;
                     }
                 }
@@ -105,6 +104,21 @@ namespace StarChef.Orchestrate
 
             return result;
         }
+
+        private bool Send(IMessageBus bus, IMessage messagePayload)
+        {
+            var result = bus.Send(messagePayload);
+            Logger.InfoFormat("Command '{0}' sent: {1}", messagePayload.GetType().Name, messagePayload.ToJson());
+            return result;
+        }
+
+        private static bool Publish(IMessageBus bus, IMessage messagePayload)
+        {
+            var result = bus.Publish(messagePayload);
+            Logger.InfoFormat("Event '{0}' published: {1}", messagePayload.GetType().Name, messagePayload.ToJson());
+            return result;
+        }
+
         private void LogDatabase(
             string connectionString,
             int entityTypeId,
