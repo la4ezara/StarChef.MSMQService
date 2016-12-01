@@ -7,6 +7,13 @@ namespace StarChef.Orchestrate
 {
     public class CommandFactory
     {
+        /// <summary>
+        /// New User Activation command
+        /// </summary>
+        /// <param name="dbConnectionString"></param>
+        /// <param name="entityId"></param>
+        /// <param name="databaseId"></param>
+        /// <returns></returns>
         public static Commands.ActivateAccount ActivateAccountCommand(string dbConnectionString, int entityId, int databaseId)
         {
             Customer cust = new Customer(databaseId);

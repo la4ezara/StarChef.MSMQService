@@ -224,11 +224,15 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
+                    ///All Events are populating under StarChefEventsUpdated Action - Addtional action added for 
+                    /// User becuase of mulitiple different actions
                     case (int)Constants.MessageActionType.StarChefEventsUpdated:
-                    case (int)Constants.MessageActionType.UserCreated:
+                        /// Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
+                    case (int)Constants.MessageActionType.UserCreated: 
                     case (int)Constants.MessageActionType.UserUpdated:
                     case (int)Constants.MessageActionType.UserActivated:
                     case (int)Constants.MessageActionType.UserDeActivated:
+                        /// Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
                     case (int)Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
@@ -361,13 +365,22 @@ namespace StarChef.MSMQService
                 case (int) Constants.EntityType.User:
                     entityTypeId = (int) Constants.EntityType.User;
                     entityId = msg.ProductID;
-                    
-                    if (msg.Action == (int) Constants.MessageActionType.UserCreated
-                        || msg.Action == (int) Constants.MessageActionType.StarChefEventsUpdated)
-                        entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
-                    else
-                        entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserUpdated;
 
+                    if (msg.Action == (int)Constants.MessageActionType.UserCreated
+                        || msg.Action == (int)Constants.MessageActionType.StarChefEventsUpdated)
+                        entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
+                    else if (msg.Action == (int)Constants.MessageActionType.UserActivated)
+                    {
+                        entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserActivated;
+                    }
+                    else if (msg.Action == (int)Constants.MessageActionType.UserDeActivated)
+                    {
+                        entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserDeactivated;
+                    }
+                    else
+                    {
+                        entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserUpdated;
+                    }
                     break;
                 case (int)Constants.EntityType.UserGroup:
                     entityTypeId = (int)Constants.EntityType.UserGroup;

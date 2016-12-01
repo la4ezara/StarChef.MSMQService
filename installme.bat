@@ -1,6 +1,6 @@
 net stop StarChef.MSMQService
 
-C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\installutil StarChef.MSMQService.exe
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\installutil "C:\Development\StarChef.MSMQService\StarChef.MSMQService.exe"
 
 
 pause
