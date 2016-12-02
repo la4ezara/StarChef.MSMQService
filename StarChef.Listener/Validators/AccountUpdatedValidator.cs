@@ -37,11 +37,6 @@ namespace StarChef.Listener.Validators
                 SetLastError("EmailAddress is missing");
                 return false;
             }
-            if (!string.Equals(e.Username, e.EmailAddress, StringComparison.InvariantCultureIgnoreCase))
-            {
-                SetLastError("Username and EmailAddress are not equal");
-                return false;
-            }
             return true;
         }
     }
