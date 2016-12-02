@@ -72,10 +72,20 @@ namespace StarChef.Orchestrate
                             var userCommandAccountDeactivated = CommandFactory.DeactivateAccountCommand(entityId, databaseId);
                             result = Send(bus, userCommandAccountDeactivated);
                             break;
-                        case EnumHelper.EntityTypeWrapper.UserUpdated:
+                        case EnumHelper.EntityTypeWrapper.SendUserUpdatedEvent:
+                        {
                             var userCreatedEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
                             result = Publish(bus, userCreatedEventPayload);
                             break;
+                        }
+                        case EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand:
+                        {
+                            var userCreatedEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
+                            var userCreatedCommandPayload = CommandFactory.UpdateAccountCommand(dbConnectionString, entityId, databaseId);
+                            result = Publish(bus, userCreatedEventPayload)
+                                     && Send(bus, userCreatedCommandPayload);
+                            break;
+                        }
                         case EnumHelper.EntityTypeWrapper.UserGroup:
                             var userGroupEventPayload = EventFactory.CreateUserGroupEvent(dbConnectionString, entityId, databaseId);
                             foreach(var user in userGroupEventPayload)

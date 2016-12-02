@@ -12,9 +12,10 @@
             MealPeriod,
             Group,
             UserCreated,
-            UserUpdated,
+            SendUserUpdatedEventAndCommand,
             UserActivated,
-            UserDeactivated
+            UserDeactivated,
+            SendUserUpdatedEvent
         }
     }
 }
