@@ -65,11 +65,11 @@ namespace StarChef.Orchestrate
                             result = Send(bus, userCommandCreateAccount);
                             break;
                         case EnumHelper.EntityTypeWrapper.UserActivated:  
-                            var userCommandAccountActivated = CommandFactory.ActivateAccountCommand(dbConnectionString, entityId, databaseId);
+                            var userCommandAccountActivated = CommandFactory.ActivateAccountCommand(entityId, databaseId);
                             result = Send(bus, userCommandAccountActivated);
                             break;
                         case EnumHelper.EntityTypeWrapper.UserDeactivated:  
-                            var userCommandAccountDeactivated = CommandFactory.DeactivateAccountCommand(dbConnectionString, entityId, databaseId);
+                            var userCommandAccountDeactivated = CommandFactory.DeactivateAccountCommand(entityId, databaseId);
                             result = Send(bus, userCommandAccountDeactivated);
                             break;
                         case EnumHelper.EntityTypeWrapper.UserUpdated:

@@ -61,39 +61,51 @@ namespace StarChef.Orchestrate.Models
             return builder;
         }
 
-        public Commands.ActivateAccount.Builder BuildActivateAccount(Customer cust, string connectionString)
+        /// <summary>
+        /// Create command to activate account
+        /// </summary>
+        public Commands.ActivateAccount.Builder BuildActivateAccount(int userId, int databaseId)
         {
-            var rand = new Random();
-            var builder = Commands.ActivateAccount.CreateBuilder();
             var dbManager = new DatabaseManager();
-
-            var reader = dbManager.ExecuteReader(connectionString,
-                                    "sc_event_user",
-                                    new SqlParameter("@entity_id", Id));
-            if (reader.Read())
+            var connectionStringLogin = ConfigurationManager.AppSettings["DSN"];
+            SqlParameter[] parameters =
             {
-                builder.SetExternalId(cust.ExternalId)
-                        .SetCommandId(rand.Next(1, int.MaxValue).ToString())
-                        .SetSource(Commands.SourceSystem.STARCHEF);
-            }
+                new SqlParameter { ParameterName = "@user_id", Value = userId },
+                new SqlParameter { ParameterName = "@db_database_id", Value = databaseId }
+            };
+            var readerLogin = dbManager.ExecuteReader(connectionStringLogin, "sc_get_user_login_details", parameters);
+            readerLogin.Read();
+            var sfAccoutnId = readerLogin.GetString(1);
+
+            var builder = Commands.ActivateAccount.CreateBuilder();
+
+            builder.SetExternalId(sfAccoutnId)
+                .SetCommandId(new Random().Next(1, int.MaxValue).ToString())
+                .SetSource(Commands.SourceSystem.STARCHEF);
             return builder;
         }
 
-        public Commands.DeactivateAccount.Builder BuildDeactivateAccount(Customer cust, string connectionString)
+        /// <summary>
+        /// Create command to deactivate account
+        /// </summary>
+        public Commands.DeactivateAccount.Builder BuildDeactivateAccount(int userId, int databaseId)
         {
-            var rand = new Random();
-            var builder = Commands.DeactivateAccount.CreateBuilder();
             var dbManager = new DatabaseManager();
-
-            var reader = dbManager.ExecuteReader(connectionString,
-                                    "sc_event_user",
-                                    new SqlParameter("@entity_id", Id));
-            if (reader.Read())
+            var connectionStringLogin = ConfigurationManager.AppSettings["DSN"];
+            SqlParameter[] parameters =
             {
-                builder.SetExternalId(cust.ExternalId)
-                        .SetCommandId(rand.Next(1, int.MaxValue).ToString())
-                        .SetSource(Commands.SourceSystem.STARCHEF);
-            }
+                new SqlParameter { ParameterName = "@user_id", Value = userId },
+                new SqlParameter { ParameterName = "@db_database_id", Value = databaseId }
+            };
+            var readerLogin = dbManager.ExecuteReader(connectionStringLogin, "sc_get_user_login_details", parameters);
+            readerLogin.Read();
+            var sfAccoutnId = readerLogin.GetString(1);
+
+            var builder = Commands.DeactivateAccount.CreateBuilder();
+            builder.SetExternalId(sfAccoutnId)
+                .SetCommandId(new Random().Next(1, int.MaxValue).ToString())
+                .SetSource(Commands.SourceSystem.STARCHEF);
+            
             return builder;
         }
 

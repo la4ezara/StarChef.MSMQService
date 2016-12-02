@@ -10,16 +10,12 @@ namespace StarChef.Orchestrate
         /// <summary>
         /// New User Activation command
         /// </summary>
-        /// <param name="dbConnectionString"></param>
         /// <param name="entityId"></param>
         /// <param name="databaseId"></param>
         /// <returns></returns>
-        public static Commands.ActivateAccount ActivateAccountCommand(string dbConnectionString, int entityId, int databaseId)
+        public static Commands.ActivateAccount ActivateAccountCommand(int entityId, int databaseId)
         {
-            Customer cust = new Customer(databaseId);
-            User u = new User(entityId);
-
-            var builder = u.BuildActivateAccount(cust, dbConnectionString);
+            var builder = new User().BuildActivateAccount(entityId, databaseId);
 
             // Build the immutable data object
             var eventObj = builder.Build();
@@ -27,12 +23,9 @@ namespace StarChef.Orchestrate
             return eventObj;
         }
 
-        public static Commands.DeactivateAccount DeactivateAccountCommand(string dbConnectionString, int entityId, int databaseId)
+        public static Commands.DeactivateAccount DeactivateAccountCommand(int entityId, int databaseId)
         {
-            Customer cust = new Customer(databaseId);
-            User u = new User(entityId);
-
-            var builder = u.BuildDeactivateAccount(cust, dbConnectionString);
+            var builder = new User().BuildDeactivateAccount(entityId, databaseId);
 
             // Build the immutable data object
             var eventObj = builder.Build();
