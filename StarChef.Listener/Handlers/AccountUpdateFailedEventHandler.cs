@@ -21,9 +21,10 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountUpdateFailed payload, string trackingId)
         {
-            _logger.EventReceived(trackingId, payload);
-
             if (Validator.IsStarChefEvent(payload))
+            {
+                _logger.EventReceived(trackingId, payload);
+
                 if (Validator.IsValid(payload))
                 {
                     var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
@@ -37,7 +38,7 @@ namespace StarChef.Listener.Handlers
                     _logger.InvalidModel(trackingId, payload, errors);
                     await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                     return MessageHandlerResult.Fatal;
-                }
+                }}
             return MessageHandlerResult.Success;
         }
     }
