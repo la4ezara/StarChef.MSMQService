@@ -1,6 +1,7 @@
 ﻿using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.AccountUpdateFailedReason;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
 using StarChef.Listener.Types;
+using StarChef.Listener.Validators;
 using Xunit;
 
 namespace StarChef.Listener.Tests.Types

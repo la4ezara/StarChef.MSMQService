@@ -1,6 +1,7 @@
 ﻿using AccountCreateFailedReason = Fourth.Orchestration.Model.People.Events.AccountCreateFailedReason;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using StarChef.Listener.Types;
+using StarChef.Listener.Validators;
 using Xunit;
 
 namespace StarChef.Listener.Tests.Types

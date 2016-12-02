@@ -177,7 +177,9 @@
     <Compile Include="Extensions\LoggerExtensions.cs" />
     <Compile Include="Handlers\AccountCreatedEventHandler.cs" />
     <Compile Include="Handlers\AccountCreateFailedEventHandler.cs" />
+    <Compile Include="Handlers\AccountStatusChangedEventHandler.cs" />
     <Compile Include="Handlers\AccountUpdatedEventHandler.cs" />
+    <Compile Include="Handlers\AccountStatusChangeFailedEventHandler.cs" />
     <Compile Include="Handlers\AccountUpdateFailedEventHandler.cs" />
     <Compile Include="Commands\ILoginDbCommands.cs" />
     <Compile Include="Commands\Impl\DatabaseCommands.cs" />
@@ -198,10 +200,12 @@
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Types\AccountCreatedValidator.cs" />
-    <Compile Include="Types\AccountCreateFailedValidator.cs" />
-    <Compile Include="Types\AccountUpdatedValidator.cs" />
-    <Compile Include="Types\AccountUpdateFailedValidator.cs" />
+    <Compile Include="Validators\AccountCreatedValidator.cs" />
+    <Compile Include="Validators\AccountCreateFailedValidator.cs" />
+    <Compile Include="Validators\AccountStatusChangeFailedValidator.cs" />
+    <Compile Include="Validators\AccountStatusChangedValidator.cs" />
+    <Compile Include="Validators\AccountUpdatedValidator.cs" />
+    <Compile Include="Validators\AccountUpdateFailedValidator.cs" />
     <Compile Include="Types\AlwaysTrueEventValidator.cs" />
     <Compile Include="Types\EventValidator.cs" />
     <Compile Include="Types\MessagingLogger.cs" />

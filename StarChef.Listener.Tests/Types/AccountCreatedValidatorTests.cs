@@ -1,5 +1,6 @@
 ﻿using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using StarChef.Listener.Types;
+using StarChef.Listener.Validators;
 using Xunit;
 
 namespace StarChef.Listener.Tests.Types

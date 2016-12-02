@@ -9,6 +9,8 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
+using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountStatusChanged;
+using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.AccountStatusChangeFailed;
 using System.Threading.Tasks;
 using log4net;
 using StarChef.Data;
@@ -16,6 +18,7 @@ using StarChef.Orchestrate.Models.TransferObjects;
 using MSMQHelper = StarChef.MSMQService.MSMQHelper;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 using StarChef.Listener.Extensions;
+using StarChef.Listener.Validators;
 
 namespace StarChef.Listener
 {
@@ -28,18 +31,17 @@ namespace StarChef.Listener
         {
             var csProvider = new ConnectionStringProvider();
             var dbCommands = new DatabaseCommands(csProvider);
+            var messagingLogger = new MessagingLogger(dbCommands);
 
             if (typeof(T) == typeof(PriceBandUpdated))
             {
                 var validator = new AlwaysTrueEventValidator();
-                var messagingLogger = new MessagingLogger(dbCommands);
                 return new PriceBandEventHandler(dbCommands, validator, messagingLogger);
             }
 
             if (typeof(T) == typeof(AccountCreated))
             {
                 var validator = new AccountCreatedValidator();
-                var messagingLogger = new MessagingLogger(dbCommands);
                 var handler = new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
                 handler.OnProcessed += SendMsmqMessage;
                 return handler;
@@ -48,22 +50,29 @@ namespace StarChef.Listener
             if (typeof(T) == typeof(AccountCreateFailed))
             {
                 var validator = new AccountCreateFailedValidator();
-                var messagingLogger = new MessagingLogger(dbCommands);
                 return new AccountCreateFailedEventHandler(dbCommands, validator, messagingLogger);
             }
 
             if (typeof(T) == typeof(AccountUpdated))
             {
                 var validator = new AccountUpdatedValidator();
-                var messagingLogger = new MessagingLogger(dbCommands);
                 return new AccountUpdatedEventHandler(dbCommands, validator, messagingLogger);
             }
 
             if (typeof(T) == typeof(AccountUpdateFailed))
             {
                 var validator = new AccountUpdateFailedValidator();
-                var messagingLogger = new MessagingLogger(dbCommands);
                 return new AccountUpdateFailedEventHandler(dbCommands, validator, messagingLogger);
+            }
+            if (typeof (T) == typeof (AccountStatusChanged))
+            {
+                var validator = new AccountStatusChangedValidator();
+                return new AccountStatusChangedEventHandler(dbCommands, validator, messagingLogger);
+            }
+            if (typeof(T) == typeof(AccountStatusChangeFailed))
+            {
+                var validator = new AccountStatusChangeFailedValidator();
+                return new AccountStatusChangeFailedEventHandler(dbCommands, validator, messagingLogger);
             }
 
             throw new NotSupportedMessageException(string.Format("Message type {0} is not supported.", typeof(T).Name));

@@ -1,6 +1,7 @@
-﻿using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
+﻿using StarChef.Listener.Types;
+using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 
-namespace StarChef.Listener.Types
+namespace StarChef.Listener.Validators
 {
     class AccountCreateFailedValidator : EventValidator, IEventValidator
     {

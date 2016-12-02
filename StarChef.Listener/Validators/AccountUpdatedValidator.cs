@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Specialized;
+using StarChef.Listener.Types;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 
-namespace StarChef.Listener.Types
+namespace StarChef.Listener.Validators
 {
     class AccountUpdatedValidator : EventValidator, IEventValidator
     {

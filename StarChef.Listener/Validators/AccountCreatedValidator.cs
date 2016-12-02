@@ -1,6 +1,7 @@
-﻿using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
+﻿using StarChef.Listener.Types;
+using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 
-namespace StarChef.Listener.Types
+namespace StarChef.Listener.Validators
 {
     class AccountCreatedValidator : EventValidator, IEventValidator
     {
