@@ -21,6 +21,8 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountStatusChangeFailed payload, string trackingId)
         {
+            _logger.Info("AccountStatusChangeFailed received");
+
             if (Validator.IsStarChefEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
