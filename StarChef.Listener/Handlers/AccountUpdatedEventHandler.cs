@@ -33,7 +33,6 @@ namespace StarChef.Listener.Handlers
 
                     try
                     {
-                        await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
                         await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                         _logger.Processed(trackingId, payload);
                     }
