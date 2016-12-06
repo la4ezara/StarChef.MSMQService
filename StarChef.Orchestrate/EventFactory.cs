@@ -93,5 +93,17 @@ namespace StarChef.Orchestrate
 
             return eventObj;
         }
+
+        public static Events.IngredientUpdated UpdateIngredientEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            Customer cust = new Customer(databaseId);
+            Ingredient ingredient = new Ingredient(entityId);
+            var builder = ingredient.Build(cust, dbConnectionString);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+        }
     }
 }
