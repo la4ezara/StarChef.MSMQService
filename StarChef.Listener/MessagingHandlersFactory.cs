@@ -19,6 +19,7 @@ using MSMQHelper = StarChef.MSMQService.MSMQHelper;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 using StarChef.Listener.Extensions;
 using StarChef.Listener.Validators;
+using System;
 
 namespace StarChef.Listener
 {
@@ -82,15 +83,23 @@ namespace StarChef.Listener
         {
             if (sender == null) return;
 
-            var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.LoginId);
+            try
+            {
+                var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.LoginId);
 
-            var msg = new UpdateMessage(productId: userDetail.Item1,
-                                        entityTypeId: (int)Constants.EntityType.User,
-                                        action: (int)Constants.MessageActionType.SalesForceUserCreated,
-                                        dbDSN: userDetail.Item3,
-                                        databaseId: userDetail.Item2);
-            MSMQHelper.Send(msg);
-            _logger.MessageSent(msg);
+                var msg = new UpdateMessage(productId: userDetail.Item1,
+                                            entityTypeId: (int)Constants.EntityType.User,
+                                            action: (int)Constants.MessageActionType.SalesForceUserCreated,
+                                            dbDSN: userDetail.Item3,
+                                            databaseId: userDetail.Item2);
+                MSMQHelper.Send(msg);
+                _logger.MessageSent(msg);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+                throw;
+            }
         }
     }
 }
