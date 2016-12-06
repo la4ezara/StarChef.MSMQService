@@ -103,6 +103,10 @@ namespace StarChef.Orchestrate
                             var meuEventPayload = EventFactory.UpdateMenuEvent(dbConnectionString, entityId, databaseId);
                             result = Publish(bus, meuEventPayload);
                             break;
+                        case EnumHelper.EntityTypeWrapper.Ingredient:
+                            var ingredientEventPayload = EventFactory.UpdateIngredientEvent(dbConnectionString, entityId, databaseId);
+                            result = Publish(bus, ingredientEventPayload);
+                            break;
                     }
                 }
 

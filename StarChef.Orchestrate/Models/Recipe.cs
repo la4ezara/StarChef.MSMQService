@@ -31,7 +31,7 @@ namespace StarChef.Orchestrate.Models
                        .SetCustomerName(cust.Name)
                        .SetExternalId(reader[0].ToString())
                        .SetRecipeName(reader[1].ToString())
-                       .SetRecipeType(MapRecipeType(reader[2].ToString()))
+                       .SetRecipeType(OrchestrateHelper.MapRecipeType(reader[2].ToString()))
                        .SetUnitSizeQuantity(double.Parse(reader[3].ToString()))
                        .SetPortionSizeUnitCode(reader[4].ToString())
                        .SetUnitSizePackDescription(reader[5].ToString())
@@ -39,7 +39,7 @@ namespace StarChef.Orchestrate.Models
                        .SetMaximumCost(reader.GetValueOrDefault<double>(7))
                        .SetCost(reader.GetValueOrDefault<double>(8))
                        .SetCurrencyIso4217Code(reader[9].ToString())
-                       .SetVatType(MapVatType(reader[10].ToString()))
+                       .SetVatType(OrchestrateHelper.MapVatType(reader[10].ToString()))
                        .SetVatPercentage(reader.GetValueOrDefault<double>(11))
                        .SetSellingPrice(reader.GetValueOrDefault<double>(12))
                        .SetPricingModel(Events.PricingModel.Margin)
@@ -96,7 +96,7 @@ namespace StarChef.Orchestrate.Models
                     categoryTypeExternalId = reader[0].ToString();
                     categoryTypeBuilder.SetExternalId(categoryTypeExternalId)
                                        .SetCategoryTypeName(reader[1].ToString())
-                                       .SetExportType(MapCategoryExportType(reader[2].ToString()))
+                                       .SetExportType(OrchestrateHelper.MapCategoryExportType(reader[2].ToString()))
                                        .SetIsFoodType(int.Parse(reader[3].ToString()) == 1);
                 }
             }
@@ -145,41 +145,18 @@ namespace StarChef.Orchestrate.Models
         {
             var childCategory = categoryList.FirstOrDefault(x => x.ExternalId == categoryTypeExternalId);
             categoryLinkedList.AddFirst(childCategory);
-            BuildObject(categoryList, childCategory.ParentExternalId, categoryLinkedList);
+            OrchestrateHelper.BuildCategoryObject(categoryList, childCategory.ParentExternalId, categoryLinkedList);
 
             var categoryLastAdded = categoryLinkedList.Last();
             categoryLinkedList.RemoveLast();
-            BuildTree(categoryLinkedList, categoryLastAdded);
+            OrchestrateHelper.BuildCategoryTree(categoryLinkedList, categoryLastAdded);
 
             if (categoryLastAdded != null)
             {
                 BuildCategory(mainCategoryBuilder, categoryLastAdded);
 
                 categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
-            }
-        }
-
-        private static void BuildTree(LinkedList<Category> list, Category p)
-        {
-            if (list.Count > 0)
-            {
-                var c = list.Last();
-                p.SubCategories = new List<Category> { c };
-                list.RemoveLast();
-                BuildTree(list, c);
-            }
-        }
-
-        private static void BuildObject(
-            List<Category> categoryList, 
-            string childCategoryId,
-            LinkedList<Category> categoryLinkedList
-            )
-        {
-            var d = categoryList.Where(x => x.ExternalId == childCategoryId).FirstOrDefault();
-            categoryLinkedList.AddLast(d);
-            if (childCategoryId != d.ParentExternalId)
-                BuildObject(categoryList, d.ParentExternalId, categoryLinkedList);
+           }
         }
 
         private static void BuildCategory(
@@ -285,53 +262,6 @@ namespace StarChef.Orchestrate.Models
             }
 
             return ingredientList;
-        }
-
-        private Events.RecipeType MapRecipeType(string recipeTypeCodeFromDb)
-        {
-            Events.RecipeType recipeType;
-
-            switch (recipeTypeCodeFromDb)
-            {
-                case "Batch":
-                    recipeType = Events.RecipeType.BATCH;
-                    break;
-                case "Choice":
-                    recipeType = Events.RecipeType.CHOICE;
-                    break;
-                case "Option":
-                    recipeType = Events.RecipeType.OPTION;
-                    break;
-                default:
-                    recipeType = Events.RecipeType.STANDARD;
-                    break;
-            }
-            return recipeType;
-        }
-
-        private Events.VATRate MapVatType(string vatType)
-        {
-            Events.VATRate result;
-
-            switch (vatType)
-            {
-                case "Exempt":
-                    result = Events.VATRate.EXEMPT;
-                    break;
-                case "Zero Rated":
-                    result = Events.VATRate.ZERO_ADDED;
-                    break;
-                default:
-                    result = Events.VATRate.STANDARD_VAT;
-                    break;
-            }
-            return result;
-        }
-        private Events.CategoryExportType MapCategoryExportType(string exportTypeId)
-        {
-            return !string.IsNullOrEmpty(exportTypeId) 
-                                         ? (Events.CategoryExportType)(Convert.ToInt16(exportTypeId)) 
-                                         : Events.CategoryExportType.NONE;
         }
     }
 }
