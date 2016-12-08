@@ -145,11 +145,11 @@ namespace StarChef.Orchestrate.Models
         {
             var childCategory = categoryList.FirstOrDefault(x => x.ExternalId == categoryTypeExternalId);
             categoryLinkedList.AddFirst(childCategory);
-            OrchestrateHelper.BuildCategoryObject(categoryList, childCategory.ParentExternalId, categoryLinkedList);
+            BuildCategoryObject(categoryList, childCategory.ParentExternalId, categoryLinkedList);
 
             var categoryLastAdded = categoryLinkedList.Last();
             categoryLinkedList.RemoveLast();
-            OrchestrateHelper.BuildCategoryTree(categoryLinkedList, categoryLastAdded);
+            BuildCategoryTree(categoryLinkedList, categoryLastAdded);
 
             if (categoryLastAdded != null)
             {
@@ -262,6 +262,29 @@ namespace StarChef.Orchestrate.Models
             }
 
             return ingredientList;
+        }
+
+        private static void BuildCategoryTree(LinkedList<Category> list, Category p)
+        {
+            if (list.Count > 0)
+            {
+                var c = list.Last();
+                p.SubCategories = new List<Category> { c };
+                list.RemoveLast();
+                BuildCategoryTree(list, c);
+            }
+        }
+
+        private static void BuildCategoryObject(
+            List<Category> categoryList,
+            string childCategoryId,
+            LinkedList<Category> categoryLinkedList
+            )
+        {
+            var d = categoryList.Where(x => x.ExternalId == childCategoryId).FirstOrDefault();
+            categoryLinkedList.AddLast(d);
+            if (childCategoryId != d.ParentExternalId)
+                BuildCategoryObject(categoryList, d.ParentExternalId, categoryLinkedList);
         }
     }
 }
