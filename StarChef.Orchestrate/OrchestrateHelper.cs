@@ -57,28 +57,5 @@ namespace StarChef.Orchestrate
             }
             return recipeType;
         }
-
-        public static void BuildCategoryTree(LinkedList<Category> list, Category p)
-        {
-            if (list.Count > 0)
-            {
-                var c = list.Last();
-                p.SubCategories = new List<Category> { c };
-                list.RemoveLast();
-                BuildCategoryTree(list, c);
-            }
-        }
-
-        public static void BuildCategoryObject(
-            List<Category> categoryList,
-            string childCategoryId,
-            LinkedList<Category> categoryLinkedList
-            )
-        {
-            var d = categoryList.Where(x => x.ExternalId == childCategoryId).FirstOrDefault();
-            categoryLinkedList.AddLast(d);
-            if (childCategoryId != d.ParentExternalId)
-                BuildCategoryObject(categoryList, d.ParentExternalId, categoryLinkedList);
-        }
     }
 }
