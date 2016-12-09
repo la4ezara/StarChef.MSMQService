@@ -55,11 +55,6 @@ namespace StarChef.Listener.Handlers
                 _logger.Info(string.Format("Successfully updated price band details: customer id: {0}, tracking id: {1}", organisationGuid, trackingId));
                 return MessageHandlerResult.Success;
             }
-            catch (DataNotSavedException ex)
-            {
-                _logger.Error(string.Format("Price band update failed: customer id: {0}, tracking id: {1}", organisationGuid, trackingId), ex);
-                return MessageHandlerResult.Fatal;
-            }
             catch (Exception ex)
             {
                 _logger.Error(string.Format("Failed to handle the event \"{0}\" [Customer Guid: {1}].", priceBandUpdated.GetType().Name, organisationGuid), ex);
