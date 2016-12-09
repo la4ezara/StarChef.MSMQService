@@ -9,5 +9,6 @@ namespace StarChef.Orchestrate.Models
         public string ParentExternalId { get; set; }
         public List<Category> SubCategories { get; set; }
         public int ProductTagId { get; set; }
+        public int Sequence { get; set; }
     }
 }

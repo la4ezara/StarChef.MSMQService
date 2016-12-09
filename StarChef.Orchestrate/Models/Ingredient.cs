@@ -84,7 +84,7 @@ namespace StarChef.Orchestrate.Models
                                 Name = reader[1].ToString(),
                                 CategoryExportType = reader.GetValueOrDefault<int?>(3),
                                 ProductTagId = reader.GetValueOrDefault<int>(5),
-
+                                Sequence = reader.GetValueOrDefault<int>(7)
                             };
                             categoryTypes.Add(categoryType);
                         }
@@ -96,7 +96,7 @@ namespace StarChef.Orchestrate.Models
                                 Name = reader[1].ToString(),
                                 ParentExternalId = reader[2].ToString(),
                                 ProductTagId = reader.GetValueOrDefault<int>(5),
-
+                                Sequence = reader.GetValueOrDefault<int>(7)
                             };
                             categories.Add(category);
                         }
@@ -179,24 +179,43 @@ namespace StarChef.Orchestrate.Models
                                    .SetIsFoodType(catType.IsFood);
                 
 
-                //MainCategory
-                var mainCategoryBuilder = Events.IngredientUpdated.Types.CategoryType.Types.Category.CreateBuilder();
-
-                var categoryLinkedList = new LinkedList<Category>();
 
                 var currentCategoryList = categoryList.Where(t => t.ProductTagId == catType.ProductTagId).ToList();
 
                 //CategoryType exists
                 if (currentCategoryList.Count > 0 && !string.IsNullOrEmpty(catType.ExternalId))
                 {
-                    BuildCategoryHierarchy(catType.ExternalId,
-                        categoryTypeBuilder,
-                        mainCategoryBuilder,
-                        categoryLinkedList,
-                        currentCategoryList);
-
+                    foreach (var category in categoryList.Where(t => t.ParentExternalId == catType.ExternalId && t.Sequence == catType.Sequence-1))
+                    {
+                        var mainCategoryBuilder = Events.IngredientUpdated.Types.CategoryType.Types.Category.CreateBuilder();
+                        mainCategoryBuilder.SetExternalId(category.ExternalId)
+                       .SetCategoryName(category.Name)
+                       .SetParentExternalId(category.ParentExternalId);
+                        if (category.Sequence > 1)
+                        {
+                            BuildRcursive(category, mainCategoryBuilder, currentCategoryList);
+                        }
+                        categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
+                    }
                     builder.AddCategoryTypes(categoryTypeBuilder);
                 }
+            }
+        }
+
+        private static void BuildRcursive(Category cat, Events.IngredientUpdated.Types.CategoryType.Types.Category.Builder categoryBuilder, List<Category> categoryList)
+        {
+            foreach (var category in categoryList.Where(t=> t.ParentExternalId == cat.ExternalId && t.Sequence == cat.Sequence -1))
+            {
+                var catBuilder = Events.IngredientUpdated.Types.CategoryType.Types.Category.CreateBuilder();
+                catBuilder.SetExternalId(category.ExternalId)
+                         .SetCategoryName(category.Name)
+                         .SetParentExternalId(category.ParentExternalId);
+
+                if (category.Sequence > 1)
+                {
+                    BuildRcursive(category, catBuilder, categoryList);
+                }
+                categoryBuilder.AddSubCategories(catBuilder);
             }
         }
 
@@ -314,56 +333,6 @@ namespace StarChef.Orchestrate.Models
         }
 
         #endregion ...Get Data...
-
-        #region ...Build Categories...
-
-        private static void BuildCategoryHierarchy(
-          string categoryTypeExternalId,
-          Events.IngredientUpdated.Types.CategoryType.Builder categoryTypeBuilder,
-          Events.IngredientUpdated.Types.CategoryType.Types.Category.Builder mainCategoryBuilder,
-          LinkedList<Category> categoryLinkedList,
-          List<Category> categoryList
-          )
-        {
-            var childCategory = categoryList.FirstOrDefault(x => x.ExternalId == categoryTypeExternalId);
-            categoryLinkedList.AddFirst(childCategory);
-            OrchestrateHelper.BuildCategoryObject(categoryList, childCategory.ParentExternalId, categoryLinkedList);
-
-            var categoryLastAdded = categoryLinkedList.Last();
-            categoryLinkedList.RemoveLast();
-            OrchestrateHelper.BuildCategoryTree(categoryLinkedList, categoryLastAdded);
-
-            if (categoryLastAdded != null)
-            {
-                BuildCategory(mainCategoryBuilder, categoryLastAdded);
-
-                categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
-            }
-        }
-
-        private static void BuildCategory(
-           Events.IngredientUpdated.Types.CategoryType.Types.Category.Builder categoryBuilder,
-           Category item
-           )
-        {
-            categoryBuilder.SetExternalId(item.ExternalId)
-                           .SetCategoryName(item.Name)
-                           .SetParentExternalId(item.ParentExternalId);
-
-            if (item.SubCategories != null && item.SubCategories.Count > 0)
-            {
-                foreach (var subItem in item.SubCategories)
-                {
-                    var subCategoryBuilder = Events.IngredientUpdated.Types.CategoryType.Types.Category.CreateBuilder();
-
-                    BuildCategory(subCategoryBuilder, subItem);
-
-                    categoryBuilder.AddSubCategories(subCategoryBuilder);
-                }
-            }
-        }
-
-        #endregion
 
     }
 }
