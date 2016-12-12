@@ -42,7 +42,7 @@ namespace StarChef.Orchestrate.Models
                         .SetUnitSizeUom(reader[3].ToString())
                         .SetUnitSizePackDescription(reader[4].ToString())
                         .SetVatCode(reader[5].ToString())
-                        .SetCostModel((Events.CostModel) Enum.Parse(typeof(Events.CostModel), reader[6].ToString(), true))
+                        .SetCostModel((Events.CostModel)Enum.Parse(typeof(Events.CostModel), string.IsNullOrEmpty(reader[6].ToString()) ? "None" : reader[6].ToString(), true))
                         .SetIsOverhead(reader.GetValueOrDefault<bool>(7))
                         .SetIsSplittable(reader.GetValueOrDefault<bool>(8))
                         .SetYield(reader.GetValueOrDefault<double>(9))
