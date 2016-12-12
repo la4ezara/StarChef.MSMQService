@@ -26,7 +26,7 @@ namespace StarChef.Listener.Handlers
         {
             int priceBandBatchSize;
             if (!int.TryParse(ConfigurationManager.AppSettings["PriceBandBatchSize"], out priceBandBatchSize))
-                priceBandBatchSize = 1000;
+                priceBandBatchSize = 500;
 
             #region validation
 
