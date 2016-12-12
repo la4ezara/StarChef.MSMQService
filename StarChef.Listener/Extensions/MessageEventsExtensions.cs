@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using Fourth.Orchestration.Model.Recipes;
@@ -34,6 +35,34 @@ namespace StarChef.Listener.Extensions
             }
 
             return null;
+        }
+
+        public static IEnumerable<XmlDocument> ToSmallXmls(this Events.PriceBandUpdated data, int priceBandBatchSize)
+        {
+            var xmlString = new StringBuilder();
+            var rowsInBanch = 0;
+            foreach (var priceBand in data.PriceBandsList)
+            {
+                if (!priceBand.HasId || (!priceBand.HasMinimumPrice && !priceBand.HasMaximumPrice))
+                    continue;
+
+                xmlString.Append(string.Format("<PriceBand><ProductGuid>{0}</ProductGuid><MinPrice>{1}</MinPrice><MaxPrice>{2}</MaxPrice></PriceBand>",
+                    priceBand.Id,
+                    priceBand.MinimumPrice,
+                    priceBand.MaximumPrice));
+                rowsInBanch++;
+
+                if (rowsInBanch == priceBandBatchSize)
+                {
+                    var xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(string.Format("<PriceBandList>{0}</PriceBandList>", xmlString));
+
+                    rowsInBanch = 0;
+                    xmlString.Length = 0;
+
+                    yield return xmlDoc;
+                }
+            }
         }
 
         public static string ToJson(this object obj)
