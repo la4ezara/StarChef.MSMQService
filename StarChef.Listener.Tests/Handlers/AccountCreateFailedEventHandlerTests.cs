@@ -35,7 +35,6 @@ namespace StarChef.Listener.Tests.Handlers
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            Assert.True(dbCommands.IsUserDisabled);
             Assert.True(messagingLogger.IsFailedMessageRegistered);
         }
 

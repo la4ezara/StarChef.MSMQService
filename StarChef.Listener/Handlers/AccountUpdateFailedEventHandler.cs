@@ -29,7 +29,6 @@ namespace StarChef.Listener.Handlers
                 {
                     var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
-                    await DbCommands.DisableLogin(externalLoginId: operationFailed.ExternalLoginId);
                     _logger.Processed(trackingId, payload);
                 }
                 else
