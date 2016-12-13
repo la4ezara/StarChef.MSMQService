@@ -30,7 +30,6 @@ namespace StarChef.Listener.Handlers
                     var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
 
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
-                    await DbCommands.DisableLogin(operationFailed.LoginId);
                     _logger.Processed(trackingId, payload);
                 }
                 else
