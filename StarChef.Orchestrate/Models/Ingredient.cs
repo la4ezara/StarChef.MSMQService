@@ -185,7 +185,7 @@ namespace StarChef.Orchestrate.Models
                 //CategoryType exists
                 if (currentCategoryList.Count > 0 && !string.IsNullOrEmpty(catType.ExternalId))
                 {
-                    foreach (var category in categoryList.Where(t => t.ParentExternalId == catType.ExternalId && t.Sequence == catType.Sequence-1))
+                    foreach (var category in currentCategoryList.Where(t => t.ParentExternalId == catType.ExternalId && t.Sequence == catType.Sequence-1))
                     {
                         var mainCategoryBuilder = Events.IngredientUpdated.Types.CategoryType.Types.Category.CreateBuilder();
                         mainCategoryBuilder.SetExternalId(category.ExternalId)
