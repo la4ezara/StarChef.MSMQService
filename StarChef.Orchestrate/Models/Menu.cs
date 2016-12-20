@@ -55,7 +55,8 @@
                     var recipeBuilder = Events.MenuUpdated.Types.MenuRecipe.CreateBuilder();
                     recipeBuilder.SetExternalId(reader[0].ToString())
                         .SetRecipeName(reader[1].ToString())
-                        .SetCourseName(reader[2].ToString());
+                        .SetCourseName(reader[2].ToString())
+                        .SetDisplayOrder((int)reader[3]);
                     builder.AddRecipes(recipeBuilder);
                 }
             }
