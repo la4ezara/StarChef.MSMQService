@@ -11,6 +11,8 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
+using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountStatusChanged;
+using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.AccountStatusChangeFailed;
 
 namespace StarChef.Listener
 {
@@ -35,6 +37,8 @@ namespace StarChef.Listener
                 _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountCreateFailed>());
                 _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountUpdated>());
                 _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountUpdateFailed>());
+                _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountStatusChanged>());
+                _listener.Value.RegisterHandler(_handlersFactory.Value.CreateHandler<AccountStatusChangeFailed>());
 
                 _listener.Value.StartListener();
             }

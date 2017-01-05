@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Data.Common;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Fourth.Orchestration.Messaging;
@@ -23,6 +24,10 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(Events.PriceBandUpdated priceBandUpdated, string trackingId)
         {
+            int priceBandBatchSize;
+            if (!int.TryParse(ConfigurationManager.AppSettings["PriceBandBatchSize"], out priceBandBatchSize))
+                priceBandBatchSize = 500;
+
             #region validation
 
             if (!priceBandUpdated.HasCustomerId)
@@ -43,26 +48,37 @@ namespace StarChef.Listener.Handlers
 
             try
             {
-                _logger.Info("Start message processing");
+                // whole payload cannot be logged because the list may be very big
+                _logger.InfoFormat("Data received. CustomerId={0}, CurrencyId={1}, PriceBandsCount={2}", priceBandUpdated.CustomerId, priceBandUpdated.CurrencyId, priceBandUpdated.PriceBandsCount);
 
-                var xmlDoc = priceBandUpdated.ToXml();
-                if (xmlDoc == null)
+                if (!priceBandUpdated.PriceBandsList.Any())
                 {
-                    _logger.Info(string.Format("There is no valid price band to process for the message, tracking id: {0}, for customer {1}", trackingId, organisationGuid));
+                    _logger.InfoFormat("Processed");
                     return MessageHandlerResult.Success;
                 }
-                await DbCommands.SavePriceBandData(organisationGuid, xmlDoc);
-                _logger.Info(string.Format("Successfully updated price band details: customer id: {0}, tracking id: {1}", organisationGuid, trackingId));
+
+                var blocks = Convert.ToInt32(priceBandUpdated.PriceBandsCount/priceBandBatchSize);
+                var tailBlockSize = Convert.ToInt32(priceBandUpdated.PriceBandsCount%priceBandBatchSize);
+                if (tailBlockSize > 0) blocks += 1;
+
+                _logger.InfoFormat("Processing {0} blocks of data, each {1} rows, the last block contains {2} rows",
+                    blocks,
+                    priceBandBatchSize,
+                    tailBlockSize);
+
+                var blockNum = 0;
+                foreach (var xml in priceBandUpdated.ToSmallXmls(priceBandBatchSize))
+                {
+                    await DbCommands.SavePriceBandData(organisationGuid, xml);
+                    _logger.InfoFormat("Processed blocks {0} of {1}", ++blockNum, blocks);
+                }
+
+                _logger.InfoFormat("Processed");
                 return MessageHandlerResult.Success;
-            }
-            catch (DataNotSavedException ex)
-            {
-                _logger.Error(string.Format("Price band update failed: customer id: {0}, tracking id: {1}", organisationGuid, trackingId), ex);
-                return MessageHandlerResult.Fatal;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Failed to handle the event \"{0}\" [Customer Guid: {1}].", priceBandUpdated.GetType().Name, organisationGuid), ex);
+                _logger.Error(ex);
                 return MessageHandlerResult.Retry;
             }
         }

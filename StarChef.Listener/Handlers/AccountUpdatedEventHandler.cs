@@ -23,22 +23,18 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountUpdated payload, string trackingId)
         {
-            _logger.EventReceived(trackingId, payload);
-
             if (Validator.IsStarChefEvent(payload))
+            {
+                _logger.EventReceived(trackingId, payload);
+
                 if (Validator.IsValid(payload))
                 {
                     var user = Mapper.Map<AccountUpdatedTransferObject>(payload);
 
                     try
                     {
-                        using (var tran = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-                        {
-                            await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
-                            await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
-                            tran.Complete();
-                            _logger.Processed(trackingId, payload);
-                        }
+                        await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
+                        _logger.Processed(trackingId, payload);
                     }
                     catch (ListenerException ex)
                     {
@@ -53,7 +49,7 @@ namespace StarChef.Listener.Handlers
                     _logger.InvalidModel(trackingId, payload, errors);
                     await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                     return MessageHandlerResult.Fatal;
-                }
+                }}
             return MessageHandlerResult.Success;
         }
     }

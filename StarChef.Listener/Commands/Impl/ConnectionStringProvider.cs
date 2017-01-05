@@ -61,7 +61,7 @@ namespace StarChef.Listener.Commands.Impl
                         sqlCmd.CommandType = CommandType.StoredProcedure;
                         sqlCmd.Parameters.Add("@OrganisationGuid", SqlDbType.UniqueIdentifier).Value = organizationId;
                         var rtnVal = sqlCmd.ExecuteScalar();
-                        if (rtnVal == DBNull.Value)
+                        if (rtnVal == null || rtnVal == DBNull.Value)
                         {
                             Logger.Error(string.Format("There is no organization with the given organization Guid: {0}", organizationId));
                             return null;

@@ -1,5 +1,6 @@
 ﻿using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using StarChef.Listener.Types;
+using StarChef.Listener.Validators;
 using Xunit;
 
 namespace StarChef.Listener.Tests.Types

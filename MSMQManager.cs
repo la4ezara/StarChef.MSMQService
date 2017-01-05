@@ -271,6 +271,16 @@ namespace StarChef.MSMQService
             _database_id = databaseId;
 		}
 
+        public UpdateMessage(int productId, string dbDSN, int action, int databaseId, int entityTypeId = 0)
+        {
+            _product_id = productId;
+            _group_id = 0;
+            _dbDSN = dbDSN;
+            _message_type = action;
+            _database_id = databaseId;
+            _entityTypeId = entityTypeId;
+        }
+
         public UpdateMessage(int productId, int groupId, string dbDSN, int action, int databaseId)
 		{
 			_product_id = productId;
@@ -392,12 +402,12 @@ namespace StarChef.MSMQService
 		private string _filterXML = string.Empty;
 		private string _outputFilterXML = string.Empty;
 		private string _dbDSN = string.Empty;
-		private Constants.ReportOutputType _format = Constants.ReportOutputType.NotSet;
+		private Data.Constants.ReportOutputType _format = Data.Constants.ReportOutputType.NotSet;
 		private int _groupFilterId = 0;
-		private Constants.GroupFilterType _groupFilterType = Constants.GroupFilterType.NotSet;
+		private Data.Constants.GroupFilterType _groupFilterType = Data.Constants.GroupFilterType.NotSet;
 		private DateTime _startDate;
 		private DateTime _endDate;
-		private Constants.ScopeType _scopeFilterID = Constants.ScopeType.NotSet;
+		private Data.Constants.ScopeType _scopeFilterID = Data.Constants.ScopeType.NotSet;
 		private int _startDay = 0;
 		private int _endDay = 0;
 
@@ -405,7 +415,7 @@ namespace StarChef.MSMQService
 		{
 		}
 
-		public ReportingMessage(string ReportGuid, string ReportName, string parameterXML, string filterXML, string outputFilterXML, string UserDSN, Constants.ReportOutputType Format, int GroupFilterID, Constants.GroupFilterType GroupFilterType, DateTime StartDate, DateTime EndDate, int StartDay, int EndDay, Constants.ScopeType ScopeFilterID)
+		public ReportingMessage(string ReportGuid, string ReportName, string parameterXML, string filterXML, string outputFilterXML, string UserDSN, Data.Constants.ReportOutputType Format, int GroupFilterID, Data.Constants.GroupFilterType GroupFilterType, DateTime StartDate, DateTime EndDate, int StartDay, int EndDay, Data.Constants.ScopeType ScopeFilterID)
 		{
 			_reportGuid = ReportGuid;
 			_reportName = ReportName;
@@ -459,7 +469,7 @@ namespace StarChef.MSMQService
 			set {_dbDSN = value;}
 		}
 
-		public Constants.ReportOutputType Format
+		public Data.Constants.ReportOutputType Format
 		{
 			get {return _format;}
 			set {_format = value;}
@@ -471,7 +481,7 @@ namespace StarChef.MSMQService
 			set {_groupFilterId = value;}
 		}
 
-		public Constants.GroupFilterType GroupFilterType
+		public Data.Constants.GroupFilterType GroupFilterType
 		{
 			get {return _groupFilterType;}
 			set {_groupFilterType = value;}
@@ -489,7 +499,7 @@ namespace StarChef.MSMQService
 			set {_endDate = value;}
 		}
 
-		public Constants.ScopeType ScopeFilterID
+		public Data.Constants.ScopeType ScopeFilterID
 		{
 			get {return _scopeFilterID;}
 			set {_scopeFilterID = value;}

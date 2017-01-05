@@ -10,6 +10,7 @@ using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Tests.Fixtures;
 using StarChef.Listener.Tests.Handlers.Fakes;
 using StarChef.Listener.Types;
+using StarChef.Listener.Validators;
 
 namespace StarChef.Listener.Tests.Handlers
 {

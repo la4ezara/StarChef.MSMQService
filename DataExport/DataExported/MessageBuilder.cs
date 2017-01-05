@@ -80,7 +80,8 @@ namespace DataExported
 
         private IList<IMessage> CreateMessage(
             EntityType entityType, 
-            IEnumerable<DataRow> rows
+            IEnumerable<DataRow> rows,
+            MessageActionType actionType = MessageActionType.StarChefEventsUpdated
             )
         {
             IList<IMessage> messages = new List<IMessage>();
@@ -91,7 +92,7 @@ namespace DataExported
 
                 messages.Add(new UpdateMessage(entityId,
                                             this.dbDSN,
-                                            (int)Constants.MessageActionType.StarChefEventsUpdated,
+                                            (int)actionType,
                                             this.databaseId,
                                             (int)entityType));
 
@@ -128,7 +129,7 @@ namespace DataExported
                         output = CreateMessage(EntityType.Dish, records);
                         break;
                     case EntityEnum.User:
-                        output = CreateMessage(EntityType.User, records);
+                        output = CreateMessage(EntityType.User, records, MessageActionType.UserUpdated);
                         break;
                     case EntityEnum.MealPeriod:
                         output = CreateMessage(EntityType.MealPeriodManagement, records);

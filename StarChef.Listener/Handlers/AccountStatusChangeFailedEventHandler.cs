@@ -1,25 +1,25 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Threading.Tasks;
-using System.Transactions;
 using AutoMapper;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Model.People;
 using log4net;
 using StarChef.Listener.Commands;
-using StarChef.Listener.Extensions;
 using StarChef.Orchestrate.Models.TransferObjects;
+using System.Transactions;
+using StarChef.Listener.Extensions;
 
 namespace StarChef.Listener.Handlers
 {
-    public class AccountCreateFailedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountCreateFailed>
+    public class AccountStatusChangeFailedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountStatusChangeFailed>
     {
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AccountCreateFailedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
+        public AccountStatusChangeFailedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
         }
 
-        public async Task<MessageHandlerResult> HandleAsync(Events.AccountCreateFailed payload, string trackingId)
+        public async Task<MessageHandlerResult> HandleAsync(Events.AccountStatusChangeFailed payload, string trackingId)
         {
             if (Validator.IsStarChefEvent(payload))
             {
@@ -27,8 +27,7 @@ namespace StarChef.Listener.Handlers
 
                 if (Validator.IsValid(payload))
                 {
-                    var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
-
+                    var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
                     _logger.Processed(trackingId, payload);
                 }

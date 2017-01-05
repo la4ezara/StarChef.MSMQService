@@ -40,9 +40,6 @@ namespace StarChef.MSMQService
             _QueuePath = sQueuePath;
             log.Source = "StarChef-Listner";
 
-            //Setup IOC container
-            SetupAutofac();
-
             // Start log4net up
             XmlConfigurator.Configure();
         }
@@ -61,6 +58,11 @@ namespace StarChef.MSMQService
                     msg = mqm.mqPeek(cursor, PeekAction.Current);
                     if (msg != null)
                     {
+                        // create sender only when there is a message
+                        var container = ContainerConfig.Configure();
+                        _scope = container.BeginLifetimeScope();
+                        _messageSender = _scope.Resolve<IStarChefMessageSender>();
+
                         msg.Formatter = format;
                         string messageId = msg.Id;
                         updmsg = (UpdateMessage) msg.Body;
@@ -161,23 +163,6 @@ namespace StarChef.MSMQService
             }
         }
 
-        private void SetupAutofac()
-        {
-            try
-            {
-                // Set up the IOC container
-                var container = ContainerConfig.Configure();
-                _scope = container.BeginLifetimeScope();
-
-                _messageSender = _scope.Resolve<IStarChefMessageSender>();
-
-            }
-            catch (Exception ex)
-            {
-                Logger.Fatal("Error while setting up IOC container in Lister", ex);
-            }
-        }
-
         private void SendMail(UpdateMessage message)
         {
             try
@@ -202,10 +187,9 @@ namespace StarChef.MSMQService
 
         private void ProcessMessage(UpdateMessage msg)
         {
-
             if (msg != null)
             {
-                switch ((int)msg.Action)
+                switch (msg.Action)
                 {
                     case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
                         ProcessUDUUpdate(msg);
@@ -240,7 +224,16 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
+                    //All Events are populating under StarChefEventsUpdated Action - Additional action added for 
+                    // User because of multiple different actions
                     case (int)Constants.MessageActionType.StarChefEventsUpdated:
+                        // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
+                    case (int)Constants.MessageActionType.UserCreated: 
+                    case (int)Constants.MessageActionType.UserUpdated:
+                    case (int)Constants.MessageActionType.UserActivated:
+                    case (int)Constants.MessageActionType.UserDeActivated:
+                        // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
+                    case (int)Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
                 }
@@ -367,13 +360,30 @@ namespace StarChef.MSMQService
             var arrivedTime = msg.ArrivedTime;
 
             EnumHelper.EntityTypeWrapper? entityTypeWrapper = null;
-
             switch (msg.EntityTypeId)
             {
                 case (int) Constants.EntityType.User:
                     entityTypeId = (int) Constants.EntityType.User;
                     entityId = msg.ProductID;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
+                    switch (msg.Action)
+                    {
+                        case (int) Constants.MessageActionType.UserCreated:
+                        case (int) Constants.MessageActionType.StarChefEventsUpdated:
+                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
+                            break;
+                        case (int) Constants.MessageActionType.UserActivated:
+                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserActivated;
+                            break;
+                        case (int) Constants.MessageActionType.UserDeActivated:
+                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserDeactivated;
+                            break;
+                        case (int)Constants.MessageActionType.SalesForceUserCreated:
+                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendUserUpdatedEvent;
+                            break;
+                        default:
+                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand;
+                            break;
+                    }
                     break;
                 case (int)Constants.EntityType.UserGroup:
                     entityTypeId = (int)Constants.EntityType.UserGroup;
@@ -407,8 +417,7 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (entityTypeWrapper.HasValue && 
-                IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+            if (entityTypeWrapper.HasValue && IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
             {
                 _messageSender.Send(entityTypeWrapper.Value,
                                     msg.DSN,
@@ -433,7 +442,7 @@ namespace StarChef.MSMQService
                 var cmd = new SqlCommand(spName, cn)
                 {
                     CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
+                    CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
                 };
                 cmd.Parameters.Add(new SqlParameter("@entity_type_id", entityTypeId));
                 var rdr = cmd.ExecuteReader();
@@ -461,7 +470,7 @@ namespace StarChef.MSMQService
                 // of these procs may take several minutes to complete
                 SqlCommand cmd = new SqlCommand(spName, cn);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC; //600
+                cmd.CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC; //600
 
                 // add params
                 if (parameterValues != null)

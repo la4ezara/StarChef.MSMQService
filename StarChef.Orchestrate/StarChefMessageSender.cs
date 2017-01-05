@@ -3,6 +3,7 @@ using log4net;
 using StarChef.Common;
 using System;
 using System.Data.SqlClient;
+using Google.ProtocolBuffers;
 
 namespace StarChef.Orchestrate
 {
@@ -48,28 +49,48 @@ namespace StarChef.Orchestrate
                     switch(entityTypeWrapper)
                     {
                         case EnumHelper.EntityTypeWrapper.Recipe:
-                            var recipeEventPayload = EventFactory.CreateRecipeEvent();
-                            result = bus.Publish(recipeEventPayload);
+                            var recipeEventPayload = EventFactory.CreateRecipeEvent(dbConnectionString, entityId, databaseId);
+                            result = Publish(bus, recipeEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.MealPeriod:
                             var mealPeriodEventPayload = EventFactory.CreateMealPeriodEvent(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(mealPeriodEventPayload);
+                            result = Publish(bus, mealPeriodEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.Group:
                             var groupEventPayload = EventFactory.CreateGroupEvent(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(groupEventPayload);
+                            result = Publish(bus, groupEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.User:
-                            var userEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
                             var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(userEventPayload);
-                            result = bus.Send(userCommandCreateAccount);
+                            result = Send(bus, userCommandCreateAccount);
                             break;
+                        case EnumHelper.EntityTypeWrapper.UserActivated:  
+                            var userCommandAccountActivated = CommandFactory.ActivateAccountCommand(entityId, databaseId);
+                            result = Send(bus, userCommandAccountActivated);
+                            break;
+                        case EnumHelper.EntityTypeWrapper.UserDeactivated:  
+                            var userCommandAccountDeactivated = CommandFactory.DeactivateAccountCommand(entityId, databaseId);
+                            result = Send(bus, userCommandAccountDeactivated);
+                            break;
+                        case EnumHelper.EntityTypeWrapper.SendUserUpdatedEvent:
+                        {
+                            var userCreatedEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
+                            result = Publish(bus, userCreatedEventPayload);
+                            break;
+                        }
+                        case EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand:
+                        {
+                            var userCreatedEventPayload = EventFactory.CreateUserEvent(dbConnectionString, entityId, databaseId);
+                            var userCreatedCommandPayload = CommandFactory.UpdateAccountCommand(dbConnectionString, entityId, databaseId);
+                            result = Publish(bus, userCreatedEventPayload)
+                                     && Send(bus, userCreatedCommandPayload);
+                            break;
+                        }
                         case EnumHelper.EntityTypeWrapper.UserGroup:
                             var userGroupEventPayload = EventFactory.CreateUserGroupEvent(dbConnectionString, entityId, databaseId);
                             foreach(var user in userGroupEventPayload)
                             {
-                                result = bus.Publish(user);
+                                result = Publish(bus, user);
                                 LogDatabase(dbConnectionString,
                                                         entityTypeId,
                                                         entityId,
@@ -80,7 +101,11 @@ namespace StarChef.Orchestrate
                             break;
                         case EnumHelper.EntityTypeWrapper.Menu:
                             var meuEventPayload = EventFactory.UpdateMenuEvent(dbConnectionString, entityId, databaseId);
-                            result = bus.Publish(meuEventPayload);
+                            result = Publish(bus, meuEventPayload);
+                            break;
+                        case EnumHelper.EntityTypeWrapper.Ingredient:
+                            var ingredientEventPayload = EventFactory.UpdateIngredientEvent(dbConnectionString, entityId, databaseId);
+                            result = Publish(bus, ingredientEventPayload);
                             break;
                     }
                 }
@@ -101,6 +126,21 @@ namespace StarChef.Orchestrate
 
             return result;
         }
+
+        private bool Send(IMessageBus bus, IMessage messagePayload)
+        {
+            var result = bus.Send(messagePayload);
+            Logger.InfoFormat("Command '{0}' sent: {1}", messagePayload.GetType().Name, messagePayload.ToJson());
+            return result;
+        }
+
+        private static bool Publish(IMessageBus bus, IMessage messagePayload)
+        {
+            var result = bus.Publish(messagePayload);
+            Logger.InfoFormat("Event '{0}' published: {1}", messagePayload.GetType().Name, messagePayload.ToJson());
+            return result;
+        }
+
         private void LogDatabase(
             string connectionString,
             int entityTypeId,

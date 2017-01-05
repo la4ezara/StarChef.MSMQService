@@ -1,6 +1,7 @@
+using StarChef.Listener.Types;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
 
-namespace StarChef.Listener.Types
+namespace StarChef.Listener.Validators
 {
     class AccountUpdateFailedValidator : EventValidator, IEventValidator
     {

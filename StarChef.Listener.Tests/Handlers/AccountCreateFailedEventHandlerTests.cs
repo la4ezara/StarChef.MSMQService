@@ -10,6 +10,7 @@ using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 using StarChef.Listener.Tests.Fixtures;
 using StarChef.Listener.Tests.Handlers.Fakes;
 using StarChef.Listener.Types;
+using StarChef.Listener.Validators;
 
 namespace StarChef.Listener.Tests.Handlers
 {
@@ -34,7 +35,6 @@ namespace StarChef.Listener.Tests.Handlers
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            Assert.True(dbCommands.IsUserDisabled);
             Assert.True(messagingLogger.IsFailedMessageRegistered);
         }
 

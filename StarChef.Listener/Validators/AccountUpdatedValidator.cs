@@ -1,18 +1,20 @@
-﻿using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
+﻿using System;
+using StarChef.Listener.Types;
+using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 
-namespace StarChef.Listener.Types
+namespace StarChef.Listener.Validators
 {
-    class AccountCreatedValidator : EventValidator, IEventValidator
+    class AccountUpdatedValidator : EventValidator, IEventValidator
     {
         public bool IsValid(object payload)
         {
             if (payload == null) return false;
-            if (payload.GetType() != typeof(AccountCreated)) return false;
-            var e = (AccountCreated) payload;
+            if (payload.GetType() != typeof(AccountUpdated)) return false;
+            var e = (AccountUpdated)payload;
 
-            if (!e.HasInternalId)
+            if (!e.HasUsername)
             {
-                SetLastError("InternalId is missing");
+                SetLastError("Username is missing");
                 return false;
             }
             if (!e.HasExternalId)

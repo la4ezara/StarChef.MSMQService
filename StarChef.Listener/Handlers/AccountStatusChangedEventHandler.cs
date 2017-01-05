@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
 using Fourth.Orchestration.Messaging;
@@ -6,26 +7,21 @@ using Fourth.Orchestration.Model.People;
 using log4net;
 using StarChef.Listener.Commands;
 using StarChef.Listener.Exceptions;
-using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
+using StarChef.Orchestrate.Models.TransferObjects;
 using System.Transactions;
-using StarChef.MSMQService;
 
 namespace StarChef.Listener.Handlers
 {
-    public delegate Task AccountCreatedProcessedDelegate(AccountCreatedEventHandler sender, AccountCreatedTransferObject user);
-
-    public class AccountCreatedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountCreated>
+    public class AccountStatusChangedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountStatusChanged>
     {
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
+        public AccountStatusChangedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
         }
 
-        public event AccountCreatedProcessedDelegate OnProcessed;
-
-        public async Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
+        public async Task<MessageHandlerResult> HandleAsync(Events.AccountStatusChanged payload, string trackingId)
         {
             if (Validator.IsStarChefEvent(payload))
             {
@@ -33,26 +29,20 @@ namespace StarChef.Listener.Handlers
 
                 if (Validator.IsValid(payload))
                 {
-                    var user = Mapper.Map<AccountCreatedTransferObject>(payload);
                     try
                     {
-                        await DbCommands.UpdateExternalId(user);
                         await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                         _logger.Processed(trackingId, payload);
-
-                        // run subscribed post-events
-                        var evt = OnProcessed;
-                        if (evt != null)
-                            await evt(this, user);
                     }
                     catch (ListenerException ex)
                     {
-                        _logger.ListenerException(ex, trackingId, user);
+                        _logger.ListenerException(ex, trackingId, payload);
                         return MessageHandlerResult.Fatal;
                     }
                 }
                 else
                 {
+
                     var errors = Validator.GetErrors();
                     _logger.InvalidModel(trackingId, payload, errors);
                     await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);

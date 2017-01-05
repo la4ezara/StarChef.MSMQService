@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Specialized;
-using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
+﻿using StarChef.Listener.Types;
+using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 
-namespace StarChef.Listener.Types
+namespace StarChef.Listener.Validators
 {
-    class AccountUpdatedValidator : EventValidator, IEventValidator
+    class AccountCreatedValidator : EventValidator, IEventValidator
     {
         public bool IsValid(object payload)
         {
             if (payload == null) return false;
-            if (payload.GetType() != typeof(AccountUpdated)) return false;
-            var e = (AccountUpdated)payload;
+            if (payload.GetType() != typeof(AccountCreated)) return false;
+            var e = (AccountCreated) payload;
 
-            if (!e.HasUsername)
+            if (!e.HasInternalId)
             {
-                SetLastError("Username is missing");
+                SetLastError("InternalId is missing");
                 return false;
             }
             if (!e.HasExternalId)
@@ -35,11 +34,6 @@ namespace StarChef.Listener.Types
             if (!e.HasEmailAddress)
             {
                 SetLastError("EmailAddress is missing");
-                return false;
-            }
-            if (!string.Equals(e.Username, e.EmailAddress, StringComparison.InvariantCultureIgnoreCase))
-            {
-                SetLastError("Username and EmailAddress are not equal");
                 return false;
             }
             return true;
