@@ -97,7 +97,7 @@ namespace StarChef.MSMQService
                 if (!string.IsNullOrEmpty(serviceName))
                 {
                     this.MSMQService_Listener_svcInstaller.ServiceName = serviceName;
-                    this.MSMQService_Listener_svcInstaller.DisplayName = serviceName.Replace(".", "");
+                    this.MSMQService_Listener_svcInstaller.DisplayName = serviceName.Replace(".", " ");
                 }
             }
         }
