@@ -73,6 +73,34 @@ namespace StarChef.MSMQService
 																					  this.MSMQService_Listener_svcInstaller});
 
 		}
-		#endregion
-	}
+
+        public override void Install(IDictionary stateSaver)
+        {
+            RetrieveServiceName();
+            base.Install(stateSaver);
+        }
+
+        public override void Uninstall(IDictionary savedState)
+        {
+            RetrieveServiceName();
+            base.Uninstall(savedState);
+        }
+
+
+        private void RetrieveServiceName()
+        {
+            var key = "serviceName";
+            if (Context.Parameters.ContainsKey(key))
+            {
+                var serviceName = Context.Parameters[key];
+                if (!string.IsNullOrEmpty(serviceName))
+                {
+                    this.MSMQService_Listener_svcInstaller.ServiceName = serviceName;
+                    this.MSMQService_Listener_svcInstaller.DisplayName = serviceName;
+                }
+            }
+        }
+
+        #endregion
+    }
 }
