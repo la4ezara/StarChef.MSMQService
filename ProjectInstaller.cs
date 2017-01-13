@@ -65,10 +65,11 @@ namespace StarChef.MSMQService
 			// 
 			this.MSMQService_Listener_svcInstaller.ServiceName = "StarChef.MSMQService";
 			this.MSMQService_Listener_svcInstaller.DisplayName = "StarChef MSMQ Service";
-			// 
-			// ProjectInstaller
-			// 
-			this.Installers.AddRange(new System.Configuration.Install.Installer[] {
+		    this.RetrieveServiceName();
+            // 
+            // ProjectInstaller
+            // 
+            this.Installers.AddRange(new System.Configuration.Install.Installer[] {
 																					  this.MSMQService_Listener_Installer,
 																					  this.MSMQService_Listener_svcInstaller});
 
@@ -76,13 +77,13 @@ namespace StarChef.MSMQService
 
         public override void Install(IDictionary stateSaver)
         {
-            RetrieveServiceName();
+            this.RetrieveServiceName();
             base.Install(stateSaver);
         }
 
         public override void Uninstall(IDictionary savedState)
         {
-            RetrieveServiceName();
+            this.RetrieveServiceName();
             base.Uninstall(savedState);
         }
 
@@ -96,7 +97,7 @@ namespace StarChef.MSMQService
                 if (!string.IsNullOrEmpty(serviceName))
                 {
                     this.MSMQService_Listener_svcInstaller.ServiceName = serviceName;
-                    this.MSMQService_Listener_svcInstaller.DisplayName = serviceName;
+                    this.MSMQService_Listener_svcInstaller.DisplayName = serviceName.Replace(".", " ");
                 }
             }
         }
