@@ -65,7 +65,6 @@ namespace StarChef.MSMQService
 			// 
 			this.MSMQService_Listener_svcInstaller.ServiceName = "StarChef.MSMQService";
 			this.MSMQService_Listener_svcInstaller.DisplayName = "StarChef MSMQ Service";
-		    this.RetrieveServiceName();
             // 
             // ProjectInstaller
             // 
