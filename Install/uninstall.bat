@@ -17,3 +17,5 @@ for /F "tokens=3 delims=: " %%H in ('sc query %serviceName%^| findstr "STATE"') 
   
   %installUtilPath% /serviceName=%serviceName% /u %servicePath%
 )
+
+echo Uninstall finish
