@@ -38,7 +38,7 @@ namespace StarChef.Listener.Extensions
         }
 
         public static IEnumerable<XmlDocument> ToSmallXmls(this Events.PriceBandUpdated data, int priceBandBatchSize)
-        {
+        {   
             var xmlString = new StringBuilder();
             var rowsInBanch = 0;
             foreach (var priceBand in data.PriceBandsList)
@@ -62,6 +62,14 @@ namespace StarChef.Listener.Extensions
 
                     yield return xmlDoc;
                 }
+            }
+
+            if (rowsInBanch < priceBandBatchSize && xmlString.Length > 0)
+            {
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(string.Format("<PriceBandList>{0}</PriceBandList>", xmlString));
+
+                yield return xmlDoc;
             }
         }
 
