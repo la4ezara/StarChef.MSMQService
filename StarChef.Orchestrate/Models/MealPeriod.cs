@@ -19,7 +19,6 @@ namespace StarChef.Orchestrate.Models
 
         public Events.MealPeriodUpdated.Builder Build(Customer cust, string connectionString)
         {
-            var rand = new Random();
             var builder = Events.MealPeriodUpdated.CreateBuilder();
             var dbManager = new DatabaseManager();
             
@@ -34,7 +33,7 @@ namespace StarChef.Orchestrate.Models
                 .SetMealPeriodName(reader[2].ToString())
                 .SetSource(Events.SourceSystem.STARCHEF)
                 .SetChangeType(Events.ChangeType.UPDATE)
-                .SetSequenceNumber(rand.Next(1, int.MaxValue));
+                .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
             }
             return builder;
         }

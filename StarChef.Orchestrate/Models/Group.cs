@@ -18,7 +18,6 @@ namespace StarChef.Orchestrate.Models
 
         public Events.GroupUpdated.Builder Build(Customer cust, string connectionString)
         {
-            var rand = new Random();
             var builder = Events.GroupUpdated.CreateBuilder();
 
             var dbManager = new DatabaseManager();
@@ -38,7 +37,7 @@ namespace StarChef.Orchestrate.Models
                 .SetLanguageIso6391Code(reader[6].ToString())
                 .SetSource(Events.SourceSystem.STARCHEF)
                 .SetChangeType(Events.ChangeType.UPDATE)
-                .SetSequenceNumber(rand.Next(1, int.MaxValue));
+                .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
 
             }
 

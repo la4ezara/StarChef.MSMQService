@@ -19,7 +19,6 @@ namespace StarChef.Orchestrate.Models
 
         public Events.UserUpdated.Builder Build(Customer cust, string connectionString)
         {
-            var rand = new Random();
             var builder = Events.UserUpdated.CreateBuilder();
             var dbManager = new DatabaseManager();
 
@@ -42,7 +41,7 @@ namespace StarChef.Orchestrate.Models
                        .SetCanViewMenu(int.Parse(reader[15].ToString()) == 1)
                        .SetSource(Events.SourceSystem.STARCHEF)
                        .SetChangeType(Events.ChangeType.UPDATE)
-                       .SetSequenceNumber(rand.Next(1, int.MaxValue));
+                       .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
             }
 
             if (reader.NextResult())
