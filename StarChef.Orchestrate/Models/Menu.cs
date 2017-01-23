@@ -18,7 +18,6 @@
 
         public Events.MenuUpdated.Builder Build(Customer cust, string connectionString)
         {
-            var rand = new Random();
             var builder = Events.MenuUpdated.CreateBuilder();
 
             var dbManager = new DatabaseManager();
@@ -34,7 +33,7 @@
                 .SetMenuName(reader[2].ToString())
                 .SetMenuType((byte)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET)
                 .SetSource(Events.SourceSystem.STARCHEF)
-                .SetSequenceNumber(rand.Next(1, int.MaxValue));
+                .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
             }
 
             if (reader.NextResult())

@@ -23,7 +23,6 @@ namespace StarChef.Orchestrate.Models
 
         public Events.IngredientUpdated.Builder Build(Customer cust, string connectionString)
         {
-            var rand = new Random();
             var builder = Events.IngredientUpdated.CreateBuilder();
             var dbManager = new DatabaseManager();
 
@@ -35,7 +34,7 @@ namespace StarChef.Orchestrate.Models
                         .SetExternalId(reader[0].ToString())
                         .SetCustomerId(cust.ExternalId)
                         .SetCustomerName(cust.Name)
-                        .SetSequenceNumber(rand.Next(1, int.MaxValue))
+                        .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext())
                         .SetSource(Events.SourceSystem.STARCHEF)
                         .SetIngredientName(reader[1].ToString())
                         .SetUnitSizeNumber(reader.GetValueOrDefault<double>(2))
