@@ -1,6 +1,7 @@
 ﻿using StarChef.Orchestrate.Models;
 using Events = Fourth.Orchestration.Model.Menus.Events;
 using System.Collections.Generic;
+using Fourth.Orchestration.Model.Menus.Events;
 
 namespace StarChef.Orchestrate
 {
@@ -35,17 +36,34 @@ namespace StarChef.Orchestrate
             return eventObj;
         }
 
-        public static Events.GroupUpdated CreateGroupEvent(string dbConnectionString, int entityId, int databaseId)
+        public static Events.GroupUpdated CreateGroupUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            var builder = CreateGroupUpdated(dbConnectionString, entityId, databaseId);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+        }
+
+        public static Events.GroupUpdated CreateGroupDeletedEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            var builder = CreateGroupUpdated(dbConnectionString, entityId, databaseId);
+            builder.SetChangeType(Events.ChangeType.DELETE);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+        }
+
+        private static Events.GroupUpdated.Builder CreateGroupUpdated(string dbConnectionString, int entityId, int databaseId)
         {
             Customer cust = new Customer(databaseId);
             Group g = new Group(entityId);
 
             var builder = g.Build(cust, dbConnectionString);
-            
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
+            return builder;
         }
 
         public static Events.UserUpdated CreateUserEvent(string dbConnectionString, int entityId, int databaseId)

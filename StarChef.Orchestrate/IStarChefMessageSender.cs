@@ -12,5 +12,9 @@ namespace StarChef.Orchestrate
             int entityId,
             int databaseId,
             DateTime messageArrivedTime);
+
+        bool PublishDeleteEvent(int entityId, int entityTypeId, int databaseId, DateTime messageArrivedTime, string dbConnectionString);
+
+
     }
 }

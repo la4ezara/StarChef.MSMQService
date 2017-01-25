@@ -3,7 +3,10 @@ using log4net;
 using StarChef.Common;
 using System;
 using System.Data.SqlClient;
+using Fourth.Orchestration.Model.Customer;
+using Fourth.Orchestration.Model.Menus.Events;
 using Google.ProtocolBuffers;
+using StarChef.Data;
 
 namespace StarChef.Orchestrate
 {
@@ -157,6 +160,69 @@ namespace StarChef.Orchestrate
                                     new SqlParameter("@entity_id", entityId),
                                     new SqlParameter("@publish_status", publishStatus ? 1 : 0),
                                     new SqlParameter("@date_message_captured", msgDateTime));
+        }
+
+        public bool PublishDeleteEvent(int entityId, int entityTypeId, int databaseId, DateTime messageArrivedTime, string dbConnectionString)
+        {
+            var result = false;
+            try
+            {
+                using (IMessageBus bus = _messagingFactory.CreateMessageBus())
+                {
+                    var payload = CreateDeleteEventPayload(entityId, entityTypeId, databaseId, dbConnectionString, _databaseManager);
+                    result = Publish(bus, payload);
+
+                    LogDatabase(dbConnectionString, entityTypeId, entityId, messageArrivedTime, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Fatal("Failed to publish delete event.", ex);
+            }
+            return result;
+        }
+
+        internal static IMessage CreateDeleteEventPayload(int entityId, int entityTypeId, int databaseId, string dbConnectionString, IDatabaseManager databaseManager)
+        {
+            IMessage payload = null;
+            switch ((Constants.EntityType)entityTypeId)
+            {
+                case Constants.EntityType.Category:
+                {
+                    //Fourth.Orchestration.Model.MenuService.Events.
+                    //Fourth.Orchestration.Model.Menus.Events.
+                }
+                    break;
+                case Constants.EntityType.Group:
+                    payload = EventFactory.CreateGroupDeletedEvent(dbConnectionString, entityId, databaseId);
+                    break;
+                case Constants.EntityType.PriceBand:
+                {
+                }
+                    break;
+                case Constants.EntityType.ProductSet:
+                    //dif
+                {
+                }
+                    break;
+                case Constants.EntityType.Supplier:
+                {
+                }
+                    break;
+                case Constants.EntityType.UserGroup:
+                {
+                }
+                    break;
+                case Constants.EntityType.User:
+                {
+                }
+                    break;
+                case Constants.EntityType.UserUnit:
+                {
+                }
+                    break;
+            }
+            return payload;
         }
     }
 }
