@@ -5,7 +5,7 @@ using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
-    class MenuUpdatedSetter : IMenuUpdatedSetter
+    class MenuUpdatedSetter : IEventSetter<Events.MenuUpdated.Builder>
     {
         public bool SetBuilder(Events.MenuUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
@@ -14,9 +14,7 @@ namespace StarChef.Orchestrate
             Customer cust = new Customer(databaseId);
 
             var dbManager = new DatabaseManager();
-            var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
-                "sc_event_menu",
-                new SqlParameter("@entity_id", entityId));
+            var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_menu", new SqlParameter("@entity_id", entityId));
 
             if (reader.Read())
             {
@@ -24,9 +22,7 @@ namespace StarChef.Orchestrate
                     .SetCustomerName(cust.Name)
                     .SetExternalId(reader[1].ToString())
                     .SetMenuName(reader[2].ToString())
-                    .SetMenuType((byte)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET)
-                    .SetSource(Events.SourceSystem.STARCHEF)
-                    .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
+                    .SetMenuType((byte)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET);
             }
 
             if (reader.NextResult())

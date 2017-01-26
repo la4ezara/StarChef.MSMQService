@@ -9,7 +9,7 @@ using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
-    public class IngredientUpdateSetter : IIngredientUpdatedSetter
+    public class IngredientUpdateSetter : IEventSetter<Events.IngredientUpdated.Builder>
     {
         public bool SetBuilder(Events.IngredientUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
@@ -25,7 +25,6 @@ namespace StarChef.Orchestrate
                         .SetExternalId(reader[0].ToString())
                         .SetCustomerId(cust.ExternalId)
                         .SetCustomerName(cust.Name)
-                        .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext())
                         .SetIngredientName(reader[1].ToString())
                         .SetUnitSizeNumber(reader.GetValueOrDefault<double>(2))
                         .SetUnitSizeUom(reader[3].ToString())

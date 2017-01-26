@@ -5,7 +5,7 @@ using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
-    class MealPeriodUpdatedSetter : IMealPeriodUpdatedSetter
+    class MealPeriodUpdatedSetter : IEventSetter<Events.MealPeriodUpdated.Builder>
     {
         public bool SetBuilder(Events.MealPeriodUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
@@ -23,10 +23,7 @@ namespace StarChef.Orchestrate
                 builder.SetCustomerId(cust.ExternalId)
                     .SetCustomerName(cust.Name)
                     .SetExternalId(reader[1].ToString())
-                    .SetMealPeriodName(reader[2].ToString())
-                    .SetSource(Events.SourceSystem.STARCHEF)
-                    .SetChangeType(Events.ChangeType.UPDATE)
-                    .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
+                    .SetMealPeriodName(reader[2].ToString());
             }
 
             return true;

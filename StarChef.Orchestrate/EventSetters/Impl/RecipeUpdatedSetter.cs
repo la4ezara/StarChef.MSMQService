@@ -9,7 +9,7 @@ using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
-    class RecipeUpdatedSetter : IRecipeUpdatedSetter
+    class RecipeUpdatedSetter : IEventSetter<Events.RecipeUpdated.Builder>
     {
         public bool SetBuilder(Events.RecipeUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
@@ -45,10 +45,7 @@ namespace StarChef.Orchestrate
                     .SetModifiedUserFirstName(reader[20].ToString())
                     .SetModifiedUserLastName(reader[21].ToString())
                     .SetCaptureDate((DateTime.Parse(reader[22].ToString())).Ticks)
-                    .SetModifiedDate((DateTime.Parse(reader[23].ToString())).Ticks)
-                    .SetSource(Events.SourceSystem.STARCHEF)
-                    .SetChangeType(Events.ChangeType.UPDATE)
-                    .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
+                    .SetModifiedDate((DateTime.Parse(reader[23].ToString())).Ticks);
             }
 
             //Ingredients

@@ -2,20 +2,25 @@
 using Events = Fourth.Orchestration.Model.Menus.Events;
 using System.Collections.Generic;
 using Google.ProtocolBuffers;
-using Fourth.Orchestration.Model.Menus;
 
 namespace StarChef.Orchestrate
 {
     public class EventFactory : IEventFactory
     {
-        private readonly IIngredientUpdatedSetter _ingredientUpdatedSetter;
-        private IRecipeUpdatedSetter _recipeUpdatedSetter;
-        private IMenuUpdatedSetter _menuUpdatedSetter;
-        private IGroupUpdatedSetter _groupUpdatedSetter;
-        private IMealPeriodUpdatedSetter _mealPeriodUpdatedSetter;
-        private ISupplierUpdatedSetter _supplierUpdatedSetter;
+        private readonly IEventSetter<Events.IngredientUpdated.Builder> _ingredientUpdatedSetter;
+        private readonly IEventSetter<Events.RecipeUpdated.Builder> _recipeUpdatedSetter;
+        private readonly IEventSetter<Events.MenuUpdated.Builder> _menuUpdatedSetter;
+        private readonly IEventSetter<Events.GroupUpdated.Builder> _groupUpdatedSetter;
+        private readonly IEventSetter<Events.MealPeriodUpdated.Builder> _mealPeriodUpdatedSetter;
+        private readonly IEventSetter<Events.SupplierUpdated.Builder> _supplierUpdatedSetter;
 
-        public EventFactory(ISupplierUpdatedSetter supplierUpdatedSetter, IMealPeriodUpdatedSetter mealPeriodUpdatedSetter, IGroupUpdatedSetter groupUpdatedSetter, IMenuUpdatedSetter menuUpdatedSetter, IRecipeUpdatedSetter recipeUpdatedSetter, IIngredientUpdatedSetter ingredientUpdatedSetter)
+        public EventFactory(
+            IEventSetter<Events.IngredientUpdated.Builder> ingredientUpdatedSetter,
+            IEventSetter<Events.RecipeUpdated.Builder> recipeUpdatedSetter, 
+            IEventSetter<Events.GroupUpdated.Builder> groupUpdatedSetter,
+            IEventSetter<Events.MenuUpdated.Builder> menuUpdatedSetter,
+            IEventSetter<Events.MealPeriodUpdated.Builder> mealPeriodUpdatedSetter,
+            IEventSetter<Events.SupplierUpdated.Builder> supplierUpdatedSetter)
         {
             _supplierUpdatedSetter = supplierUpdatedSetter;
             _mealPeriodUpdatedSetter = mealPeriodUpdatedSetter;

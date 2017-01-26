@@ -5,7 +5,7 @@ using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
-    class GroupUpdatedSetter : IGroupUpdatedSetter
+    class GroupUpdatedSetter : IEventSetter<Events.GroupUpdated.Builder>
     {
         public bool SetBuilder(Events.GroupUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
@@ -14,9 +14,7 @@ namespace StarChef.Orchestrate
             Customer cust = new Customer(databaseId);
 
             var dbManager = new DatabaseManager();
-            var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
-                "sc_event_group",
-                new SqlParameter("@entity_id", entityId));
+            var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_group", new SqlParameter("@entity_id", entityId));
 
             if (reader.Read())
             {
@@ -27,10 +25,7 @@ namespace StarChef.Orchestrate
                     .SetGroupCode(reader[3].ToString())
                     .SetDescription(reader[4].ToString())
                     .SetCurrencyIso4217Code(reader[5].ToString())
-                    .SetLanguageIso6391Code(reader[6].ToString())
-                    .SetSource(Events.SourceSystem.STARCHEF)
-                    .SetChangeType(Events.ChangeType.UPDATE)
-                    .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
+                    .SetLanguageIso6391Code(reader[6].ToString());
 
             }
 
