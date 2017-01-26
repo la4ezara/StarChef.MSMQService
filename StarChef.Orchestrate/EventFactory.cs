@@ -6,6 +6,8 @@ namespace StarChef.Orchestrate
 {
     public class EventFactory
     {
+        #region Updated events
+
         public static Events.RecipeUpdated CreateRecipeUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
         {
             var builder = CreateRecipeEventBuilder(dbConnectionString, entityId, databaseId);
@@ -14,25 +16,6 @@ namespace StarChef.Orchestrate
             var eventObj = builder.Build();
 
             return eventObj;
-        }
-
-        public static Events.RecipeUpdated CreateRecipeDeletedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateRecipeEventBuilder(dbConnectionString, entityId, databaseId);
-            builder.SetChangeType(Events.ChangeType.DELETE);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        private static Events.RecipeUpdated.Builder CreateRecipeEventBuilder(string dbConnectionString, int entityId, int databaseId)
-        {
-            var cust = new Customer(databaseId);
-            var recipe = new Recipe(entityId);
-            var builder = recipe.Build(cust, dbConnectionString);
-            return builder;
         }
 
         public static Events.MealPeriodUpdated CreateMealPeriodEvent(string dbConnectionString, int entityId, int databaseId)
@@ -58,26 +41,6 @@ namespace StarChef.Orchestrate
             return eventObj;
         }
 
-        public static Events.GroupUpdated CreateGroupDeletedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateGroupUpdated(dbConnectionString, entityId, databaseId);
-            builder.SetChangeType(Events.ChangeType.DELETE);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        private static Events.GroupUpdated.Builder CreateGroupUpdated(string dbConnectionString, int entityId, int databaseId)
-        {
-            Customer cust = new Customer(databaseId);
-            Group g = new Group(entityId);
-
-            var builder = g.Build(cust, dbConnectionString);
-            return builder;
-        }
-
         public static Events.UserUpdated CreateUserEvent(string dbConnectionString, int entityId, int databaseId)
         {
             Customer cust = new Customer(databaseId);
@@ -91,11 +54,7 @@ namespace StarChef.Orchestrate
             return eventObj;
         }
 
-        public static IEnumerable<Events.UserUpdated> CreateUserGroupEvent(
-            string dbConnectionString, 
-            int entityId, 
-            int databaseId
-            )
+        public static IEnumerable<Events.UserUpdated> CreateUserGroupEvent(string dbConnectionString, int entityId, int databaseId)
         {
             Customer cust = new Customer(databaseId);
 
@@ -122,10 +81,9 @@ namespace StarChef.Orchestrate
             return eventObj;
         }
 
-        public static Events.MenuUpdated CreateMenuDeletedEvent(string dbConnectionString, int entityId, int databaseId)
+        public static Events.IngredientUpdated CreateIngredientUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
         {
-            var builder = CreateMenuUpdatedBuilder(dbConnectionString, entityId, databaseId);
-            builder.SetChangeType(Events.ChangeType.DELETE);
+            var builder = CreateIngredientEventBuilder(dbConnectionString, entityId, databaseId);
 
             // Build the immutable data object
             var eventObj = builder.Build();
@@ -133,17 +91,14 @@ namespace StarChef.Orchestrate
             return eventObj;
         }
 
-        private static Events.MenuUpdated.Builder CreateMenuUpdatedBuilder(string dbConnectionString, int entityId, int databaseId)
-        {
-            Customer cust = new Customer(databaseId);
-            Menu menu = new Menu(entityId);
-            var builder = menu.Build(cust, dbConnectionString);
-            return builder;
-        }
+        #endregion
 
-        public static Events.IngredientUpdated CreateIngredientUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
+        #region Deleted events
+
+        public static Events.MenuUpdated CreateMenuDeletedEvent(string dbConnectionString, int entityId, int databaseId)
         {
-            var builder = CreateIngredientEventBuilder(dbConnectionString, entityId, databaseId);
+            var builder = CreateMenuUpdatedBuilder(dbConnectionString, entityId, databaseId);
+            builder.SetChangeType(Events.ChangeType.DELETE);
 
             // Build the immutable data object
             var eventObj = builder.Build();
@@ -162,6 +117,57 @@ namespace StarChef.Orchestrate
             return eventObj;
         }
 
+        public static Events.RecipeUpdated CreateRecipeDeletedEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            var builder = CreateRecipeEventBuilder(dbConnectionString, entityId, databaseId);
+            builder.SetChangeType(Events.ChangeType.DELETE);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+        }
+
+        public static Events.GroupUpdated CreateGroupDeletedEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            var builder = CreateGroupUpdated(dbConnectionString, entityId, databaseId);
+            builder.SetChangeType(Events.ChangeType.DELETE);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+        }
+
+        #endregion
+
+        #region Create event builders
+
+        private static Events.RecipeUpdated.Builder CreateRecipeEventBuilder(string dbConnectionString, int entityId, int databaseId)
+        {
+            var cust = new Customer(databaseId);
+            var recipe = new Recipe(entityId);
+            var builder = recipe.Build(cust, dbConnectionString);
+            return builder;
+        }
+
+        private static Events.GroupUpdated.Builder CreateGroupUpdated(string dbConnectionString, int entityId, int databaseId)
+        {
+            Customer cust = new Customer(databaseId);
+            Group g = new Group(entityId);
+
+            var builder = g.Build(cust, dbConnectionString);
+            return builder;
+        }
+
+        private static Events.MenuUpdated.Builder CreateMenuUpdatedBuilder(string dbConnectionString, int entityId, int databaseId)
+        {
+            Customer cust = new Customer(databaseId);
+            Menu menu = new Menu(entityId);
+            var builder = menu.Build(cust, dbConnectionString);
+            return builder;
+        }
+
         private static Events.IngredientUpdated.Builder CreateIngredientEventBuilder(string dbConnectionString, int entityId, int databaseId)
         {
             Customer cust = new Customer(databaseId);
@@ -169,5 +175,7 @@ namespace StarChef.Orchestrate
             var builder = ingredient.Build(cust, dbConnectionString);
             return builder;
         }
+
+        #endregion
     }
 }
