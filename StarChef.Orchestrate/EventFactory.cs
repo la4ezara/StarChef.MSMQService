@@ -1,26 +1,38 @@
 ﻿using StarChef.Orchestrate.Models;
 using Events = Fourth.Orchestration.Model.Menus.Events;
 using System.Collections.Generic;
-using Fourth.Orchestration.Model.Menus.Events;
 
 namespace StarChef.Orchestrate
 {
     public class EventFactory
     {
-        public static Events.RecipeUpdated CreateRecipeEvent(
-            string dbConnectionString, 
-            int entityId, 
-            int databaseId
-            )
+        public static Events.RecipeUpdated CreateRecipeUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
         {
-            var cust = new Customer(databaseId);
-            var recipe = new Recipe(entityId);
-            var builder = recipe.Build(cust, dbConnectionString);
+            var builder = CreateRecipeEventBuilder(dbConnectionString, entityId, databaseId);
 
             // Build the immutable data object
             var eventObj = builder.Build();
 
             return eventObj;
+        }
+
+        public static Events.RecipeUpdated CreateRecipeDeletedEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            var builder = CreateRecipeEventBuilder(dbConnectionString, entityId, databaseId);
+            builder.SetChangeType(Events.ChangeType.DELETE);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+        }
+
+        private static Events.RecipeUpdated.Builder CreateRecipeEventBuilder(string dbConnectionString, int entityId, int databaseId)
+        {
+            var cust = new Customer(databaseId);
+            var recipe = new Recipe(entityId);
+            var builder = recipe.Build(cust, dbConnectionString);
+            return builder;
         }
 
         public static Events.MealPeriodUpdated CreateMealPeriodEvent(string dbConnectionString, int entityId, int databaseId)
