@@ -102,7 +102,7 @@ namespace StarChef.Orchestrate
                             }
                             break;
                         case EnumHelper.EntityTypeWrapper.Menu:
-                            var meuEventPayload = EventFactory.UpdateMenuEvent(dbConnectionString, entityId, databaseId);
+                            var meuEventPayload = EventFactory.CreateMenuUpdatedEvent(dbConnectionString, entityId, databaseId);
                             result = Publish(bus, meuEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.Ingredient:
@@ -198,52 +198,52 @@ namespace StarChef.Orchestrate
                     break;
                 case Constants.EntityType.Menu:
                     {
-                        //Fourth.Orchestration.Model.Menus.Events.MenuUpdated
+                        payload = EventFactory.CreateMenuDeletedEvent(dbConnectionString, entityId, databaseId);
                     }
                     break;
                 case Constants.EntityType.MenuCycle:
                     {
-                        //Fourth.Orchestration.Model.Menus.Events.
+                        //Not sending because it's not supported in Fourth.Orchestration.Model.Menus.Events.
                     }
                     break;
                 case Constants.EntityType.Category:
-                {
-                    //Fourth.Orchestration.Model.Menus.Events.
-                }
+                    {
+                        //they are sent within ingredient updated event Fourth.Orchestration.Model.Menus.Events.
+                    }
                     break;
                 case Constants.EntityType.Group:
                     payload = EventFactory.CreateGroupDeletedEvent(dbConnectionString, entityId, databaseId);
                     break;
                 case Constants.EntityType.PriceBand:
-                {
-                    //Fourth.Orchestration.Model.Menus.Events.
-                }
+                    {
+                        //Fourth.Orchestration.Model.Menus.Events.
+                    }
                     break;
                 case Constants.EntityType.ProductSet:
                     //dif
-                {
+                    {
                         //Fourth.Orchestration.Model.Menus.Events.
-                }
+                    }
                     break;
                 case Constants.EntityType.Supplier:
-                {
+                    {
                         //Fourth.Orchestration.Model.Menus.Events.SupplierUpdated
-                }
+                    }
                     break;
                 case Constants.EntityType.UserGroup:
-                {
+                    {
                         //
-                }
+                    }
                     break;
                 case Constants.EntityType.User:
-                {
+                    {
                         //Fourth.Orchestration.Model.Menus.Events.UserUpdated
-                }
+                    }
                     break;
                 case Constants.EntityType.UserUnit:
-                {
+                    {
                         //Fourth.Orchestration.Model.Menus.Events.
-                }
+                    }
                     break;
             }
             return payload;

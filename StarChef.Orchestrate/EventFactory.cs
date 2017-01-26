@@ -1,6 +1,7 @@
 ﻿using StarChef.Orchestrate.Models;
 using Events = Fourth.Orchestration.Model.Menus.Events;
 using System.Collections.Generic;
+using Fourth.Orchestration.Model.Menus.Events;
 
 namespace StarChef.Orchestrate
 {
@@ -112,16 +113,33 @@ namespace StarChef.Orchestrate
             }
         }
 
-        public static Events.MenuUpdated UpdateMenuEvent(string dbConnectionString, int entityId, int databaseId)
+        public static Events.MenuUpdated CreateMenuUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
         {
-            Customer cust = new Customer(databaseId);
-            Menu menu = new Menu(entityId);
-            var builder = menu.Build(cust, dbConnectionString);
+            var builder = CreateMenuUpdatedBuilder(dbConnectionString, entityId, databaseId);
 
             // Build the immutable data object
             var eventObj = builder.Build();
 
             return eventObj;
+        }
+
+        public static Events.MenuUpdated CreateMenuDeletedEvent(string dbConnectionString, int entityId, int databaseId)
+        {
+            var builder = CreateMenuUpdatedBuilder(dbConnectionString, entityId, databaseId);
+            builder.SetChangeType(Events.ChangeType.DELETE);
+
+            // Build the immutable data object
+            var eventObj = builder.Build();
+
+            return eventObj;
+        }
+
+        private static Events.MenuUpdated.Builder CreateMenuUpdatedBuilder(string dbConnectionString, int entityId, int databaseId)
+        {
+            Customer cust = new Customer(databaseId);
+            Menu menu = new Menu(entityId);
+            var builder = menu.Build(cust, dbConnectionString);
+            return builder;
         }
 
         public static Events.IngredientUpdated CreateIngredientUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
