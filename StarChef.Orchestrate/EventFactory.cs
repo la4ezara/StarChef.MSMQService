@@ -1,7 +1,6 @@
 ﻿using StarChef.Orchestrate.Models;
 using Events = Fourth.Orchestration.Model.Menus.Events;
 using System.Collections.Generic;
-using Fourth.Orchestration.Model.Menus.Events;
 
 namespace StarChef.Orchestrate
 {
