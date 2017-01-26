@@ -4,7 +4,6 @@ using StarChef.Common;
 using System;
 using System.Data.SqlClient;
 using Fourth.Orchestration.Model.Customer;
-using Fourth.Orchestration.Model.Menus.Events;
 using Google.ProtocolBuffers;
 using StarChef.Data;
 
@@ -107,7 +106,7 @@ namespace StarChef.Orchestrate
                             result = Publish(bus, meuEventPayload);
                             break;
                         case EnumHelper.EntityTypeWrapper.Ingredient:
-                            var ingredientEventPayload = EventFactory.UpdateIngredientEvent(dbConnectionString, entityId, databaseId);
+                            var ingredientEventPayload = EventFactory.CreateIngredientUpdatedEvent(dbConnectionString, entityId, databaseId);
                             result = Publish(bus, ingredientEventPayload);
                             break;
                     }
@@ -189,7 +188,7 @@ namespace StarChef.Orchestrate
             {
                 case Constants.EntityType.Ingredient:
                     {
-                        //Fourth.Orchestration.Model.Menus.Events.IngredientUpdated
+                        payload = EventFactory.CreateIngredientDeletedEvent(dbConnectionString, entityId, databaseId);
                     }
                     break;
                 case Constants.EntityType.Dish:
