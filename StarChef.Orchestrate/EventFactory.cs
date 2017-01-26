@@ -1,45 +1,62 @@
 ﻿using StarChef.Orchestrate.Models;
 using Events = Fourth.Orchestration.Model.Menus.Events;
 using System.Collections.Generic;
+using Google.ProtocolBuffers;
+using Fourth.Orchestration.Model.Menus;
 
 namespace StarChef.Orchestrate
 {
-    public class EventFactory
+    public class EventFactory : IEventFactory
     {
+        private readonly IIngredientUpdatedSetter _ingredientUpdatedSetter;
+        private IRecipeUpdatedSetter _recipeUpdatedSetter;
+        private IMenuUpdatedSetter _menuUpdatedSetter;
+        private IGroupUpdatedSetter _groupUpdatedSetter;
+        private IMealPeriodUpdatedSetter _mealPeriodUpdatedSetter;
+        private ISupplierUpdatedSetter _supplierUpdatedSetter;
+
+        public EventFactory(ISupplierUpdatedSetter supplierUpdatedSetter, IMealPeriodUpdatedSetter mealPeriodUpdatedSetter, IGroupUpdatedSetter groupUpdatedSetter, IMenuUpdatedSetter menuUpdatedSetter, IRecipeUpdatedSetter recipeUpdatedSetter, IIngredientUpdatedSetter ingredientUpdatedSetter)
+        {
+            _supplierUpdatedSetter = supplierUpdatedSetter;
+            _mealPeriodUpdatedSetter = mealPeriodUpdatedSetter;
+            _groupUpdatedSetter = groupUpdatedSetter;
+            _menuUpdatedSetter = menuUpdatedSetter;
+            _recipeUpdatedSetter = recipeUpdatedSetter;
+            _ingredientUpdatedSetter = ingredientUpdatedSetter;
+        }
+
+        protected TBuilder CreateBuilder<TMessage, TBuilder>(Events.ChangeType? changeType = null)
+            where TMessage : GeneratedMessage<TMessage, TBuilder>
+            where TBuilder : GeneratedBuilder<TMessage, TBuilder>, new()
+        {
+            dynamic result = null;
+
+            if (typeof(TMessage) == typeof(Events.IngredientUpdated))
+                result = Events.IngredientUpdated.CreateBuilder();
+            else if (typeof(TMessage) == typeof(Events.RecipeUpdated))
+                result = Events.RecipeUpdated.CreateBuilder();
+            else if (typeof(TMessage) == typeof(Events.MenuUpdated))
+                result = Events.MenuUpdated.CreateBuilder();
+            else if (typeof(TMessage) == typeof(Events.GroupUpdated))
+                result = Events.GroupUpdated.CreateBuilder();
+            else if (typeof(TMessage) == typeof(Events.MealPeriodUpdated))
+                result = Events.MealPeriodUpdated.CreateBuilder();
+            else if (typeof(TMessage) == typeof(Events.SupplierUpdated))
+                result = Events.SupplierUpdated.CreateBuilder();
+            else if (typeof(TMessage) == typeof(Events.UserUpdated))
+                result = Events.UserUpdated.CreateBuilder();
+
+            if (result != null)
+            {
+                result.SetSource(Events.SourceSystem.STARCHEF);
+                result.SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
+                if (changeType.HasValue)
+                    result.SetChangeType(changeType.Value);
+            }
+            return (TBuilder)result;
+        }
+
         #region Updated events
-
-        public static Events.RecipeUpdated CreateRecipeUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateRecipeEventBuilder(dbConnectionString, entityId, databaseId);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        public static Events.MealPeriodUpdated CreateMealPeriodEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            Customer cust = new Customer(databaseId);
-            MealPeriod mp = new MealPeriod(entityId);
-            
-            var builder = mp.Build(cust, dbConnectionString);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        public static Events.GroupUpdated CreateGroupUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateGroupUpdated(dbConnectionString, entityId, databaseId);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
 
         public static Events.UserUpdated CreateUserEvent(string dbConnectionString, int entityId, int databaseId)
         {
@@ -71,109 +88,55 @@ namespace StarChef.Orchestrate
             }
         }
 
-        public static Events.MenuUpdated CreateMenuUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateMenuUpdatedBuilder(dbConnectionString, entityId, databaseId);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        public static Events.IngredientUpdated CreateIngredientUpdatedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateIngredientEventBuilder(dbConnectionString, entityId, databaseId);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        #endregion
-
-        #region Deleted events
-
-        public static Events.MenuUpdated CreateMenuDeletedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateMenuUpdatedBuilder(dbConnectionString, entityId, databaseId);
-            builder.SetChangeType(Events.ChangeType.DELETE);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        public static Events.IngredientUpdated CreateIngredientDeletedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateIngredientEventBuilder(dbConnectionString, entityId, databaseId);
-            builder.SetChangeType(Events.ChangeType.DELETE);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        public static Events.RecipeUpdated CreateRecipeDeletedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateRecipeEventBuilder(dbConnectionString, entityId, databaseId);
-            builder.SetChangeType(Events.ChangeType.DELETE);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        public static Events.GroupUpdated CreateGroupDeletedEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            var builder = CreateGroupUpdated(dbConnectionString, entityId, databaseId);
-            builder.SetChangeType(Events.ChangeType.DELETE);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
         #endregion
 
         #region Create event builders
 
-        private static Events.RecipeUpdated.Builder CreateRecipeEventBuilder(string dbConnectionString, int entityId, int databaseId)
+        public TMessage CreateDeleteEvent<TMessage, TBuilder>(string connectionString, string entityExternalId, int databaseId)
+            where TMessage : GeneratedMessage<TMessage, TBuilder>
+            where TBuilder : GeneratedBuilder<TMessage, TBuilder>, new()
         {
-            var cust = new Customer(databaseId);
-            var recipe = new Recipe(entityId);
-            var builder = recipe.Build(cust, dbConnectionString);
-            return builder;
+            var builder = CreateBuilder<TMessage, TBuilder>(Events.ChangeType.DELETE);
+            object builderObj = builder; // builder cannot be cast directly to event builder for specific events
+
+            if (typeof(TBuilder) == typeof(Events.IngredientUpdated.Builder))
+                ((Events.IngredientUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.RecipeUpdated.Builder))
+                ((Events.RecipeUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.MenuUpdated.Builder))
+                ((Events.MenuUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.GroupUpdated.Builder))
+                ((Events.GroupUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.MealPeriodUpdated.Builder))
+                ((Events.MealPeriodUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.SupplierUpdated.Builder))
+                ((Events.RecipeUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+
+            return builder.Build();
         }
 
-        private static Events.GroupUpdated.Builder CreateGroupUpdated(string dbConnectionString, int entityId, int databaseId)
+        public TMessage CreateUpdateEvent<TMessage, TBuilder>(string connectionString, int entityId, int databaseId)
+            where TMessage : GeneratedMessage<TMessage, TBuilder>
+            where TBuilder : GeneratedBuilder<TMessage, TBuilder>, new()
         {
-            Customer cust = new Customer(databaseId);
-            Group g = new Group(entityId);
+            var builder = CreateBuilder<TMessage, TBuilder>(Events.ChangeType.UPDATE);
+            object builderObj = builder; // builder cannot be cast directly to event builder for specific events
 
-            var builder = g.Build(cust, dbConnectionString);
-            return builder;
-        }
+            if (typeof (TBuilder) == typeof (Events.IngredientUpdated.Builder))
+                _ingredientUpdatedSetter.SetBuilder((Events.IngredientUpdated.Builder) builderObj, connectionString, entityId, databaseId);
+            else if (typeof (TBuilder) == typeof (Events.RecipeUpdated.Builder))
+                _recipeUpdatedSetter.SetBuilder((Events.RecipeUpdated.Builder) builderObj, connectionString, entityId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.MenuUpdated.Builder))
+                _menuUpdatedSetter.SetBuilder((Events.MenuUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.GroupUpdated.Builder))
+                _groupUpdatedSetter.SetBuilder((Events.GroupUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.MealPeriodUpdated.Builder))
+                _mealPeriodUpdatedSetter.SetBuilder((Events.MealPeriodUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.SupplierUpdated.Builder))
+                _supplierUpdatedSetter.SetBuilder((Events.SupplierUpdated.Builder)builderObj, connectionString, entityId, databaseId);
 
-        private static Events.MenuUpdated.Builder CreateMenuUpdatedBuilder(string dbConnectionString, int entityId, int databaseId)
-        {
-            Customer cust = new Customer(databaseId);
-            Menu menu = new Menu(entityId);
-            var builder = menu.Build(cust, dbConnectionString);
-            return builder;
-        }
-
-        private static Events.IngredientUpdated.Builder CreateIngredientEventBuilder(string dbConnectionString, int entityId, int databaseId)
-        {
-            Customer cust = new Customer(databaseId);
-            Ingredient ingredient = new Ingredient(entityId);
-            var builder = ingredient.Build(cust, dbConnectionString);
-            return builder;
+            // the builder object is initialized since it was passed to initializes as referenced object
+            return builder.Build();
         }
 
         #endregion

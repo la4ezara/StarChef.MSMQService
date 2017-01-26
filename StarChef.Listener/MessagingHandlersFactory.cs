@@ -90,7 +90,7 @@ namespace StarChef.Listener
                 var msg = new UpdateMessage(productId: userDetail.Item1,
                                             entityTypeId: (int)Constants.EntityType.User,
                                             action: (int)Constants.MessageActionType.SalesForceUserCreated,
-                                            dbDSN: userDetail.Item3,
+                                            dbDsn: userDetail.Item3,
                                             databaseId: userDetail.Item2);
                 MSMQHelper.Send(msg);
                 _logger.MessageSent(msg);

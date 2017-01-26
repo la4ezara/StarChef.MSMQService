@@ -1,39 +1,32 @@
-﻿namespace StarChef.Orchestrate.Models
+using System.Data.SqlClient;
+using Fourth.Orchestration.Model.Menus;
+using StarChef.Common;
+using StarChef.Orchestrate.Models;
+
+namespace StarChef.Orchestrate
 {
-    using Fourth.Orchestration.Model.Menus;
-    using StarChef.Common;
-    using System;
-    using System.Data.SqlClient;
-
-    public class Menu
+    class MenuUpdatedSetter : IMenuUpdatedSetter
     {
-        public int Id { get; }
-
-
-        public Menu(int menuId)
+        public bool SetBuilder(Events.MenuUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
-            Id = menuId;
-        }
+            if (builder == null) return false;
 
-
-        public Events.MenuUpdated.Builder Build(Customer cust, string connectionString)
-        {
-            var builder = Events.MenuUpdated.CreateBuilder();
+            Customer cust = new Customer(databaseId);
 
             var dbManager = new DatabaseManager();
             var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
-                                    "sc_event_menu",
-                                    new SqlParameter("@entity_id", Id));
+                "sc_event_menu",
+                new SqlParameter("@entity_id", entityId));
 
             if (reader.Read())
             {
                 builder.SetCustomerId(cust.ExternalId)
-                .SetCustomerName(cust.Name)
-                .SetExternalId(reader[1].ToString())
-                .SetMenuName(reader[2].ToString())
-                .SetMenuType((byte)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET)
-                .SetSource(Events.SourceSystem.STARCHEF)
-                .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
+                    .SetCustomerName(cust.Name)
+                    .SetExternalId(reader[1].ToString())
+                    .SetMenuName(reader[2].ToString())
+                    .SetMenuType((byte)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET)
+                    .SetSource(Events.SourceSystem.STARCHEF)
+                    .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
             }
 
             if (reader.NextResult())
@@ -60,7 +53,7 @@
                 }
             }
 
-            return builder;
+            return true;
         }
     }
 }

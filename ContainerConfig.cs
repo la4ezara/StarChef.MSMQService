@@ -33,6 +33,7 @@ namespace StarChef.MSMQService
             builder.RegisterType<AzureMessagingFactory>().As<IMessagingFactory>().InstancePerLifetimeScope();
             builder.RegisterType<StarChefMessageSender>().As<IStarChefMessageSender>().InstancePerLifetimeScope();
             builder.RegisterType<DatabaseManager>().As<IDatabaseManager>().InstancePerLifetimeScope();
+            builder.RegisterType<EventFactory>().As<IEventFactory>().InstancePerLifetimeScope();
 
             return builder.Build();
         }

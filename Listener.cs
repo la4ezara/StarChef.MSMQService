@@ -240,7 +240,8 @@ namespace StarChef.MSMQService
                         {
                             // Construct event and notify subscribers about deletion of an entity
                             if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
-                                _messageSender.PublishDeleteEvent(msg.ProductID, msg.EntityTypeId, msg.DatabaseID, msg.ArrivedTime, msg.DSN);
+                                //_messageSender.PublishDeleteEvent(msg.ExternalId, msg.ProductID, msg.EntityTypeId, msg.ArrivedTime, msg.DatabaseID, msg.DSN);
+                                _messageSender.PublishDeleteEvent(msg);
                         }
                         break;
                 }

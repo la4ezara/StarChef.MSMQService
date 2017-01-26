@@ -6,6 +6,9 @@ using System.Data.SqlClient;
 using Fourth.Orchestration.Model.Customer;
 using Google.ProtocolBuffers;
 using StarChef.Data;
+using StarChef.Orchestrate.Models;
+using UpdateMessage = StarChef.MSMQService.UpdateMessage;
+using Events = Fourth.Orchestration.Model.Menus.Events;
 
 namespace StarChef.Orchestrate
 {
@@ -20,12 +23,15 @@ namespace StarChef.Orchestrate
         /// <summary> The messaging factory to use when creating bus and listener instances. </summary>
         private readonly IMessagingFactory _messagingFactory;
         private readonly IDatabaseManager _databaseManager;
+        private readonly IEventFactory _eventFactory;
+
         public StarChefMessageSender(
             IMessagingFactory messagingFactory, 
-            IDatabaseManager databaseManager
+            IDatabaseManager databaseManager,
+            IEventFactory eventFactory
             )
         {
-
+            _eventFactory = eventFactory;
             _messagingFactory = messagingFactory;
             _databaseManager = databaseManager;
         }
@@ -48,29 +54,35 @@ namespace StarChef.Orchestrate
                 using (IMessageBus bus = _messagingFactory.CreateMessageBus())
                 {
                     // Create an event payload
-                    switch(entityTypeWrapper)
+                    switch (entityTypeWrapper)
                     {
                         case EnumHelper.EntityTypeWrapper.Recipe:
-                            var recipeEventPayload = EventFactory.CreateRecipeUpdatedEvent(dbConnectionString, entityId, databaseId);
-                            result = Publish(bus, recipeEventPayload);
+                            {
+                                var payload = _eventFactory.CreateUpdateEvent<Events.RecipeUpdated, Events.RecipeUpdated.Builder>(dbConnectionString, entityId, databaseId);
+                                result = Publish(bus, payload);
+                            }
                             break;
                         case EnumHelper.EntityTypeWrapper.MealPeriod:
-                            var mealPeriodEventPayload = EventFactory.CreateMealPeriodEvent(dbConnectionString, entityId, databaseId);
-                            result = Publish(bus, mealPeriodEventPayload);
+                            {
+                                var payload = _eventFactory.CreateUpdateEvent<Events.MealPeriodUpdated, Events.MealPeriodUpdated.Builder>(dbConnectionString, entityId, databaseId);
+                                result = Publish(bus, payload);
+                            }
                             break;
                         case EnumHelper.EntityTypeWrapper.Group:
-                            var groupEventPayload = EventFactory.CreateGroupUpdatedEvent(dbConnectionString, entityId, databaseId);
-                            result = Publish(bus, groupEventPayload);
+                            {
+                                var payload = _eventFactory.CreateUpdateEvent<Events.GroupUpdated, Events.GroupUpdated.Builder>(dbConnectionString, entityId, databaseId);
+                                result = Publish(bus, payload);
+                            }
                             break;
                         case EnumHelper.EntityTypeWrapper.User:
                             var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
                             result = Send(bus, userCommandCreateAccount);
                             break;
-                        case EnumHelper.EntityTypeWrapper.UserActivated:  
+                        case EnumHelper.EntityTypeWrapper.UserActivated:
                             var userCommandAccountActivated = CommandFactory.ActivateAccountCommand(entityId, databaseId);
                             result = Send(bus, userCommandAccountActivated);
                             break;
-                        case EnumHelper.EntityTypeWrapper.UserDeactivated:  
+                        case EnumHelper.EntityTypeWrapper.UserDeactivated:
                             var userCommandAccountDeactivated = CommandFactory.DeactivateAccountCommand(entityId, databaseId);
                             result = Send(bus, userCommandAccountDeactivated);
                             break;
@@ -90,24 +102,28 @@ namespace StarChef.Orchestrate
                         }
                         case EnumHelper.EntityTypeWrapper.UserGroup:
                             var userGroupEventPayload = EventFactory.CreateUserGroupEvent(dbConnectionString, entityId, databaseId);
-                            foreach(var user in userGroupEventPayload)
+                            foreach (var user in userGroupEventPayload)
                             {
                                 result = Publish(bus, user);
                                 LogDatabase(dbConnectionString,
-                                                        entityTypeId,
-                                                        entityId,
-                                                        messageArrivedTime,
-                                                        result);
+                                    entityTypeId,
+                                    entityId,
+                                    messageArrivedTime,
+                                    result);
                                 logged = true;
                             }
                             break;
                         case EnumHelper.EntityTypeWrapper.Menu:
-                            var meuEventPayload = EventFactory.CreateMenuUpdatedEvent(dbConnectionString, entityId, databaseId);
-                            result = Publish(bus, meuEventPayload);
+                            {
+                                var payload = _eventFactory.CreateUpdateEvent<Events.MenuUpdated, Events.MenuUpdated.Builder>(dbConnectionString, entityId, databaseId);
+                                result = Publish(bus, payload);
+                            }
                             break;
                         case EnumHelper.EntityTypeWrapper.Ingredient:
-                            var ingredientEventPayload = EventFactory.CreateIngredientUpdatedEvent(dbConnectionString, entityId, databaseId);
-                            result = Publish(bus, ingredientEventPayload);
+                            {
+                                var payload = _eventFactory.CreateUpdateEvent<Events.IngredientUpdated, Events.IngredientUpdated.Builder>(dbConnectionString, entityId, databaseId);
+                                result = Publish(bus, payload);
+                            }
                             break;
                     }
                 }
@@ -161,17 +177,17 @@ namespace StarChef.Orchestrate
                                     new SqlParameter("@date_message_captured", msgDateTime));
         }
 
-        public bool PublishDeleteEvent(int entityId, int entityTypeId, int databaseId, DateTime messageArrivedTime, string dbConnectionString)
+        public bool PublishDeleteEvent(UpdateMessage message)
         {
             var result = false;
             try
             {
                 using (IMessageBus bus = _messagingFactory.CreateMessageBus())
                 {
-                    var payload = CreateDeleteEventPayload(entityId, entityTypeId, databaseId, dbConnectionString, _databaseManager);
+                    var payload = CreateDeleteEventPayload(message.ExternalId, message.EntityTypeId, message.DatabaseID, message.DSN, _databaseManager);
                     result = Publish(bus, payload);
 
-                    LogDatabase(dbConnectionString, entityTypeId, entityId, messageArrivedTime, result);
+                    LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
                 }
             }
             catch (Exception ex)
@@ -181,24 +197,24 @@ namespace StarChef.Orchestrate
             return result;
         }
 
-        internal static IMessage CreateDeleteEventPayload(int entityId, int entityTypeId, int databaseId, string dbConnectionString, IDatabaseManager databaseManager)
+        internal IMessage CreateDeleteEventPayload(string entityExternalId, int entityTypeId, int databaseId, string dbConnectionString, IDatabaseManager databaseManager)
         {
             IMessage payload = null;
             switch ((Constants.EntityType)entityTypeId)
             {
                 case Constants.EntityType.Ingredient:
                     {
-                        payload = EventFactory.CreateIngredientDeletedEvent(dbConnectionString, entityId, databaseId);
+                        payload = _eventFactory.CreateDeleteEvent<Events.IngredientUpdated, Events.IngredientUpdated.Builder>(dbConnectionString, entityExternalId, databaseId);
                     }
                     break;
                 case Constants.EntityType.Dish:
                     {
-                        payload = EventFactory.CreateRecipeDeletedEvent(dbConnectionString, entityId, databaseId);
+                        payload = _eventFactory.CreateDeleteEvent<Events.RecipeUpdated, Events.RecipeUpdated.Builder>(dbConnectionString, entityExternalId, databaseId);
                     }
                     break;
                 case Constants.EntityType.Menu:
                     {
-                        payload = EventFactory.CreateMenuDeletedEvent(dbConnectionString, entityId, databaseId);
+                        payload = _eventFactory.CreateDeleteEvent<Events.MenuUpdated, Events.MenuUpdated.Builder>(dbConnectionString, entityExternalId, databaseId);
                     }
                     break;
                 case Constants.EntityType.MenuCycle:
@@ -208,41 +224,41 @@ namespace StarChef.Orchestrate
                     break;
                 case Constants.EntityType.Category:
                     {
-                        //they are sent within ingredient updated event Fourth.Orchestration.Model.Menus.Events.
+                        //they are sent within ingredient updated event
                     }
                     break;
                 case Constants.EntityType.Group:
-                    payload = EventFactory.CreateGroupDeletedEvent(dbConnectionString, entityId, databaseId);
+                    payload = _eventFactory.CreateDeleteEvent<Events.GroupUpdated, Events.GroupUpdated.Builder>(dbConnectionString, entityExternalId, databaseId);
                     break;
                 case Constants.EntityType.PriceBand:
                     {
-                        //Fourth.Orchestration.Model.Menus.Events.
+                        //Not sending because it's not supported in Fourth.Orchestration.Model.Menus.Events.
                     }
                     break;
                 case Constants.EntityType.ProductSet:
-                    //dif
                     {
-                        //Fourth.Orchestration.Model.Menus.Events.
+                        //Not sending because it's not supported in Fourth.Orchestration.Model.Menus.Events.
                     }
                     break;
                 case Constants.EntityType.Supplier:
                     {
                         //Fourth.Orchestration.Model.Menus.Events.SupplierUpdated
+                        payload = _eventFactory.CreateDeleteEvent<Events.SupplierUpdated, Events.SupplierUpdated.Builder>(dbConnectionString, entityExternalId, databaseId);
                     }
                     break;
                 case Constants.EntityType.UserGroup:
                     {
-                        //
+                        //they are sent within user updated event
                     }
                     break;
                 case Constants.EntityType.User:
                     {
-                        //Fourth.Orchestration.Model.Menus.Events.UserUpdated
+                        payload = _eventFactory.CreateDeleteEvent<Events.UserUpdated, Events.UserUpdated.Builder>(dbConnectionString, entityExternalId, databaseId);
                     }
                     break;
                 case Constants.EntityType.UserUnit:
                     {
-                        //Fourth.Orchestration.Model.Menus.Events.
+                        //Not sending because it's not supported in Fourth.Orchestration.Model.Menus.Events.
                     }
                     break;
             }
