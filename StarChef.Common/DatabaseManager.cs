@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -109,5 +110,16 @@ namespace StarChef.Common
             }
         }
 
+        public IList<int> GetUsersInGroup(string connectionString, int groupId)
+        {
+            var result = new List<int>();
+            var reader = ExecuteReader(connectionString, "sc_event_usergroup", new SqlParameter("@entity_id", groupId));
+            while (reader.Read())
+            {
+                var id = int.Parse(reader[0].ToString());
+                result.Add(id);
+            }
+            return result;
+        }
     }
 }

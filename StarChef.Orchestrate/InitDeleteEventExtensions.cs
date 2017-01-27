@@ -52,5 +52,12 @@ namespace StarChef.Orchestrate
 
             return true;
         }
+
+        public static bool SetBuilderForDelete(this Events.UserUpdated.Builder builder, string entityExternalId, int databaseId)
+        {
+            if (builder == null) return false;
+
+            return true;
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 
 namespace StarChef.Common
@@ -23,5 +24,8 @@ namespace StarChef.Common
            );
 
         string GetSetting(string connectionString, string settingName);
+
+        IList<int> GetUsersInGroup(string connectionString, int groupId);
+
     }
 }

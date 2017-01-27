@@ -97,6 +97,7 @@
     <Compile Include="EventSetters\Impl\RecipeUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\MenuUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\MealPeriodUpdatedSetter.cs" />
+    <Compile Include="EventSetters\Impl\UserUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\SupplierUpdatedSetter.cs" />
     <Compile Include="InitDeleteEventExtensions.cs" />
     <Compile Include="IEventFactory.cs" />
@@ -110,7 +111,6 @@
     <Compile Include="Models\TransferObjects\AccountUpdateFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\FailedTransferObject.cs" />
     <Compile Include="Models\User.cs" />
-    <Compile Include="Models\UserGroup.cs" />
     <Compile Include="OrchestrateHelper.cs" />
     <Compile Include="StarChefMessageSender.cs" />
   </ItemGroup>

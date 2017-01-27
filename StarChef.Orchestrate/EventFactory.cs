@@ -13,6 +13,7 @@ namespace StarChef.Orchestrate
         private readonly IEventSetter<Events.GroupUpdated.Builder> _groupUpdatedSetter;
         private readonly IEventSetter<Events.MealPeriodUpdated.Builder> _mealPeriodUpdatedSetter;
         private readonly IEventSetter<Events.SupplierUpdated.Builder> _supplierUpdatedSetter;
+        private readonly IEventSetter<Events.UserUpdated.Builder> _userUpdatedSetter;
 
         public EventFactory(
             IEventSetter<Events.IngredientUpdated.Builder> ingredientUpdatedSetter,
@@ -20,14 +21,16 @@ namespace StarChef.Orchestrate
             IEventSetter<Events.GroupUpdated.Builder> groupUpdatedSetter,
             IEventSetter<Events.MenuUpdated.Builder> menuUpdatedSetter,
             IEventSetter<Events.MealPeriodUpdated.Builder> mealPeriodUpdatedSetter,
-            IEventSetter<Events.SupplierUpdated.Builder> supplierUpdatedSetter)
+            IEventSetter<Events.SupplierUpdated.Builder> supplierUpdatedSetter,
+            IEventSetter<Events.UserUpdated.Builder> userUpdatedSetter)
         {
-            _supplierUpdatedSetter = supplierUpdatedSetter;
-            _mealPeriodUpdatedSetter = mealPeriodUpdatedSetter;
+            _ingredientUpdatedSetter = ingredientUpdatedSetter;
+            _recipeUpdatedSetter = recipeUpdatedSetter;
             _groupUpdatedSetter = groupUpdatedSetter;
             _menuUpdatedSetter = menuUpdatedSetter;
-            _recipeUpdatedSetter = recipeUpdatedSetter;
-            _ingredientUpdatedSetter = ingredientUpdatedSetter;
+            _mealPeriodUpdatedSetter = mealPeriodUpdatedSetter;
+            _supplierUpdatedSetter = supplierUpdatedSetter;
+            _userUpdatedSetter = userUpdatedSetter;
         }
 
         protected TBuilder CreateBuilder<TMessage, TBuilder>(Events.ChangeType? changeType = null)
@@ -61,40 +64,6 @@ namespace StarChef.Orchestrate
             return (TBuilder)result;
         }
 
-        #region Updated events
-
-        public static Events.UserUpdated CreateUserEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            Customer cust = new Customer(databaseId);
-            User u = new User(entityId);
-            
-            var builder = u.Build(cust, dbConnectionString);
-
-            // Build the immutable data object
-            var eventObj = builder.Build();
-
-            return eventObj;
-        }
-
-        public static IEnumerable<Events.UserUpdated> CreateUserGroupEvent(string dbConnectionString, int entityId, int databaseId)
-        {
-            Customer cust = new Customer(databaseId);
-
-            var userGroup = new UserGroup(entityId);
-
-            foreach(var user in userGroup.GetUsersInGroup(dbConnectionString))
-            {
-                var builder = user.Build(cust, dbConnectionString);
-
-                // Build the immutable data object
-                var eventObj = builder.Build();
-
-                yield return eventObj;
-            }
-        }
-
-        #endregion
-
         #region Create event builders
 
         public TMessage CreateDeleteEvent<TMessage, TBuilder>(string connectionString, string entityExternalId, int databaseId)
@@ -116,6 +85,8 @@ namespace StarChef.Orchestrate
                 ((Events.MealPeriodUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.SupplierUpdated.Builder))
                 ((Events.RecipeUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.UserUpdated.Builder))
+                ((Events.UserUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
 
             return builder.Build();
         }
@@ -139,6 +110,8 @@ namespace StarChef.Orchestrate
                 _mealPeriodUpdatedSetter.SetBuilder((Events.MealPeriodUpdated.Builder)builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.SupplierUpdated.Builder))
                 _supplierUpdatedSetter.SetBuilder((Events.SupplierUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.UserUpdated.Builder))
+                _userUpdatedSetter.SetBuilder((Events.UserUpdated.Builder)builderObj, connectionString, entityId, databaseId);
 
             // the builder object is initialized since it was passed to initializes as referenced object
             return builder.Build();
