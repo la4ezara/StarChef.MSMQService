@@ -2,12 +2,9 @@
 using log4net;
 using StarChef.Common;
 using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
-using Fourth.Orchestration.Model.Customer;
 using Google.ProtocolBuffers;
 using StarChef.Data;
-using StarChef.Orchestrate.Models;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 using Events = Fourth.Orchestration.Model.Menus.Events;
 
@@ -19,7 +16,7 @@ namespace StarChef.Orchestrate
     public class StarChefMessageSender : IStarChefMessageSender
     {
         /// <summary> The log4net Logger instance. </summary>
-        private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary> The messaging factory to use when creating bus and listener instances. </summary>
         private readonly IMessagingFactory _messagingFactory;
@@ -139,7 +136,7 @@ namespace StarChef.Orchestrate
             }
             catch(Exception ex)
             {
-                Logger.Fatal("StarChef MSMQService Orchestrate failed to send to Orchestration in Send.", ex);
+                _logger.Fatal("StarChef MSMQService Orchestrate failed to send to Orchestration in Send.", ex);
             }
 
             return result;
@@ -148,14 +145,14 @@ namespace StarChef.Orchestrate
         private bool Send(IMessageBus bus, IMessage messagePayload)
         {
             var result = bus.Send(messagePayload);
-            Logger.InfoFormat("Command '{0}' sent: {1}", messagePayload.GetType().Name, messagePayload.ToJson());
+            _logger.InfoFormat("Command '{0}' sent: {1}", messagePayload.GetType().Name, messagePayload.ToJson());
             return result;
         }
 
         private static bool Publish(IMessageBus bus, IMessage messagePayload)
         {
             var result = bus.Publish(messagePayload);
-            Logger.InfoFormat("Event '{0}' published: {1}", messagePayload.GetType().Name, messagePayload.ToJson());
+            _logger.InfoFormat("Event '{0}' published: {1}", messagePayload.GetType().Name, messagePayload.ToJson());
             return result;
         }
 
@@ -167,7 +164,7 @@ namespace StarChef.Orchestrate
             bool publishStatus
         )
         {
-            Logger.Info("Logging publish status to database");
+            _logger.Info("Logging publish status to database");
 
             _databaseManager.Execute(connectionString,
                                     "sc_insert_orchestration_event_log",
@@ -192,7 +189,7 @@ namespace StarChef.Orchestrate
             }
             catch (Exception ex)
             {
-                Logger.Fatal("Failed to publish delete event.", ex);
+                _logger.Fatal("Failed to publish delete event.", ex);
             }
             return result;
         }

@@ -99,7 +99,6 @@
     <Compile Include="EventSetters\Impl\MealPeriodUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\UserUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\SupplierUpdatedSetter.cs" />
-    <Compile Include="InitDeleteEventExtensions.cs" />
     <Compile Include="IEventFactory.cs" />
     <Compile Include="IStarChefMessageSender.cs" />
     <Compile Include="Models\Category.cs" />

@@ -1,6 +1,4 @@
-﻿using StarChef.Orchestrate.Models;
-using Events = Fourth.Orchestration.Model.Menus.Events;
-using System.Collections.Generic;
+﻿using Events = Fourth.Orchestration.Model.Menus.Events;
 using Google.ProtocolBuffers;
 
 namespace StarChef.Orchestrate
@@ -74,19 +72,19 @@ namespace StarChef.Orchestrate
             object builderObj = builder; // builder cannot be cast directly to event builder for specific events
 
             if (typeof(TBuilder) == typeof(Events.IngredientUpdated.Builder))
-                ((Events.IngredientUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+                _ingredientUpdatedSetter.SetForDelete((Events.IngredientUpdated.Builder)builderObj, entityExternalId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.RecipeUpdated.Builder))
-                ((Events.RecipeUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+                _recipeUpdatedSetter.SetForDelete((Events.RecipeUpdated.Builder)builderObj, entityExternalId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.MenuUpdated.Builder))
-                ((Events.MenuUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+                _menuUpdatedSetter.SetForDelete((Events.MenuUpdated.Builder)builderObj, entityExternalId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.GroupUpdated.Builder))
-                ((Events.GroupUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+                _groupUpdatedSetter.SetForDelete((Events.GroupUpdated.Builder)builderObj, entityExternalId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.MealPeriodUpdated.Builder))
-                ((Events.MealPeriodUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+                _mealPeriodUpdatedSetter.SetForDelete((Events.MealPeriodUpdated.Builder)builderObj, entityExternalId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.SupplierUpdated.Builder))
-                ((Events.RecipeUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+                _supplierUpdatedSetter.SetForDelete((Events.SupplierUpdated.Builder)builderObj, entityExternalId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.UserUpdated.Builder))
-                ((Events.UserUpdated.Builder)builderObj).SetBuilderForDelete(entityExternalId, databaseId);
+                _userUpdatedSetter.SetForDelete((Events.UserUpdated.Builder)builderObj, entityExternalId, databaseId);
 
             return builder.Build();
         }
@@ -99,19 +97,19 @@ namespace StarChef.Orchestrate
             object builderObj = builder; // builder cannot be cast directly to event builder for specific events
 
             if (typeof (TBuilder) == typeof (Events.IngredientUpdated.Builder))
-                _ingredientUpdatedSetter.SetBuilder((Events.IngredientUpdated.Builder) builderObj, connectionString, entityId, databaseId);
+                _ingredientUpdatedSetter.SetForUpdate((Events.IngredientUpdated.Builder) builderObj, connectionString, entityId, databaseId);
             else if (typeof (TBuilder) == typeof (Events.RecipeUpdated.Builder))
-                _recipeUpdatedSetter.SetBuilder((Events.RecipeUpdated.Builder) builderObj, connectionString, entityId, databaseId);
+                _recipeUpdatedSetter.SetForUpdate((Events.RecipeUpdated.Builder) builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.MenuUpdated.Builder))
-                _menuUpdatedSetter.SetBuilder((Events.MenuUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+                _menuUpdatedSetter.SetForUpdate((Events.MenuUpdated.Builder)builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.GroupUpdated.Builder))
-                _groupUpdatedSetter.SetBuilder((Events.GroupUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+                _groupUpdatedSetter.SetForUpdate((Events.GroupUpdated.Builder)builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.MealPeriodUpdated.Builder))
-                _mealPeriodUpdatedSetter.SetBuilder((Events.MealPeriodUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+                _mealPeriodUpdatedSetter.SetForUpdate((Events.MealPeriodUpdated.Builder)builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.SupplierUpdated.Builder))
-                _supplierUpdatedSetter.SetBuilder((Events.SupplierUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+                _supplierUpdatedSetter.SetForUpdate((Events.SupplierUpdated.Builder)builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.UserUpdated.Builder))
-                _userUpdatedSetter.SetBuilder((Events.UserUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+                _userUpdatedSetter.SetForUpdate((Events.UserUpdated.Builder)builderObj, connectionString, entityId, databaseId);
 
             // the builder object is initialized since it was passed to initializes as referenced object
             return builder.Build();

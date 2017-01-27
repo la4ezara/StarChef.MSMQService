@@ -1,3 +1,4 @@
+using System;
 using System.Data.SqlClient;
 using Fourth.Orchestration.Model.Menus;
 using StarChef.Common;
@@ -5,9 +6,22 @@ using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
-    class MealPeriodUpdatedSetter : IEventSetter<Events.MealPeriodUpdated.Builder>
+    public class MealPeriodUpdatedSetter : IEventSetter<Events.MealPeriodUpdated.Builder>
     {
-        public bool SetBuilder(Events.MealPeriodUpdated.Builder builder, string connectionString, int entityId, int databaseId)
+        public bool SetForDelete(Events.MealPeriodUpdated.Builder builder, string entityExternalId, int databaseId)
+        {
+            if (builder == null) return false;
+
+            var cust = new Customer(databaseId);
+            builder
+                .SetCustomerId(cust.ExternalId)
+                .SetCustomerName(cust.Name)
+                .SetExternalId(entityExternalId);
+
+            return true;
+        }
+
+        public bool SetForUpdate(Events.MealPeriodUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
             if (builder == null) return false;
 

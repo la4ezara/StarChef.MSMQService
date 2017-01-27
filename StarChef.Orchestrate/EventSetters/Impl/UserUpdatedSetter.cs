@@ -6,9 +6,22 @@ using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
-    class UserUpdatedSetter : IEventSetter<Events.UserUpdated.Builder>
+    public class UserUpdatedSetter : IEventSetter<Events.UserUpdated.Builder>
     {
-        public bool SetBuilder(Events.UserUpdated.Builder builder, string connectionString, int entityId, int databaseId)
+        public bool SetForDelete(Events.UserUpdated.Builder builder, string entityExternalId, int databaseId)
+        {
+            if (builder == null) return false;
+
+            var cust = new Customer(databaseId);
+            builder
+                .SetCustomerId(cust.ExternalId)
+                .SetCustomerName(cust.Name)
+                .SetExternalId(entityExternalId);
+
+            return true;
+        }
+
+        public bool SetForUpdate(Events.UserUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
             if (builder == null) return false;
 

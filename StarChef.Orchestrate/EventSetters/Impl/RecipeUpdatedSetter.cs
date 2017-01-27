@@ -9,9 +9,9 @@ using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
-    class RecipeUpdatedSetter : IEventSetter<Events.RecipeUpdated.Builder>
+    public class RecipeUpdatedSetter : IEventSetter<Events.RecipeUpdated.Builder>
     {
-        public bool SetBuilder(Events.RecipeUpdated.Builder builder, string connectionString, int entityId, int databaseId)
+        public bool SetForUpdate(Events.RecipeUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
             if (builder == null) return false;
 
@@ -276,6 +276,19 @@ namespace StarChef.Orchestrate
             categoryLinkedList.AddLast(d);
             if (childCategoryId != d.ParentExternalId)
                 BuildCategoryObject(categoryList, d.ParentExternalId, categoryLinkedList);
+        }
+
+        public bool SetForDelete(Events.RecipeUpdated.Builder builder, string entityExternalId, int databaseId)
+        {
+            if (builder == null) return false;
+
+            var cust = new Customer(databaseId);
+            builder
+                .SetCustomerId(cust.ExternalId)
+                .SetCustomerName(cust.Name)
+                .SetExternalId(entityExternalId);
+
+            return true;
         }
 
         public class KitchenArea
