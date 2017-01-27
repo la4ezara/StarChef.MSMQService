@@ -182,9 +182,11 @@ namespace StarChef.Orchestrate
                 using (IMessageBus bus = _messagingFactory.CreateMessageBus())
                 {
                     var payload = CreateDeleteEventPayload(message.ExternalId, message.EntityTypeId, message.DatabaseID, message.DSN, _databaseManager);
-                    result = Publish(bus, payload);
-
-                    LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
+                    if (payload != null)
+                    {
+                        result = Publish(bus, payload);
+                        LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
+                    }
                 }
             }
             catch (Exception ex)
@@ -216,12 +218,15 @@ namespace StarChef.Orchestrate
                     break;
                 case Constants.EntityType.MenuCycle:
                     {
-                        //Not sending because it's not supported in Fourth.Orchestration.Model.Menus.Events.
+                        _logger.InfoFormat("MenuCycle deletion message is not sent because it's not supported in Fourth.Orchestration.Model.Menus.Events.");
                     }
                     break;
                 case Constants.EntityType.Category:
                     {
-                        //they are sent within ingredient updated event
+                        /*
+                         * Categories are updated with Update message for ingredient
+                         */
+                        _logger.InfoFormat("Category deletion does not send delete message.");
                     }
                     break;
                 case Constants.EntityType.Group:
@@ -229,23 +234,25 @@ namespace StarChef.Orchestrate
                     break;
                 case Constants.EntityType.PriceBand:
                     {
-                        //Not sending because it's not supported in Fourth.Orchestration.Model.Menus.Events.
+                        _logger.InfoFormat("PriceBand deletion message is not sent because it's not supported in Fourth.Orchestration.Model.Menus.Events.");
                     }
                     break;
                 case Constants.EntityType.ProductSet:
                     {
-                        //Not sending because it's not supported in Fourth.Orchestration.Model.Menus.Events.
+                        _logger.InfoFormat("ProductSet deletion message is not sent because it's not supported in Fourth.Orchestration.Model.Menus.Events.");
                     }
                     break;
                 case Constants.EntityType.Supplier:
                     {
-                        //Fourth.Orchestration.Model.Menus.Events.SupplierUpdated
                         payload = _eventFactory.CreateDeleteEvent<Events.SupplierUpdated, Events.SupplierUpdated.Builder>(dbConnectionString, entityExternalId, databaseId);
                     }
                     break;
                 case Constants.EntityType.UserGroup:
                     {
-                        //they are sent within user updated event
+                        /*
+                         * User Groups are updated with Update message for users
+                         */
+                        _logger.InfoFormat("UserGroup deletion does not send delete message.");
                     }
                     break;
                 case Constants.EntityType.User:
@@ -255,7 +262,7 @@ namespace StarChef.Orchestrate
                     break;
                 case Constants.EntityType.UserUnit:
                     {
-                        //Not sending because it's not supported in Fourth.Orchestration.Model.Menus.Events.
+                        _logger.InfoFormat("UserUnit deletion message is not sent because it's not supported in Fourth.Orchestration.Model.Menus.Events.");
                     }
                     break;
             }
