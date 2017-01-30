@@ -1,5 +1,6 @@
 ﻿using System;
 using StarChef.Common;
+using StarChef.MSMQService;
 
 namespace StarChef.Orchestrate
 {
@@ -12,5 +13,7 @@ namespace StarChef.Orchestrate
             int entityId,
             int databaseId,
             DateTime messageArrivedTime);
+
+        bool PublishDeleteEvent(UpdateMessage message);
     }
 }

@@ -1,66 +1,58 @@
-﻿using Fourth.Orchestration.Model.Menus;
-using StarChef.Common;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using Fourth.Orchestration.Model.Menus;
+using StarChef.Common;
+using StarChef.Orchestrate.Models;
 
-namespace StarChef.Orchestrate.Models
+namespace StarChef.Orchestrate
 {
-    public class Recipe
+    public class RecipeUpdatedSetter : IEventSetter<Events.RecipeUpdated.Builder>
     {
-        public int Id { get; set; }
-        public Recipe(int recipeId)
+        public bool SetForUpdate(Events.RecipeUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
-            Id = recipeId;
-        }
+            if (builder == null) return false;
 
-        public Events.RecipeUpdated.Builder Build(Customer cust, string connectionString)
-        {
-            var builder = Events.RecipeUpdated.CreateBuilder();
+            var cust = new Customer(databaseId);
             var dbManager = new DatabaseManager();
 
-            var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
-                                    "sc_event_recipe",
-                                    new SqlParameter("@entity_id", Id));
+            var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_recipe", new SqlParameter("@entity_id", entityId));
             if (reader.Read())
             {
                 builder.SetCustomerId(cust.ExternalId)
-                       .SetCustomerName(cust.Name)
-                       .SetExternalId(reader[0].ToString())
-                       .SetRecipeName(reader[1].ToString())
-                       .SetRecipeType(OrchestrateHelper.MapRecipeType(reader[2].ToString()))
-                       .SetUnitSizeQuantity(double.Parse(reader[3].ToString()))
-                       .SetPortionSizeUnitCode(reader[4].ToString())
-                       .SetUnitSizePackDescription(reader[5].ToString())
-                       .SetMinimumCost(reader.GetValueOrDefault<double>(6))
-                       .SetMaximumCost(reader.GetValueOrDefault<double>(7))
-                       .SetCost(reader.GetValueOrDefault<double>(8))
-                       .SetCurrencyIso4217Code(reader[9].ToString())
-                       .SetVatType(OrchestrateHelper.MapVatType(reader[10].ToString()))
-                       .SetVatPercentage(reader.GetValueOrDefault<double>(11))
-                       .SetSellingPrice(reader.GetValueOrDefault<double>(12))
-                       .SetPricingModel(Events.PricingModel.Margin)
-                       .SetPricingModelValue(reader.GetValueOrDefault<double>(14))  
-                       .SetSuggestedSellingPrice(reader.GetValueOrDefault<double>(16))
-                       .SetSuggestedPlu(reader[17].ToString())
-                       .SetCreatedUserFirstName(reader[18].ToString())
-                       .SetCreatedUserLastName(reader[19].ToString())
-                       .SetModifiedUserFirstName(reader[20].ToString())
-                       .SetModifiedUserLastName(reader[21].ToString())
-                       .SetCaptureDate((DateTime.Parse(reader[22].ToString())).Ticks)
-                       .SetModifiedDate((DateTime.Parse(reader[23].ToString())).Ticks)
-                       .SetSource(Events.SourceSystem.STARCHEF)
-                       .SetChangeType(Events.ChangeType.UPDATE)    
-                       .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
+                    .SetCustomerName(cust.Name)
+                    .SetExternalId(reader[0].ToString())
+                    .SetRecipeName(reader[1].ToString())
+                    .SetRecipeType(OrchestrateHelper.MapRecipeType(reader[2].ToString()))
+                    .SetUnitSizeQuantity(double.Parse(reader[3].ToString()))
+                    .SetPortionSizeUnitCode(reader[4].ToString())
+                    .SetUnitSizePackDescription(reader[5].ToString())
+                    .SetMinimumCost(reader.GetValueOrDefault<double>(6))
+                    .SetMaximumCost(reader.GetValueOrDefault<double>(7))
+                    .SetCost(reader.GetValueOrDefault<double>(8))
+                    .SetCurrencyIso4217Code(reader[9].ToString())
+                    .SetVatType(OrchestrateHelper.MapVatType(reader[10].ToString()))
+                    .SetVatPercentage(reader.GetValueOrDefault<double>(11))
+                    .SetSellingPrice(reader.GetValueOrDefault<double>(12))
+                    .SetPricingModel(Events.PricingModel.Margin)
+                    .SetPricingModelValue(reader.GetValueOrDefault<double>(14))
+                    .SetSuggestedSellingPrice(reader.GetValueOrDefault<double>(16))
+                    .SetSuggestedPlu(reader[17].ToString())
+                    .SetCreatedUserFirstName(reader[18].ToString())
+                    .SetCreatedUserLastName(reader[19].ToString())
+                    .SetModifiedUserFirstName(reader[20].ToString())
+                    .SetModifiedUserLastName(reader[21].ToString())
+                    .SetCaptureDate((DateTime.Parse(reader[22].ToString())).Ticks)
+                    .SetModifiedDate((DateTime.Parse(reader[23].ToString())).Ticks);
             }
 
             //Ingredients
             var ingredientList = new List<RecipeIngredient>();
             if (reader.NextResult())
             {
-                ingredientList = GetIngredients(reader);
+                ingredientList = GetIngredients(reader, entityId);
             }
 
             //Kitchenarea
@@ -80,7 +72,7 @@ namespace StarChef.Orchestrate.Models
                 {
                     var groupBuilder = Events.RecipeUpdated.Types.RecipeGroup.CreateBuilder();
                     groupBuilder.SetExternalId(reader[0].ToString())
-                                .SetGroupName(reader[1].ToString());
+                        .SetGroupName(reader[1].ToString());
                     builder.AddGroups(groupBuilder);
                 }
             }
@@ -94,9 +86,9 @@ namespace StarChef.Orchestrate.Models
                 {
                     categoryTypeExternalId = reader[0].ToString();
                     categoryTypeBuilder.SetExternalId(categoryTypeExternalId)
-                                       .SetCategoryTypeName(reader[1].ToString())
-                                       .SetExportType(OrchestrateHelper.MapCategoryExportType(reader[2].ToString()))
-                                       .SetIsFoodType(int.Parse(reader[3].ToString()) == 1);
+                        .SetCategoryTypeName(reader[1].ToString())
+                        .SetExportType(OrchestrateHelper.MapCategoryExportType(reader[2].ToString()))
+                        .SetIsFoodType(int.Parse(reader[3].ToString()) == 1);
                 }
             }
 
@@ -122,23 +114,23 @@ namespace StarChef.Orchestrate.Models
             //CategoryType exists
             if (categoryList.Count > 0 && !string.IsNullOrEmpty(categoryTypeExternalId))
             {
-                BuildCategoryHierarchy(categoryTypeExternalId, 
-                                       categoryTypeBuilder, 
-                                       mainCategoryBuilder, 
-                                       categoryLinkedList, 
-                                       categoryList);
+                BuildCategoryHierarchy(categoryTypeExternalId,
+                    categoryTypeBuilder,
+                    mainCategoryBuilder,
+                    categoryLinkedList,
+                    categoryList);
 
                 builder.SetCategoryTypes(categoryTypeBuilder);
             }
 
-            return builder;
+            return true;
         }
 
         private static void BuildCategoryHierarchy(
-            string categoryTypeExternalId, 
-            Events.RecipeUpdated.Types.CategoryType.Builder categoryTypeBuilder, 
-            Events.RecipeUpdated.Types.CategoryType.Types.Category.Builder mainCategoryBuilder, 
-            LinkedList<Category> categoryLinkedList, 
+            string categoryTypeExternalId,
+            Events.RecipeUpdated.Types.CategoryType.Builder categoryTypeBuilder,
+            Events.RecipeUpdated.Types.CategoryType.Types.Category.Builder mainCategoryBuilder,
+            LinkedList<Category> categoryLinkedList,
             List<Category> categoryList
             )
         {
@@ -155,21 +147,21 @@ namespace StarChef.Orchestrate.Models
                 BuildCategory(mainCategoryBuilder, categoryLastAdded);
 
                 categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
-           }
+            }
         }
 
         private static void BuildCategory(
-            Events.RecipeUpdated.Types.CategoryType.Types.Category.Builder categoryBuilder, 
+            Events.RecipeUpdated.Types.CategoryType.Types.Category.Builder categoryBuilder,
             Category item
             )
         {
             categoryBuilder.SetExternalId(item.ExternalId)
-                           .SetCategoryName(item.Name)
-                           .SetParentExternalId(item.ParentExternalId);
+                .SetCategoryName(item.Name)
+                .SetParentExternalId(item.ParentExternalId);
 
-            if(item.SubCategories !=null && item.SubCategories.Count > 0)
+            if (item.SubCategories != null && item.SubCategories.Count > 0)
             {
-                foreach(var subItem in item.SubCategories)
+                foreach (var subItem in item.SubCategories)
                 {
                     var subCategoryBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
 
@@ -181,8 +173,8 @@ namespace StarChef.Orchestrate.Models
         }
 
         private static void BuildIngredients(
-            Events.RecipeUpdated.Builder builder, 
-            List<RecipeIngredient> ingredientList, 
+            Events.RecipeUpdated.Builder builder,
+            List<RecipeIngredient> ingredientList,
             Dictionary<int, List<KitchenArea>> kitchenAreaLookup
             )
         {
@@ -193,9 +185,9 @@ namespace StarChef.Orchestrate.Models
                     var ingredientBuilder = Events.RecipeUpdated.Types.RecipeIngredients.CreateBuilder();
 
                     ingredientBuilder.SetExternalId(ingredient.IngredientExternalId)
-                                     .SetIngredientName(ingredient.IngredientName)
-                                     .SetProductMeasure(ingredient.ProductMeasure)
-                                     .SetProductUom(ingredient.ProductUom);
+                        .SetIngredientName(ingredient.IngredientName)
+                        .SetProductMeasure(ingredient.ProductMeasure)
+                        .SetProductUom(ingredient.ProductUom);
 
                     if (kitchenAreaLookup.Count > 0 && kitchenAreaLookup.ContainsKey(ingredient.ProductPartId))
                     {
@@ -204,8 +196,8 @@ namespace StarChef.Orchestrate.Models
                         {
                             var kitchenAreaBuilder = Events.RecipeUpdated.Types.RecipeIngredients.Types.KitchenArea.CreateBuilder();
                             kitchenAreaBuilder.SetExternalId(kitchenArea.ExternalId)
-                                              .SetKitchenAreaName(kitchenArea.Name)
-                                              .SetDisplayOrder(kitchenArea.DisplayOrder);
+                                .SetKitchenAreaName(kitchenArea.Name)
+                                .SetDisplayOrder(kitchenArea.DisplayOrder);
 
                             ingredientBuilder.AddKitchenAreas(kitchenAreaBuilder);
                         }
@@ -242,7 +234,7 @@ namespace StarChef.Orchestrate.Models
             return kitchenAreaLookup;
         }
 
-        private List<RecipeIngredient> GetIngredients(IDataReader reader)
+        private List<RecipeIngredient> GetIngredients(IDataReader reader, int entityId)
         {
             var ingredientList = new List<RecipeIngredient>();
 
@@ -255,7 +247,7 @@ namespace StarChef.Orchestrate.Models
                     IngredientName = reader[2].ToString(),
                     ProductMeasure = reader.GetValueOrDefault<double>(3),
                     ProductUom = reader[4].ToString(),
-                    RecipeId = Id
+                    RecipeId = entityId
                 };
                 ingredientList.Add(recipeIngredient);
             }
@@ -284,6 +276,37 @@ namespace StarChef.Orchestrate.Models
             categoryLinkedList.AddLast(d);
             if (childCategoryId != d.ParentExternalId)
                 BuildCategoryObject(categoryList, d.ParentExternalId, categoryLinkedList);
+        }
+
+        public bool SetForDelete(Events.RecipeUpdated.Builder builder, string entityExternalId, int databaseId)
+        {
+            if (builder == null) return false;
+
+            var cust = new Customer(databaseId);
+            builder
+                .SetCustomerId(cust.ExternalId)
+                .SetCustomerName(cust.Name)
+                .SetExternalId(entityExternalId);
+
+            return true;
+        }
+
+        public class KitchenArea
+        {
+            public int ProductPartId { get; set; }
+            public string ExternalId { get; set; }
+            public string Name { get; set; }
+            public int DisplayOrder { get; set; }
+        }
+
+        public class RecipeIngredient
+        {
+            public int RecipeId { get; set; }
+            public string IngredientExternalId { get; set; }
+            public string IngredientName { get; set; }
+            public double ProductMeasure { get; set; }
+            public string ProductUom { get; set; }
+            public int ProductPartId { get; set; }
         }
     }
 }
