@@ -62,6 +62,7 @@
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\StarChef.MSMQService\packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
       <Private>True</Private>
@@ -73,6 +74,9 @@
     <Reference Include="Microsoft.Data.Services.Client, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\StarChef.MSMQService\packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="StarChef.Data">
+      <HintPath>..\ThirdPartyReferences\StarChef.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -87,28 +91,25 @@
   <ItemGroup>
     <Compile Include="CommandFactory.cs" />
     <Compile Include="EventFactory.cs" />
+    <Compile Include="EventSetters\IEventSetter.cs" />
+    <Compile Include="EventSetters\Impl\GroupUpdatedSetter.cs" />
+    <Compile Include="EventSetters\Impl\IngredientUpdateSetter.cs" />
+    <Compile Include="EventSetters\Impl\RecipeUpdatedSetter.cs" />
+    <Compile Include="EventSetters\Impl\MenuUpdatedSetter.cs" />
+    <Compile Include="EventSetters\Impl\MealPeriodUpdatedSetter.cs" />
+    <Compile Include="EventSetters\Impl\UserUpdatedSetter.cs" />
+    <Compile Include="EventSetters\Impl\SupplierUpdatedSetter.cs" />
+    <Compile Include="IEventFactory.cs" />
     <Compile Include="IStarChefMessageSender.cs" />
-    <Compile Include="Models\CategoryType.cs" />
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\DataReaderExtension.cs" />
-    <Compile Include="Models\IngredientGroup.cs" />
-    <Compile Include="Models\Group.cs" />
-    <Compile Include="Models\AlternativeIssuingUnit.cs" />
-    <Compile Include="Models\KitchenArea.cs" />
-    <Compile Include="Models\MealPeriod.cs" />
-    <Compile Include="Models\Recipe.cs" />
-    <Compile Include="Models\IngredientSuppliedPackSize.cs" />
-    <Compile Include="Models\RecipeIngredient.cs" />
     <Compile Include="Models\TransferObjects\AccountCreatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountCreateFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountUpdatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountUpdateFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\FailedTransferObject.cs" />
-    <Compile Include="Models\Ingredient.cs" />
     <Compile Include="Models\User.cs" />
-    <Compile Include="Models\UserGroup.cs" />
-    <Compile Include="Models\Menu.cs" />
     <Compile Include="OrchestrateHelper.cs" />
     <Compile Include="StarChefMessageSender.cs" />
   </ItemGroup>
