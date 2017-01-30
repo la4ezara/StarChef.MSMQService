@@ -17,50 +17,6 @@ namespace StarChef.Orchestrate.Models
             Id = userId;
         }
 
-        public Events.UserUpdated.Builder Build(Customer cust, string connectionString)
-        {
-            var builder = Events.UserUpdated.CreateBuilder();
-            var dbManager = new DatabaseManager();
-
-            var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
-                                    "sc_event_user_detail",
-                                    new SqlParameter("@entity_id", Id));
-            if (reader.Read())
-            {
-                builder.SetCustomerId(cust.ExternalId)
-                       .SetCustomerName(cust.Name)
-                       .SetExternalId(cust.UserExternalId(Id))
-                       .SetFirstName(reader[3].ToString())
-                       .SetLastName(reader[4].ToString())
-                       .SetLanguage(reader[9].ToString())
-                       .SetCanViewMenuCycle(int.Parse(reader[10].ToString()) == 1)
-                       .SetCanCreateMenuCycle(int.Parse(reader[11].ToString()) == 1)
-                       .SetCanEditMenuCycle(int.Parse(reader[12].ToString()) == 1)
-                       .SetCanDeleteMenuCycle(int.Parse(reader[13].ToString()) == 1)
-                       .SetCanViewRecipe(int.Parse(reader[14].ToString()) == 1)
-                       .SetCanViewMenu(int.Parse(reader[15].ToString()) == 1)
-                       .SetCanPublishMenuCycle(int.Parse(reader[16].ToString()) == 1)
-                       .SetSource(Events.SourceSystem.STARCHEF)
-                       .SetChangeType(Events.ChangeType.UPDATE)
-                       .SetSequenceNumber(Fourth.Orchestration.Model.SequenceNumbers.GetNext());
-            }
-
-            if (reader.NextResult())
-            {
-                while (reader.Read())
-                {
-                    var userGroupBuilder = Events.UserUpdated.Types.UserGroup.CreateBuilder();
-
-                    userGroupBuilder.SetExternalId(reader[1].ToString())
-                                    .SetGroupName(reader[2].ToString());
-
-                    builder.AddGroups(userGroupBuilder);
-                }
-            }
-
-            return builder;
-        }
-
         /// <summary>
         /// Create command to activate account
         /// </summary>
