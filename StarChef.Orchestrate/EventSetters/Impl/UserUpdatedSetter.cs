@@ -43,7 +43,8 @@ namespace StarChef.Orchestrate
                        .SetCanEditMenuCycle(int.Parse(reader[12].ToString()) == 1)
                        .SetCanDeleteMenuCycle(int.Parse(reader[13].ToString()) == 1)
                        .SetCanViewRecipe(int.Parse(reader[14].ToString()) == 1)
-                       .SetCanViewMenu(int.Parse(reader[15].ToString()) == 1);
+                       .SetCanViewMenu(int.Parse(reader[15].ToString()) == 1)
+                       .SetCanPublishMenuCycle(int.Parse(reader[16].ToString()) == 1);
             }
 
             if (reader.NextResult())
