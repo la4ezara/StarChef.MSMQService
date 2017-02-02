@@ -80,7 +80,7 @@ namespace StarChef.Orchestrate.Models
 
             if (reader.Read())
             {
-                builder.SetCustomerId(cust.ExternalId)
+                builder.SetCustomerId(cust.Id.ToString())
                         .SetEmailAddress(reader[1].ToString())
                         .SetFirstName(reader[3].ToString())
                         .SetLastName(reader[4].ToString())
@@ -111,7 +111,7 @@ namespace StarChef.Orchestrate.Models
 
             if (reader.Read())
             {
-                builder.SetCustomerId(cust.ExternalId)
+                builder.SetCustomerId(cust.Id.ToString())
                         .SetEmailAddress(reader[1].ToString())
                         .SetFirstName(reader[3].ToString())
                         .SetLastName(reader[4].ToString())
