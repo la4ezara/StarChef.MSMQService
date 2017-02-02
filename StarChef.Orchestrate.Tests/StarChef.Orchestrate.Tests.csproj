@@ -5,11 +5,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FC22A393-E58F-44A3-9070-FD5EA7845175}</ProjectGuid>
+    <ProjectGuid>{3134B07D-033C-4086-B51C-3510CCB7F328}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StarChef.Listener.Tests</RootNamespace>
-    <AssemblyName>StarChef.Listener.Tests</AssemblyName>
+    <RootNamespace>StarChef.Orchestrate.Tests</RootNamespace>
+    <AssemblyName>StarChef.Orchestrate.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -34,10 +34,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AutoMapper, Version=5.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
-      <HintPath>..\packages\AutoMapper.5.1.1\lib\net45\AutoMapper.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
       <HintPath>..\packages\Castle.Core.3.3.3\lib\net45\Castle.Core.dll</HintPath>
       <Private>True</Private>
@@ -111,7 +107,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
@@ -125,61 +120,39 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="xunit.abstractions">
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.abstractions.2.0.1\lib\net35\xunit.abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.assert">
+    <Reference Include="xunit.assert, Version=2.2.0.3474, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.assert.2.2.0-beta5-build3474\lib\netstandard1.0\xunit.assert.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.core">
+    <Reference Include="xunit.core, Version=2.2.0.3474, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.extensibility.core.2.2.0-beta5-build3474\lib\net45\xunit.core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.execution.desktop">
+    <Reference Include="xunit.execution.desktop, Version=2.2.0.3474, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.extensibility.execution.2.2.0-beta5-build3474\lib\net45\xunit.execution.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigObjectMappingTests.cs" />
-    <Compile Include="Extensions\MessageEventsExtensionsTests.cs" />
-    <Compile Include="Fixtures\ObjectMappingFixture.cs" />
-    <Compile Include="Handlers\AccountUpdateFailedEventHandlerTests.cs" />
-    <Compile Include="Handlers\AccountCreateFailedEventHandlerTests.cs" />
-    <Compile Include="Handlers\AccountUpdatedEventHandlerTests.cs" />
-    <Compile Include="Handlers\AccountCreatedEventHandlerTests.cs" />
-    <Compile Include="Handlers\Fakes\TestDatabaseCommands.cs" />
-    <Compile Include="Handlers\Fakes\TestMessagingLogger.cs" />
-    <Compile Include="MessagingHandlersFactoryTests.cs" />
+    <Compile Include="EventFactoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Types\AccountUpdateFailedValidatorTests.cs" />
-    <Compile Include="Types\AccountUpdatedValidatorTests.cs" />
-    <Compile Include="Types\AccountCreateFailedValidatorTests.cs" />
-    <Compile Include="Types\AccountCreatedValidatorTests.cs" />
-    <Compile Include="Types\EventValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StarChef.Orchestrate\StarChef.Orchestrate.csproj">
+      <Project>{89ef0b30-23af-4f8c-a073-7924d2b51167}</Project>
+      <Name>StarChef.Orchestrate</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\StarChef.Listener\StarChef.Listener.csproj">
-      <Project>{0d8b1de7-8b3c-4d46-9615-114f360675cf}</Project>
-      <Name>StarChef.Listener</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\StarChef.Orchestrate\StarChef.Orchestrate.csproj">
-      <Project>{89EF0B30-23AF-4F8C-A073-7924D2B51167}</Project>
-      <Name>StarChef.Orchestrate</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
