@@ -41,30 +41,6 @@ namespace StarChef.Orchestrate.Models
             return builder;
         }
 
-        /// <summary>
-        /// Create command to deactivate account
-        /// </summary>
-        public Commands.DeactivateAccount.Builder BuildDeactivateAccount(int userId, int databaseId)
-        {
-            var dbManager = new DatabaseManager();
-            var connectionStringLogin = ConfigurationManager.AppSettings["DSN"];
-            SqlParameter[] parameters =
-            {
-                new SqlParameter { ParameterName = "@user_id", Value = userId },
-                new SqlParameter { ParameterName = "@db_database_id", Value = databaseId }
-            };
-            var readerLogin = dbManager.ExecuteReader(connectionStringLogin, "sc_get_user_login_details", parameters);
-            readerLogin.Read();
-            var sfAccoutnId = readerLogin.GetString(1);
-
-            var builder = Commands.DeactivateAccount.CreateBuilder();
-            builder.SetExternalId(sfAccoutnId)
-                .SetCommandId(new Random().Next(1, int.MaxValue).ToString())
-                .SetSource(Commands.SourceSystem.STARCHEF);
-            
-            return builder;
-        }
-
         public Commands.CreateAccount.Builder BuildCreateAccount(Customer cust, string connectionString)
         {
             var builder = Commands.CreateAccount.CreateBuilder();

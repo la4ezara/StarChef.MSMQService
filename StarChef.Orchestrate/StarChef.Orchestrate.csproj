@@ -91,7 +91,9 @@
   <ItemGroup>
     <Compile Include="CommandFactory.cs" />
     <Compile Include="EventFactory.cs" />
+    <Compile Include="EventSetters\ICommandSetter.cs" />
     <Compile Include="EventSetters\IEventSetter.cs" />
+    <Compile Include="EventSetters\Impl\DeactivateAccountSetter.cs" />
     <Compile Include="EventSetters\Impl\GroupUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\IngredientUpdateSetter.cs" />
     <Compile Include="EventSetters\Impl\RecipeUpdatedSetter.cs" />
@@ -99,6 +101,7 @@
     <Compile Include="EventSetters\Impl\MealPeriodUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\UserUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\SupplierUpdatedSetter.cs" />
+    <Compile Include="ICommandFactory.cs" />
     <Compile Include="IEventFactory.cs" />
     <Compile Include="IStarChefMessageSender.cs" />
     <Compile Include="Models\Category.cs" />
