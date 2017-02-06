@@ -263,7 +263,7 @@
       <Project>{6fd83544-9ea6-41b9-a29c-e9117aafef35}</Project>
       <Name>StarChef.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\StarChef.MSMQService.csproj">
+    <ProjectReference Include="..\StarChef.MSMQService\StarChef.MSMQService.csproj">
       <Project>{0291cfd0-1f05-4d49-abc5-bc4e9d5f375b}</Project>
       <Name>StarChef.MSMQService</Name>
     </ProjectReference>
