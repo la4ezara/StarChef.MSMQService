@@ -231,10 +231,15 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UserCreated:
                     case (int)Constants.MessageActionType.UserUpdated:
                     case (int)Constants.MessageActionType.UserActivated:
-                    case (int)Constants.MessageActionType.UserDeActivated:
                     // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
                     case (int)Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
+                        break;
+                    case (int)Constants.MessageActionType.UserDeActivated:
+                        {
+                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+                                _messageSender.PublishCommand(msg);
+                        }
                         break;
                     case (int)Constants.MessageActionType.EntityDeleted:
                         {

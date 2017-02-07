@@ -91,7 +91,9 @@
   <ItemGroup>
     <Compile Include="CommandFactory.cs" />
     <Compile Include="EventFactory.cs" />
+    <Compile Include="EventSetters\ICommandSetter.cs" />
     <Compile Include="EventSetters\IEventSetter.cs" />
+    <Compile Include="EventSetters\Impl\DeactivateAccountSetter.cs" />
     <Compile Include="EventSetters\Impl\GroupUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\IngredientUpdateSetter.cs" />
     <Compile Include="EventSetters\Impl\RecipeUpdatedSetter.cs" />
@@ -99,6 +101,7 @@
     <Compile Include="EventSetters\Impl\MealPeriodUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\UserUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\SupplierUpdatedSetter.cs" />
+    <Compile Include="ICommandFactory.cs" />
     <Compile Include="IEventFactory.cs" />
     <Compile Include="IStarChefMessageSender.cs" />
     <Compile Include="Models\Category.cs" />
@@ -111,6 +114,7 @@
     <Compile Include="Models\TransferObjects\FailedTransferObject.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="OrchestrateHelper.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StarChefMessageSender.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -125,9 +129,7 @@
       <Name>StarChef.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

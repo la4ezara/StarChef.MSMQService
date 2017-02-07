@@ -1,6 +1,8 @@
 ﻿using System;
+using Google.ProtocolBuffers;
 using StarChef.Common;
-using StarChef.MSMQService;
+using StarChef.Data;
+using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 
 namespace StarChef.Orchestrate
 {
@@ -15,5 +17,6 @@ namespace StarChef.Orchestrate
             DateTime messageArrivedTime);
 
         bool PublishDeleteEvent(UpdateMessage message);
+        bool PublishCommand(UpdateMessage message);
     }
 }
