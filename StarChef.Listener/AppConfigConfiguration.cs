@@ -14,7 +14,7 @@ namespace StarChef.Listener
             get
             {
                 int priceBandBatchSize;
-                if (!int.TryParse(ConfigurationManager.AppSettings["PriceBandBatchSize"], out priceBandBatchSize))
+                if (int.TryParse(ConfigurationManager.AppSettings["PriceBandBatchSize"], out priceBandBatchSize))
                     return priceBandBatchSize;
                 return 500;
             }

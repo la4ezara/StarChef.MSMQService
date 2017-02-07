@@ -37,6 +37,11 @@ namespace StarChef.Listener.Extensions
             return null;
         }
 
+        public static string ToXmlString(this double value)
+        {
+            return value.ToString("#0.00###");
+        }
+
         public static IEnumerable<XmlDocument> ToSmallXmls(this Events.PriceBandUpdated data, int priceBandBatchSize)
         {   
             var xmlString = new StringBuilder();
@@ -48,8 +53,8 @@ namespace StarChef.Listener.Extensions
 
                 xmlString.Append(string.Format("<PriceBand><ProductGuid>{0}</ProductGuid><MinPrice>{1}</MinPrice><MaxPrice>{2}</MaxPrice></PriceBand>",
                     priceBand.Id,
-                    priceBand.MinimumPrice,
-                    priceBand.MaximumPrice));
+                    priceBand.MinimumPrice.ToXmlString(),
+                    priceBand.MaximumPrice.ToXmlString()));
                 rowsInBanch++;
 
                 if (rowsInBanch == priceBandBatchSize)
