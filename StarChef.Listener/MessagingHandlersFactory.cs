@@ -37,7 +37,8 @@ namespace StarChef.Listener
             if (typeof(T) == typeof(PriceBandUpdated))
             {
                 var validator = new AlwaysTrueEventValidator();
-                return new PriceBandEventHandler(dbCommands, validator, messagingLogger);
+                var configuration = new AppConfigConfiguration();
+                return new PriceBandEventHandler(dbCommands, validator, messagingLogger, configuration);
             }
 
             if (typeof(T) == typeof(AccountCreated))
