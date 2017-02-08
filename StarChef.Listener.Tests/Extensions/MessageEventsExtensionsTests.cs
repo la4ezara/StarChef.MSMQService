@@ -191,10 +191,17 @@ namespace StarChef.Listener.Tests.Extensions
         }
 
         [Fact]
-        public void ToXmlString_should_use_5_digits_after_point_when_actualValueHasMore()
+        public void ToXmlString_should_use_8_digits_after_decimal_point()
         {
-            var actual = 0.12345678.ToXmlString();
-            Assert.Equal("0.12346", actual);
+            var actual = 0.123456789.ToXmlString();
+            Assert.Equal("0.12345679", actual);
+        }
+
+        [Fact]
+        public void ToXmlString_should_use_dynamic_format()
+        {
+            var actual = 0.899999999.ToXmlString();
+            Assert.Equal("0.90", actual);
         }
     }
 }

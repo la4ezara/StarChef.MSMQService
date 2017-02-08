@@ -69,6 +69,7 @@ namespace StarChef.Listener.Handlers
                 var blockNum = 0;
                 foreach (var xml in priceBandUpdated.ToSmallXmls(priceBandBatchSize))
                 {
+                    _logger.InfoFormat("Processing: " + xml.InnerXml);
                     await DbCommands.SavePriceBandData(organisationGuid, xml);
                     _logger.InfoFormat("Processed blocks {0} of {1}", ++blockNum, blocks);
                 }

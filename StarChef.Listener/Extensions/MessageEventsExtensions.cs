@@ -39,7 +39,7 @@ namespace StarChef.Listener.Extensions
 
         public static string ToXmlString(this double value)
         {
-            return value.ToString("#0.00###");
+            return value.ToString("#0.00######"); // the precision came from R9
         }
 
         public static IEnumerable<XmlDocument> ToSmallXmls(this Events.PriceBandUpdated data, int priceBandBatchSize)
