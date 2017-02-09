@@ -177,8 +177,7 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="StarChef.Data, Version=1.30.33.7, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="StarChef.Data">
       <HintPath>..\ThirdPartyReferences\StarChef.Data.dll</HintPath>
     </Reference>
     <Reference Include="System">
@@ -279,9 +278,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <PublishFile Include="StarChef.MSMQService.exe.config">
       <Visible>False</Visible>
