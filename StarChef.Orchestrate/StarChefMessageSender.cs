@@ -154,6 +154,12 @@ namespace StarChef.Orchestrate
                                 result = Publish(bus, payload);
                             }
                             break;
+                        case EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent:
+                            {
+                                var payload = _eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                result = Publish(bus, payload);
+                            }
+                            break;
                         default:
                             throw new NotSupportedException();
                     }
@@ -216,6 +222,28 @@ namespace StarChef.Orchestrate
                 using (var bus = _messagingFactory.CreateMessageBus())
                 {
                     var payload = CreateDeleteEventPayload(message.ExternalId, message.EntityTypeId, message.DatabaseID, message.DSN, _databaseManager);
+                    if (payload != null)
+                    {
+                        result = Publish(bus, payload);
+                        LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Fatal("Failed to publish delete event.", ex);
+            }
+            return result;
+        }
+
+        public bool PublishUpdateEvent(UpdateMessage message)
+        {
+            var result = false;
+            try
+            {
+                using (var bus = _messagingFactory.CreateMessageBus())
+                {
+                    var payload = CreateUpdateEvent(message);
                     if (payload != null)
                     {
                         result = Publish(bus, payload);
@@ -332,6 +360,19 @@ namespace StarChef.Orchestrate
             {
                 case Constants.MessageActionType.UserDeActivated:
                     return _commandFactory.CreateCommand<DeactivateAccount, DeactivateAccountBuilder>(message);
+                default:
+                    throw new NotSupportedException(string.Format("Action type {0} is not supported by commands.", messageActionType));
+            }
+        }
+
+        public IMessage CreateUpdateEvent(UpdateMessage message)
+        {
+            var messageActionType = (Constants.MessageActionType)message.Action;
+            switch (messageActionType)
+            {
+                case Constants.MessageActionType.EntityUpdated:
+                   
+                    return _eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>(message.DSN, message.ProductID, message.DatabaseID);
                 default:
                     throw new NotSupportedException(string.Format("Action type {0} is not supported by commands.", messageActionType));
             }
