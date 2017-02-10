@@ -36,9 +36,9 @@ namespace StarChef.Orchestrate
                 {
 
                     builder
-                        .SetCustomerId(entityId.ToString())
+                        .SetCustomerId(cust.ExternalId)
                         .SetCustomerName(cust.Name)
-                        .SetExternalId(cust.ExternalId)
+                        .SetExternalId(reader[8].ToString())
                         .SetSupplierName(reader[1].ToString())
                         .SetAccountNumber(reader[2].ToString())
                         .SetAlternateName(reader[3].ToString())
