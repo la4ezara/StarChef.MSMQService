@@ -157,7 +157,7 @@ namespace StarChef.Orchestrate
                         categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
                     }
                 }
-                builder.SetCategoryTypes(categoryTypeBuilder);/// Todo AG : add category here: AddCategoryType(categoryTypeBuilder);
+                builder.AddCategoryTypes(categoryTypeBuilder);
             }
         }
 
