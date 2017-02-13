@@ -119,7 +119,7 @@ namespace StarChef.Orchestrate
             {
                 BuildCategoryTypes(builder, categoryTypes, categories);
 
-                builder.SetCategoryTypes(categoryTypeBuilder);
+                builder.AddCategoryTypes(categoryTypeBuilder);
             }
 
             return true;
