@@ -248,6 +248,13 @@ namespace StarChef.MSMQService
                                 _messageSender.PublishDeleteEvent(msg);
                         }
                         break;
+                    case (int)Constants.MessageActionType.EntityUpdated:
+                        {
+                            // Construct event and notify subscribers about deletion of an entity
+                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+                                _messageSender.PublishUpdateEvent(msg);
+                        }
+                        break;
                 }
             }
         }
@@ -425,6 +432,11 @@ namespace StarChef.MSMQService
                 case (int)Constants.EntityType.Group:
                     entityTypeId = (int)Constants.EntityType.Group;
                     entityTypeWrapper = EnumHelper.EntityTypeWrapper.Group;
+                    entityId = msg.ProductID;
+                    break;
+                case (int)Constants.EntityType.Supplier:
+                    entityTypeId = (int)Constants.EntityType.Supplier;
+                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent;
                     entityId = msg.ProductID;
                     break;
             }
