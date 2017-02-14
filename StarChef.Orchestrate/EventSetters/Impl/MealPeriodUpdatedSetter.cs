@@ -37,7 +37,8 @@ namespace StarChef.Orchestrate
                 builder.SetCustomerId(cust.ExternalId)
                     .SetCustomerName(cust.Name)
                     .SetExternalId(reader[1].ToString())
-                    .SetMealPeriodName(reader[2].ToString());
+                    .SetMealPeriodName(reader[2].ToString())
+                    .SetIsEnabled(reader.GetValueOrDefault<bool>(3));
             }
 
             return true;
