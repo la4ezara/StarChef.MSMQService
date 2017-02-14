@@ -81,8 +81,6 @@ namespace StarChef.Orchestrate
             var categories = new List<Category>();
 
             //Category Type
-            string categoryTypeExternalId = string.Empty;
-            var categoryTypeBuilder = Events.RecipeUpdated.Types.CategoryType.CreateBuilder();
             if (reader.NextResult())
             {
                 while (reader.Read())
@@ -108,7 +106,7 @@ namespace StarChef.Orchestrate
                         ExternalId = reader[0].ToString(),
                         Name = reader[1].ToString(),
                         ParentExternalId = reader[2].ToString(),
-                        Sequence = reader.GetValueOrDefault<int>(73)
+                        Sequence = reader.GetValueOrDefault<int>(3)
                     };
                     categories.Add(category);
                 }
@@ -116,11 +114,7 @@ namespace StarChef.Orchestrate
 
             //CategoryType exists
             if (categoryTypes.Count > 0)
-            {
                 BuildCategoryTypes(builder, categoryTypes, categories);
-
-                builder.AddCategoryTypes(categoryTypeBuilder);
-            }
 
             return true;
         }
