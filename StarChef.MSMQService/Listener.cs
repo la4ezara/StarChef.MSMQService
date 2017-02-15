@@ -227,14 +227,33 @@ namespace StarChef.MSMQService
                     //All Events are populating under StarChefEventsUpdated Action - Additional action added for 
                     // User because of multiple different actions
                     case (int)Constants.MessageActionType.StarChefEventsUpdated:
-                        // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
-                    case (int)Constants.MessageActionType.UserCreated: 
+                    // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
+                    case (int)Constants.MessageActionType.UserCreated:
                     case (int)Constants.MessageActionType.UserUpdated:
                     case (int)Constants.MessageActionType.UserActivated:
-                    case (int)Constants.MessageActionType.UserDeActivated:
-                        // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
+                    // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
                     case (int)Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
+                        break;
+                    case (int)Constants.MessageActionType.UserDeActivated:
+                        {
+                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+                                _messageSender.PublishCommand(msg);
+                        }
+                        break;
+                    case (int)Constants.MessageActionType.EntityDeleted:
+                        {
+                            // Construct event and notify subscribers about deletion of an entity
+                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+                                _messageSender.PublishDeleteEvent(msg);
+                        }
+                        break;
+                    case (int)Constants.MessageActionType.EntityUpdated:
+                        {
+                            // Construct event and notify subscribers about deletion of an entity
+                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+                                _messageSender.PublishUpdateEvent(msg);
+                        }
                         break;
                 }
             }
@@ -413,6 +432,11 @@ namespace StarChef.MSMQService
                 case (int)Constants.EntityType.Group:
                     entityTypeId = (int)Constants.EntityType.Group;
                     entityTypeWrapper = EnumHelper.EntityTypeWrapper.Group;
+                    entityId = msg.ProductID;
+                    break;
+                case (int)Constants.EntityType.Supplier:
+                    entityTypeId = (int)Constants.EntityType.Supplier;
+                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent;
                     entityId = msg.ProductID;
                     break;
             }

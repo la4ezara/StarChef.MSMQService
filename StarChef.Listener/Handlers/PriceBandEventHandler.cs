@@ -16,17 +16,17 @@ namespace StarChef.Listener.Handlers
 {
     public class PriceBandEventHandler : ListenerEventHandler, IMessageHandler<Events.PriceBandUpdated>
     {
+        private IConfiguration _configuration;
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public PriceBandEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
+        public PriceBandEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, IConfiguration configuration) : base(dbCommands, validator, messagingLogger)
         {
+            _configuration = configuration;
         }
 
         public async Task<MessageHandlerResult> HandleAsync(Events.PriceBandUpdated priceBandUpdated, string trackingId)
         {
-            int priceBandBatchSize;
-            if (!int.TryParse(ConfigurationManager.AppSettings["PriceBandBatchSize"], out priceBandBatchSize))
-                priceBandBatchSize = 500;
+            var priceBandBatchSize = _configuration.PriceBandBatchSize;
 
             #region validation
 
@@ -69,6 +69,7 @@ namespace StarChef.Listener.Handlers
                 var blockNum = 0;
                 foreach (var xml in priceBandUpdated.ToSmallXmls(priceBandBatchSize))
                 {
+                    _logger.InfoFormat("Processing: " + xml.InnerXml);
                     await DbCommands.SavePriceBandData(organisationGuid, xml);
                     _logger.InfoFormat("Processed blocks {0} of {1}", ++blockNum, blocks);
                 }

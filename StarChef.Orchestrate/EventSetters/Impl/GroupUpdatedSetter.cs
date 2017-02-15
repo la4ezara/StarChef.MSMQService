@@ -1,44 +1,45 @@
-﻿using StarChef.Common;
+using System;
 using System.Data.SqlClient;
 using Fourth.Orchestration.Model.Menus;
-using System;
+using StarChef.Common;
+using StarChef.Orchestrate.Models;
 
-namespace StarChef.Orchestrate.Models
+namespace StarChef.Orchestrate
 {
-    public class Group
+    public class GroupUpdatedSetter : IEventSetter<Events.GroupUpdated.Builder>
     {
-        public int Id { get; set; }
-     
-
-        public Group(int GroupId)
+        public bool SetForDelete(Events.GroupUpdated.Builder builder, string entityExternalId, int databaseId)
         {
-            Id = GroupId;           
+            if (builder == null) return false;
+
+            var cust = new Customer(databaseId);
+            builder
+                .SetCustomerId(cust.ExternalId)
+                .SetCustomerName(cust.Name)
+                .SetExternalId(entityExternalId);
+
+            return true;
         }
 
-
-        public Events.GroupUpdated.Builder Build(Customer cust, string connectionString)
+        public bool SetForUpdate(Events.GroupUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
-            var rand = new Random();
-            var builder = Events.GroupUpdated.CreateBuilder();
+            if (builder == null) return false;
+
+            Customer cust = new Customer(databaseId);
 
             var dbManager = new DatabaseManager();
-            var reader = dbManager.ExecuteReaderMultiResultset(connectionString,
-                                    "sc_event_group",
-                                    new SqlParameter("@entity_id", Id));
+            var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_group", new SqlParameter("@entity_id", entityId));
 
             if (reader.Read())
             {
                 builder.SetCustomerId(cust.ExternalId)
-                .SetCustomerName(cust.Name)
-                .SetExternalId(reader[1].ToString())
-                .SetGroupName(reader[2].ToString())
-                .SetGroupCode(reader[3].ToString())
-                .SetDescription(reader[4].ToString())
-                .SetCurrencyIso4217Code(reader[5].ToString())
-                .SetLanguageIso6391Code(reader[6].ToString())
-                .SetSource(Events.SourceSystem.STARCHEF)
-                .SetChangeType(Events.ChangeType.UPDATE)
-                .SetSequenceNumber(rand.Next(1, int.MaxValue));
+                    .SetCustomerName(cust.Name)
+                    .SetExternalId(reader[1].ToString())
+                    .SetGroupName(reader[2].ToString())
+                    .SetGroupCode(reader[3].ToString())
+                    .SetDescription(reader[4].ToString())
+                    .SetCurrencyIso4217Code(reader[5].ToString())
+                    .SetLanguageIso6391Code(reader[6].ToString());
 
             }
 
@@ -86,7 +87,7 @@ namespace StarChef.Orchestrate.Models
                 }
             }
 
-            return builder;
+            return true;
         }
     }
 }

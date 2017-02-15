@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Fourth.Orchestration.Model.Menus;
-using StarChef.Orchestrate.Models;
+using CategoryExportType = Fourth.Orchestration.Model.Menus.Events.CategoryExportType;
 
 namespace StarChef.Orchestrate
 {
@@ -12,9 +12,20 @@ namespace StarChef.Orchestrate
     {
         public static Events.CategoryExportType MapCategoryExportType(string exportTypeId)
         {
-            return !string.IsNullOrEmpty(exportTypeId)
-                                         ? (Events.CategoryExportType)(Convert.ToInt16(exportTypeId))
-                                         : Events.CategoryExportType.NONE;
+            if (string.IsNullOrEmpty(exportTypeId)) return CategoryExportType.NONE;
+
+            int numFromString;
+            if (int.TryParse(exportTypeId, out numFromString))
+            {
+                if (Enum.IsDefined(typeof (CategoryExportType), numFromString))
+                    return (CategoryExportType) numFromString;
+                return CategoryExportType.NONE;
+            }
+
+            // if here --> string name of the enum value
+            if (Enum.IsDefined(typeof (CategoryExportType), exportTypeId))
+                return (CategoryExportType) Enum.Parse(typeof (CategoryExportType), exportTypeId);
+            return CategoryExportType.NONE;
         }
 
         public static Events.VATRate MapVatType(string vatType)

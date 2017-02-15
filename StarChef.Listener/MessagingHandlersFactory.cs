@@ -37,7 +37,8 @@ namespace StarChef.Listener
             if (typeof(T) == typeof(PriceBandUpdated))
             {
                 var validator = new AlwaysTrueEventValidator();
-                return new PriceBandEventHandler(dbCommands, validator, messagingLogger);
+                var configuration = new AppConfigConfiguration();
+                return new PriceBandEventHandler(dbCommands, validator, messagingLogger, configuration);
             }
 
             if (typeof(T) == typeof(AccountCreated))
@@ -90,7 +91,7 @@ namespace StarChef.Listener
                 var msg = new UpdateMessage(productId: userDetail.Item1,
                                             entityTypeId: (int)Constants.EntityType.User,
                                             action: (int)Constants.MessageActionType.SalesForceUserCreated,
-                                            dbDSN: userDetail.Item3,
+                                            dbDsn: userDetail.Item3,
                                             databaseId: userDetail.Item2);
                 MSMQHelper.Send(msg);
                 _logger.MessageSent(msg);

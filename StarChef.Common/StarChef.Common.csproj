@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="StarChef.Data">
+      <HintPath>..\ThirdPartyReferences\StarChef.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -40,6 +43,7 @@
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="IDatabaseManager.cs" />
     <Compile Include="EnumHelper.cs" />
+    <Compile Include="UpdateMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

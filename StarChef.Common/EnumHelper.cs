@@ -15,7 +15,9 @@
             SendUserUpdatedEventAndCommand,
             UserActivated,
             UserDeactivated,
-            SendUserUpdatedEvent
+            SendUserUpdatedEvent,
+            SendSupplierUpdatedEvent
+
         }
     }
 }

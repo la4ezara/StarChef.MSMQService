@@ -56,24 +56,24 @@
       <HintPath>..\packages\AutoMapper.5.1.1\lib\net45\AutoMapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration, Version=1.1.48.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.48\lib\net45\Fourth.Orchestration.dll</HintPath>
+    <Reference Include="Fourth.Orchestration, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.48.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.48\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.48.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.48\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Model, Version=1.1.48.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.Model.1.1.48\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Model, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.Model.1.1.53\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.48.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.48\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Google.ProtocolBuffers">
@@ -165,6 +165,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppConfigConfiguration.cs" />
     <Compile Include="Commands\IConnectionStringProvider.cs" />
     <Compile Include="Commands\Impl\ConnectionStringProvider.cs" />
     <Compile Include="ConfigObjectMapping.cs" />
@@ -183,6 +184,7 @@
     <Compile Include="Commands\ILoginDbCommands.cs" />
     <Compile Include="Commands\Impl\DatabaseCommands.cs" />
     <Compile Include="Commands\IDatabaseCommands.cs" />
+    <Compile Include="IConfiguration.cs" />
     <Compile Include="IEventValidator.cs" />
     <Compile Include="IMessagingLogger.cs" />
     <Compile Include="Handlers\ListenerEventHandler.cs" />
@@ -259,7 +261,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\StarChef.MSMQService.csproj">
+    <ProjectReference Include="..\StarChef.Common\StarChef.Common.csproj">
+      <Project>{6fd83544-9ea6-41b9-a29c-e9117aafef35}</Project>
+      <Name>StarChef.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\StarChef.MSMQService\StarChef.MSMQService.csproj">
       <Project>{0291cfd0-1f05-4d49-abc5-bc4e9d5f375b}</Project>
       <Name>StarChef.MSMQService</Name>
     </ProjectReference>

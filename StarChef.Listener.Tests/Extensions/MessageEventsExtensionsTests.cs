@@ -189,5 +189,19 @@ namespace StarChef.Listener.Tests.Extensions
             const string expected = @"null";
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void ToXmlString_should_use_8_digits_after_decimal_point()
+        {
+            var actual = 0.123456789.ToXmlString();
+            Assert.Equal("0.12345679", actual);
+        }
+
+        [Fact]
+        public void ToXmlString_should_use_dynamic_format()
+        {
+            var actual = 0.899999999.ToXmlString();
+            Assert.Equal("0.90", actual);
+        }
     }
 }
