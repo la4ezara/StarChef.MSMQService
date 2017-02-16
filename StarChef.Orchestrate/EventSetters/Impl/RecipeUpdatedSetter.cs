@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using Fourth.Orchestration.Model.Menus;
 using StarChef.Common;
+using StarChef.Orchestrate.Helpers;
 using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
@@ -79,96 +80,59 @@ namespace StarChef.Orchestrate
 
             var categoryTypes = new List<CategoryType>();
             var categories = new List<Category>();
-
-            //Category Type
+            
+            //read category types and categories
             if (reader.NextResult())
-            {
-                while (reader.Read())
-                {
-
-                    var categoryType = new CategoryType
-                    {
-                        ExternalId = reader[0].ToString(),
-                        Name = reader[1].ToString(),
-                        CategoryExportType = OrchestrateHelper.MapCategoryExportType(reader[2].ToString()),
-                        IsFood = reader.GetValueOrDefault<bool>(3)
-                    };
-                    categoryTypes.Add(categoryType);
-                }
-            }
-           
-            if (reader.NextResult())
-            {
-                while (reader.Read())
-                {
-                   var category = new Category
-                    {
-                        ExternalId = reader[0].ToString(),
-                        Name = reader[1].ToString(),
-                        ParentExternalId = reader[2].ToString(),
-                        Sequence = reader.GetValueOrDefault<int>(3)
-                    };
-                    categories.Add(category);
-                }
-            }
-
-            //CategoryType exists
+                reader.ReadCategories(out categoryTypes, out categories);
             if (categoryTypes.Count > 0)
-                BuildCategoryTypes(builder, categoryTypes, categories);
+                BuildCategoryTypes(builder, categoryTypes);
 
             return true;
         }
-  
-        private static void BuildCategoryTypes(Events.RecipeUpdated.Builder builder, List<CategoryType> categoryTypes, List<Category> categoryList)
+
+        internal static void BuildCategoryTypes(Events.RecipeUpdated.Builder builder, List<CategoryType> categoryTypes)
         {
             foreach (var catType in categoryTypes)
             {
                 var categoryTypeBuilder = Events.RecipeUpdated.Types.CategoryType.CreateBuilder();
 
-
-                categoryTypeBuilder.SetExternalId(catType.ExternalId)
+                var exportType = OrchestrateHelper.MapCategoryExportType(catType.CategoryExportType.ToString());
+                categoryTypeBuilder
+                    .SetExternalId(catType.ExternalId)
                     .SetCategoryTypeName(catType.Name)
-                    .SetExportType(OrchestrateHelper.MapCategoryExportType(catType.CategoryExportType.ToString()))
+                    .SetExportType(exportType)
                     .SetIsFoodType(catType.IsFood);
 
-
-
-                var currentCategoryList = categoryList.Where(t => t.ProductTagId == catType.ProductTagId).ToList();
-
-                //CategoryType exists
-                if (currentCategoryList.Count > 0 && !string.IsNullOrEmpty(catType.ExternalId))
+                foreach (var category in catType.MainCategories)
                 {
-                    foreach (var category in currentCategoryList.Where(t => t.ParentExternalId == catType.ExternalId && t.Sequence == catType.Sequence - 1))
+                    var mainCategoryBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
+                    mainCategoryBuilder
+                        .SetExternalId(category.ExternalId)
+                        .SetCategoryName(category.Name)
+                        .SetParentExternalId(category.ParentExternalId);
+
+                    #region build nested items
+
+                    var parentItem = category;
+                    var parentBuilder = mainCategoryBuilder;
+                    while (parentItem.SubCategories != null)
                     {
-                        var mainCategoryBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
-                        mainCategoryBuilder.SetExternalId(category.ExternalId)
-                            .SetCategoryName(category.Name)
-                            .SetParentExternalId(category.ParentExternalId);
-                        if (category.Sequence > 1)
-                        {
-                            BuildRcursive(category, mainCategoryBuilder, currentCategoryList);
-                        }
-                        categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
+                        var nestedItem = category.SubCategories.First();
+                        var nestedBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
+                        nestedBuilder
+                            .SetExternalId(nestedItem.ExternalId)
+                            .SetCategoryName(nestedItem.Name)
+                            .SetParentExternalId(nestedItem.ParentExternalId);
+                        parentBuilder.AddSubCategories(nestedBuilder);
+                        parentItem = nestedItem;
+                        parentBuilder = nestedBuilder;
                     }
+
+                    #endregion
+
+                    categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
                 }
                 builder.AddCategoryTypes(categoryTypeBuilder);
-            }
-        }
-
-        private static void BuildRcursive(Category cat, Events.RecipeUpdated.Types.CategoryType.Types.Category.Builder categoryBuilder, List<Category> categoryList)
-        {
-            foreach (var category in categoryList.Where(t => t.ParentExternalId == cat.ExternalId && t.Sequence == cat.Sequence - 1))
-            {
-                var catBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
-                catBuilder.SetExternalId(category.ExternalId)
-                    .SetCategoryName(category.Name)
-                    .SetParentExternalId(category.ParentExternalId);
-
-                if (category.Sequence > 1)
-                {
-                    BuildRcursive(category, catBuilder, categoryList);
-                }
-                categoryBuilder.AddSubCategories(catBuilder);
             }
         }
 
@@ -307,13 +271,6 @@ namespace StarChef.Orchestrate
             public double ProductMeasure { get; set; }
             public string ProductUom { get; set; }
             public int ProductPartId { get; set; }
-        }
-
-        public class CategoryType : Category
-        {
-            public Events.CategoryExportType CategoryExportType { get; set; }
-            public bool IsFood { get; set; }
-            public List<Category> MainCategories { get; set; }
         }
     }
 }
