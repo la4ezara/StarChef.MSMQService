@@ -5,12 +5,13 @@ using System.Linq;
 using StarChef.Orchestrate.Models;
 using Xunit;
 
-using SuppliedPackSize = Fourth.Orchestration.Model.Menus.Events.IngredientUpdated.Types.SuppliedPackSize;
+using RecipeUpdated = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated;
+using SourceSystem = Fourth.Orchestration.Model.Menus.Events.SourceSystem;
 using CategoryExportType = Fourth.Orchestration.Model.Menus.Events.CategoryExportType;
 
 namespace StarChef.Orchestrate.Tests.EventSetters
 {
-    public class IngredientUpdateSetterTests
+    public class RecipeUpdatedSetterTests
     {
         [Fact]
         public void BuildCategoryTypes_should_init_builder_with_category_hierarchy()
@@ -154,8 +155,15 @@ namespace StarChef.Orchestrate.Tests.EventSetters
             });
 
             // act
-            var builder = SuppliedPackSize.CreateBuilder();
-            IngredientUpdateSetter.BuildCategoryTypes(builder, categoryTypes);
+            var builder = RecipeUpdated.CreateBuilder();
+            // mandatory fields -> they are not important now
+            builder
+                .SetExternalId("")
+                .SetCustomerId("")
+                .SetCustomerName("")
+                .SetSequenceNumber(1)
+                .SetSource(SourceSystem.STARCHEF);
+            RecipeUpdatedSetter.BuildCategoryTypes(builder, categoryTypes);
 
             #region assert
             var suppliedPackSize = builder.Build();
