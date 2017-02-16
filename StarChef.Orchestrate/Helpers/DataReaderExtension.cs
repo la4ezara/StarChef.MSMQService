@@ -18,14 +18,17 @@ namespace StarChef.Orchestrate.Helpers
             return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
         }
 
-        public static T GetValueOrDefault<T>(this IDataReader reader, string colName)
+        public static T GetValue<T>(this IDataReader reader, string colName)
         {
             var colIndex = reader.GetOrdinal(colName);
-            if (reader.IsDBNull(colIndex)) return default(T);
-
-            object item = reader[colIndex];
-
+            var item = reader[colIndex];
             return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
+        }
+
+        public static bool IsDBNull(this IDataReader reader, string colName)
+        {
+            var colIndex = reader.GetOrdinal(colName);
+            return reader.IsDBNull(colIndex);
         }
 
         internal static void ReadCategories(this IDataReader reader, out List<CategoryType> categoryTypes, out List<Category> categories)
@@ -37,15 +40,15 @@ namespace StarChef.Orchestrate.Helpers
             {
                 var cat = new CategoryRecord
                 {
-                    ProductId = reader.GetValueOrDefault<int>("product_id"),
-                    TagId = reader.GetValueOrDefault<int>("tag_id"),
-                    TagName = reader.GetValueOrDefault<string>("tag_name"),
-                    TagParentId = reader.GetValueOrDefault<int?>("tag_parent_id"),
-                    TagExportTypeId = reader.GetValueOrDefault<int?>("tag_export_type_id"),
-                    IsFoodType = reader.GetValueOrDefault<bool>("IsFoodType"),
-                    TagGuid = reader.GetValueOrDefault<Guid>("tag_guid"),
-                    TagParentGuid = reader.GetValueOrDefault<Guid?>("tag_parent_guid"),
-                    IsSelected = reader.GetValueOrDefault<bool>("IsSelected")
+                    ProductId = reader.GetValue<int>("product_id"),
+                    TagId = reader.GetValue<int>("tag_id"),
+                    TagName = reader.GetValue<string>("tag_name"),
+                    TagParentId = reader.IsDBNull("tag_parent_id") ? null : (int?)reader.GetValue<int>("tag_parent_id"),
+                    TagExportTypeId = reader.IsDBNull("tag_export_type_id") ? null : (int?)reader.GetValue<int>("tag_export_type_id"),
+                    IsFoodType = reader.GetValue<bool>("IsFoodType"),
+                    TagGuid = reader.GetValue<Guid>("tag_guid"),
+                    TagParentGuid = reader.IsDBNull("tag_parent_guid") ? null : (Guid?)reader.GetValue<Guid>("tag_parent_guid"),
+                    IsSelected = reader.GetValue<bool>("IsSelected")
                 };
                 records.Add(cat);
             }
