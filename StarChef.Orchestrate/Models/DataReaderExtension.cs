@@ -13,5 +13,15 @@ namespace StarChef.Orchestrate.Models
 
             return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
         }
+
+        public static T GetValueOrDefault<T>(this IDataReader reader, string colName)
+        {
+            var colIndex = reader.GetOrdinal(colName);
+            if (reader.IsDBNull(colIndex)) return default(T);
+
+            object item = reader[colIndex];
+
+            return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
+        }
     }
 }
