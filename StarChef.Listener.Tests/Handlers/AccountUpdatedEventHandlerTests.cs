@@ -9,6 +9,7 @@ using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Tests.Fixtures;
 using StarChef.Listener.Tests.Handlers.Fakes;
+using StarChef.Listener.Tests.Helpers;
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
 
@@ -46,26 +47,22 @@ namespace StarChef.Listener.Tests.Handlers
         [Fact]
         public void Should_register_error_with_model()
         {
-            var builder = AccountUpdated.CreateBuilder();
-            builder
-                .SetUsername("1")
-                .SetFirstName("1")
-                .SetEmailAddress("1")
-                .SetSource(SourceSystem.STARCHEF)
-                .SetExternalId(Guid.Empty.ToString());
-            var payload = builder.Build();
-
+            // arrange
+            var payload = PayloadHelpers.Construct<AccountUpdated>(new Type[0]);
             var dbCommands = new Mock<IDatabaseCommands>();
-            var validator = new AccountUpdatedValidator(dbCommands.Object);
-            var messagingLogger = new TestMessagingLogger();
+            var validator = new Mock<IEventValidator>();
+            validator.Setup(m => m.IsStarChefEvent(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(false);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var handler = new AccountUpdatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
 
-            var handler = new AccountUpdatedEventHandler(dbCommands.Object, validator, messagingLogger);
-
+            // act
             var result = handler.HandleAsync(payload, "1").Result;
 
-            // assertions
+            // assert
             Assert.Equal(MessageHandlerResult.Fatal, result);
-            Assert.True(messagingLogger.IsInvalidModelRegistered);
+            messagingLogger.Verify(m => m.ReceivedInvalidModel(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Once);
         }
     }
 }

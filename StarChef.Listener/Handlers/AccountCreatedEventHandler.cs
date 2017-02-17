@@ -27,9 +27,15 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
         {
-            if (Validator.IsEnabled(payload) && Validator.IsStarChefEvent(payload))
+            if (Validator.IsStarChefEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
+
+                if (!Validator.IsEnabled(payload))
+                {
+                    _logger.InfoFormat("Processing of the event is disabled for organization.");
+                    return MessageHandlerResult.Success;
+                }
 
                 if (Validator.IsValid(payload))
                 {
