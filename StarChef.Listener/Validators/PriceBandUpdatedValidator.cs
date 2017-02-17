@@ -7,11 +7,8 @@ namespace StarChef.Listener.Validators
 {
     internal class PriceBandUpdatedValidator : EventValidator, IEventValidator
     {
-        private readonly IDatabaseCommands _databaseCommands;
-
-        public PriceBandUpdatedValidator(IDatabaseCommands databaseCommands)
+        public PriceBandUpdatedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
         {
-            _databaseCommands = databaseCommands;
         }
 
         public bool IsEnabled(object payload)
@@ -20,10 +17,7 @@ namespace StarChef.Listener.Validators
             if (e == null)
                 throw new ArgumentException("The type of the payload is not supported");
 
-            var organizationGuid = Guid.Parse(e.CustomerId);
-            var isEnabledTask = _databaseCommands.IsEventEnabledForOrganization(typeof(PriceBandUpdated).Name, organizationGuid);
-            isEnabledTask.Wait();
-            return isEnabledTask.Result;
+            return GetFromDbConfiguration(Guid.Parse(e.CustomerId), typeof (PriceBandUpdated).Name);
         }
 
         public override bool IsStarChefEvent(object payload)

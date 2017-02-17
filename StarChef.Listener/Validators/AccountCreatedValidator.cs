@@ -1,4 +1,5 @@
 ﻿using System;
+using StarChef.Listener.Commands;
 using StarChef.Listener.Types;
 using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 
@@ -6,6 +7,10 @@ namespace StarChef.Listener.Validators
 {
     class AccountCreatedValidator : EventValidator, IEventValidator
     {
+        public AccountCreatedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
+        {
+        }
+
         public bool IsValid(object payload)
         {
             if (payload == null) return false;

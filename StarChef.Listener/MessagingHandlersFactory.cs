@@ -43,7 +43,7 @@ namespace StarChef.Listener
 
             if (typeof(T) == typeof(AccountCreated))
             {
-                var validator = new AccountCreatedValidator();
+                var validator = new AccountCreatedValidator(dbCommands);
                 var handler = new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
                 handler.OnProcessed += SendMsmqMessage;
                 return handler;
@@ -51,29 +51,29 @@ namespace StarChef.Listener
 
             if (typeof(T) == typeof(AccountCreateFailed))
             {
-                var validator = new AccountCreateFailedValidator();
+                var validator = new AccountCreateFailedValidator(dbCommands);
                 return new AccountCreateFailedEventHandler(dbCommands, validator, messagingLogger);
             }
 
             if (typeof(T) == typeof(AccountUpdated))
             {
-                var validator = new AccountUpdatedValidator();
+                var validator = new AccountUpdatedValidator(dbCommands);
                 return new AccountUpdatedEventHandler(dbCommands, validator, messagingLogger);
             }
 
             if (typeof(T) == typeof(AccountUpdateFailed))
             {
-                var validator = new AccountUpdateFailedValidator();
+                var validator = new AccountUpdateFailedValidator(dbCommands);
                 return new AccountUpdateFailedEventHandler(dbCommands, validator, messagingLogger);
             }
             if (typeof (T) == typeof (AccountStatusChanged))
             {
-                var validator = new AccountStatusChangedValidator();
+                var validator = new AccountStatusChangedValidator(dbCommands);
                 return new AccountStatusChangedEventHandler(dbCommands, validator, messagingLogger);
             }
             if (typeof(T) == typeof(AccountStatusChangeFailed))
             {
-                var validator = new AccountStatusChangeFailedValidator();
+                var validator = new AccountStatusChangeFailedValidator(dbCommands);
                 return new AccountStatusChangeFailedEventHandler(dbCommands, validator, messagingLogger);
             }
 

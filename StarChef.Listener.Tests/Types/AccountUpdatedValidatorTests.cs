@@ -2,6 +2,8 @@
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
 using Xunit;
+using Moq;
+using StarChef.Listener.Commands;
 
 namespace StarChef.Listener.Tests.Types
 {
@@ -19,7 +21,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountUpdatedValidator();
+            var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValid(accountCreated);
 
             Assert.True(actual);
@@ -36,7 +38,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1"); ;
             var accountCreated = builder.Build();
 
-            var validator = new AccountUpdatedValidator();
+            var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValid(accountCreated);
 
             Assert.False(actual);
@@ -53,7 +55,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountUpdatedValidator();
+            var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValid(accountCreated);
 
             Assert.False(actual);
@@ -70,7 +72,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountUpdatedValidator();
+            var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValid(accountCreated);
 
             Assert.False(actual);
@@ -87,7 +89,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountUpdatedValidator();
+            var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValid(accountCreated);
 
             Assert.False(actual);

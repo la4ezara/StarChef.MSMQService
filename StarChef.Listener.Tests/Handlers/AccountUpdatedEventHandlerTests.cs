@@ -29,8 +29,8 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetExternalId(Guid.Empty.ToString());
             var payload = builder.Build();
 
-            var validator = new AccountUpdatedValidator();
             var dbCommands = new TestDatabaseCommands();
+            var validator = new AccountUpdatedValidator(dbCommands);
             var messagingLogger = new TestMessagingLogger();
 
             var handler = new AccountUpdatedEventHandler(dbCommands, validator, messagingLogger);
@@ -55,9 +55,8 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetExternalId(Guid.Empty.ToString());
             var payload = builder.Build();
 
-            var validator = new AccountUpdatedValidator();
-
             var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new AccountUpdatedValidator(dbCommands.Object);
             var messagingLogger = new TestMessagingLogger();
 
             var handler = new AccountUpdatedEventHandler(dbCommands.Object, validator, messagingLogger);

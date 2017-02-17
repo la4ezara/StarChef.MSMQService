@@ -11,6 +11,8 @@ using AccountCreateFailedReason = Fourth.Orchestration.Model.People.Events.Accou
 using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.AccountUpdateFailedReason;
 using AccountStatus = Fourth.Orchestration.Model.People.Events.AccountStatus;
 using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using StarChef.Listener.Commands;
+using Moq;
 
 namespace StarChef.Listener.Tests.Types
 {
@@ -18,7 +20,9 @@ namespace StarChef.Listener.Tests.Types
     {
         class TestEventValidator : EventValidator
         {
-            
+            public TestEventValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
+            {
+            }
         }
 
         #region StartChef events
@@ -32,7 +36,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.STARCHEF);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.True(actual);
@@ -47,7 +51,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.STARCHEF);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.True(actual);
@@ -63,7 +67,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.STARCHEF);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.True(actual);
@@ -79,7 +83,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.STARCHEF);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.True(actual);
@@ -96,7 +100,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.STARCHEF);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.True(actual);
@@ -111,7 +115,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.STARCHEF);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.True(actual);
@@ -130,7 +134,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.ADACO);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.False(actual);
@@ -145,7 +149,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.ADACO);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.False(actual);
@@ -161,7 +165,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.ADACO);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.False(actual);
@@ -177,7 +181,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.ADACO);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.False(actual);
@@ -194,7 +198,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.ADACO);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.False(actual);
@@ -209,7 +213,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetSource(SourceSystem.ADACO);
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.False(actual);
@@ -225,7 +229,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new TestEventValidator();
+            var validator = new TestEventValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsStarChefEvent(accountCreated);
 
             Assert.False(actual);

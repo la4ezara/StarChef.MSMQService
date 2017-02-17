@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Management.Instrumentation;
+using StarChef.Listener.Commands;
 using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
@@ -13,6 +15,12 @@ namespace StarChef.Listener.Types
     abstract class EventValidator
     {
         private string _lastError = string.Empty;
+        protected readonly IDatabaseCommands _databaseCommands;
+
+        protected EventValidator(IDatabaseCommands databaseCommands)
+        {
+            _databaseCommands = databaseCommands;
+        }
 
         public virtual bool IsEnabled(object payload)
         {
@@ -46,6 +54,13 @@ namespace StarChef.Listener.Types
         protected void SetLastError(string error)
         {
             _lastError = error;
+        }
+
+        protected bool GetFromDbConfiguration(Guid organizationGuid, string eventTypeShortName)
+        {
+            var isEnabledTask = _databaseCommands.IsEventEnabledForOrganization(eventTypeShortName, organizationGuid);
+            isEnabledTask.Wait();
+            return isEnabledTask.Result;
         }
     }
 }

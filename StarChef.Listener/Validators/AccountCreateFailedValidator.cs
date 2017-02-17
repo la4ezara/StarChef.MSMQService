@@ -1,10 +1,15 @@
-﻿using StarChef.Listener.Types;
+﻿using StarChef.Listener.Commands;
+using StarChef.Listener.Types;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 
 namespace StarChef.Listener.Validators
 {
     class AccountCreateFailedValidator : EventValidator, IEventValidator
     {
+        public AccountCreateFailedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
+        {
+        }
+
         public bool IsValid(object payload)
         {
             if (payload == null) return false;
