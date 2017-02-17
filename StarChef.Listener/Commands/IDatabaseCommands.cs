@@ -27,6 +27,22 @@ namespace StarChef.Listener.Commands
         Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, Guid organizationId);
 
         /// <summary>
+        /// Returns True if the listener should catch event of the type
+        /// </summary>
+        /// <param name="eventTypeShortName"></param>
+        /// <param name="loginId"></param>
+        /// <returns></returns>
+        Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, int loginId);
+
+        /// <summary>
+        /// Returns True if the listener should catch event of the type
+        /// </summary>
+        /// <param name="eventTypeShortName"></param>
+        /// <param name="externalId"></param>
+        /// <returns></returns>
+        Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, string externalId);
+
+        /// <summary>
         /// Disable login
         /// </summary>
         /// <param name="loginId"></param>

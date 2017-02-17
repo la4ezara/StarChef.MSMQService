@@ -56,5 +56,17 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
             IsCalledAnyMethod = true;
             return Task.FromResult(true);
         }
+
+        public Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, int loginId)
+        {
+            IsCalledAnyMethod = true;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, string externalId)
+        {
+            IsCalledAnyMethod = true;
+            return Task.FromResult(true);
+        }
     }
 }

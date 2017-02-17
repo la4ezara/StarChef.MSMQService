@@ -11,6 +11,15 @@ namespace StarChef.Listener.Validators
         {
         }
 
+        public bool IsEnabled(object payload)
+        {
+            var e = payload as AccountStatusChangeFailed;
+            if (e == null)
+                throw new ArgumentException("The type of the payload is not supported");
+
+            return GetFromDbConfiguration(e.ExternalId, typeof(AccountStatusChangeFailed).Name);
+        }
+
         public bool IsValid(object payload)
         {
             if (payload == null) return false;

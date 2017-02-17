@@ -11,6 +11,16 @@ namespace StarChef.Listener.Validators
         {
         }
 
+        public bool IsEnabled(object payload)
+        {
+            var e = payload as AccountCreated;
+            if (e == null)
+                throw new ArgumentException("The type of the payload is not supported");
+
+            var loginId = int.Parse(e.InternalId);
+            return GetFromDbConfiguration(loginId, typeof(AccountCreated).Name);
+        }
+
         public bool IsValid(object payload)
         {
             if (payload == null) return false;

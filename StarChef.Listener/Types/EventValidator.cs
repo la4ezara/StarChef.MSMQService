@@ -58,9 +58,20 @@ namespace StarChef.Listener.Types
 
         protected bool GetFromDbConfiguration(Guid organizationGuid, string eventTypeShortName)
         {
-            var isEnabledTask = _databaseCommands.IsEventEnabledForOrganization(eventTypeShortName, organizationGuid);
-            isEnabledTask.Wait();
-            return isEnabledTask.Result;
+            var result = _databaseCommands.IsEventEnabledForOrganization(eventTypeShortName, organizationGuid).Result;
+            return result;
+        }
+
+        protected bool GetFromDbConfiguration(int loginId, string eventTypeShortName)
+        {
+            var result = _databaseCommands.IsEventEnabledForOrganization(eventTypeShortName, loginId).Result;
+            return result;
+        }
+
+        protected bool GetFromDbConfiguration(string externalId, string eventTypeShortName)
+        {
+            var result = _databaseCommands.IsEventEnabledForOrganization(eventTypeShortName, externalId).Result;
+            return result;
         }
     }
 }

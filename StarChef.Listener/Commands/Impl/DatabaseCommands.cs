@@ -164,7 +164,44 @@ namespace StarChef.Listener.Commands.Impl
             if (string.IsNullOrEmpty(connectionString))
                 throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
 
-            var result = await UseReader<bool>(connectionString, "",
+            var result = await UseReader(connectionString, "sc_orchestration_get_event_type_enabled",
+                parametres => {
+                    parametres.AddWithValue("@event_type_short_name", eventTypeShortName);
+                },
+                async reader =>
+                {
+                    await reader.ReadAsync();
+                    return reader.GetBoolean(0);
+                });
+            return result;
+        }
+
+        public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, int loginId)
+        {
+            var info = await GetLoginUserIdAndCustomerDb(loginId);
+            var connectionString = info.Item3;
+            var result = await UseReader(connectionString, "sc_orchestration_get_event_type_enabled",
+                parametres => {
+                    parametres.AddWithValue("@event_type_short_name", eventTypeShortName);
+                },
+                async reader =>
+                {
+                    await reader.ReadAsync();
+                    return reader.GetBoolean(0);
+                });
+            return result;
+        }
+
+        public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, string externalId)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var info = await GetLoginUserId(loginDbConnectionString, externalLoginId: externalId);
+            var connectionString = await _csProvider.GetCustomerDb(info.Item1, loginDbConnectionString);
+
+            var result = await UseReader(connectionString, "sc_orchestration_get_event_type_enabled",
                 parametres => {
                     parametres.AddWithValue("@event_type_short_name", eventTypeShortName);
                 },
