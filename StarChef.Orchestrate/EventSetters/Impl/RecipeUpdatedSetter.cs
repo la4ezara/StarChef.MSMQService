@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using Fourth.Orchestration.Model.Menus;
 using StarChef.Common;
+using StarChef.Orchestrate.EventSetters.Impl;
 using StarChef.Orchestrate.Helpers;
 using StarChef.Orchestrate.Models;
 
@@ -85,55 +86,13 @@ namespace StarChef.Orchestrate
             if (reader.NextResult())
                 reader.ReadCategories(out categoryTypes, out categories);
             if (categoryTypes.Count > 0)
-                BuildCategoryTypes(builder, categoryTypes);
+            {
+                Func<dynamic> createCategoryType = () => Events.RecipeUpdated.Types.CategoryType.CreateBuilder();
+                Func<dynamic> createCategory = () => Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
+                BuilderHelpers.BuildCategoryTypes(builder, createCategoryType, createCategory, categoryTypes);
+            }
 
             return true;
-        }
-
-        internal static void BuildCategoryTypes(Events.RecipeUpdated.Builder builder, List<CategoryType> categoryTypes)
-        {
-            foreach (var catType in categoryTypes)
-            {
-                var categoryTypeBuilder = Events.RecipeUpdated.Types.CategoryType.CreateBuilder();
-
-                var exportType = OrchestrateHelper.MapCategoryExportType(catType.CategoryExportType.ToString());
-                categoryTypeBuilder
-                    .SetExternalId(catType.ExternalId)
-                    .SetCategoryTypeName(catType.Name)
-                    .SetExportType(exportType)
-                    .SetIsFoodType(catType.IsFood);
-
-                foreach (var category in catType.MainCategories)
-                {
-                    var mainCategoryBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
-                    mainCategoryBuilder
-                        .SetExternalId(category.ExternalId)
-                        .SetCategoryName(category.Name)
-                        .SetParentExternalId(category.ParentExternalId);
-
-                    #region build nested items
-
-                    var parentItem = category;
-                    var parentBuilder = mainCategoryBuilder;
-                    while (parentItem.SubCategories != null)
-                    {
-                        var nestedItem = category.SubCategories.First();
-                        var nestedBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
-                        nestedBuilder
-                            .SetExternalId(nestedItem.ExternalId)
-                            .SetCategoryName(nestedItem.Name)
-                            .SetParentExternalId(nestedItem.ParentExternalId);
-                        parentBuilder.AddSubCategories(nestedBuilder);
-                        parentItem = nestedItem;
-                        parentBuilder = nestedBuilder;
-                    }
-
-                    #endregion
-
-                    categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
-                }
-                builder.AddCategoryTypes(categoryTypeBuilder);
-            }
         }
 
         private static void BuildIngredients(

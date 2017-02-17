@@ -144,8 +144,7 @@
   <ItemGroup>
     <Compile Include="CommandFactoryTests.cs" />
     <Compile Include="EventFactoryTests.cs" />
-    <Compile Include="EventSetters\RecipeUpdatedSetterTests.cs" />
-    <Compile Include="EventSetters\IngredientUpdateSetterTests.cs" />
+    <Compile Include="EventSetters\BuilderHelpersTests.cs" />
     <Compile Include="Helpers\DataReaderExtensionTests.cs" />
     <Compile Include="OrchestrateHelperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

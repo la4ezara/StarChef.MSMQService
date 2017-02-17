@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using StarChef.Orchestrate.Models;
 using Xunit;
 
 using RecipeUpdated = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated;
+using RecipeCategoryType = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated.Types.CategoryType;
+using RecipeCategory = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated.Types.CategoryType.Types.Category;
 using SourceSystem = Fourth.Orchestration.Model.Menus.Events.SourceSystem;
 using CategoryExportType = Fourth.Orchestration.Model.Menus.Events.CategoryExportType;
+using StarChef.Orchestrate.EventSetters.Impl;
 
 namespace StarChef.Orchestrate.Tests.EventSetters
 {
-    public class RecipeUpdatedSetterTests
+    public class BuilderHelpersTests
     {
         [Fact]
         public void BuildCategoryTypes_should_init_builder_with_category_hierarchy()
@@ -163,7 +165,11 @@ namespace StarChef.Orchestrate.Tests.EventSetters
                 .SetCustomerName("")
                 .SetSequenceNumber(1)
                 .SetSource(SourceSystem.STARCHEF);
-            RecipeUpdatedSetter.BuildCategoryTypes(builder, categoryTypes);
+
+            Func<dynamic> createCategoryType = () => RecipeCategoryType.CreateBuilder();
+            Func<dynamic> createCategory = () => RecipeCategory.CreateBuilder();
+
+            BuilderHelpers.BuildCategoryTypes(builder, createCategoryType, createCategory, categoryTypes);
 
             #region assert
             var suppliedPackSize = builder.Build();

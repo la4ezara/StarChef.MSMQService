@@ -10,7 +10,7 @@ namespace StarChef.Orchestrate
 {
     public static class OrchestrateHelper
     {
-        public static Events.CategoryExportType MapCategoryExportType(string exportTypeId)
+        public static CategoryExportType MapCategoryExportType(string exportTypeId)
         {
             if (string.IsNullOrEmpty(exportTypeId)) return CategoryExportType.NONE;
 

@@ -93,6 +93,7 @@
     <Compile Include="EventFactory.cs" />
     <Compile Include="EventSetters\ICommandSetter.cs" />
     <Compile Include="EventSetters\IEventSetter.cs" />
+    <Compile Include="EventSetters\Impl\BuilderHelpers.cs" />
     <Compile Include="EventSetters\Impl\DeactivateAccountSetter.cs" />
     <Compile Include="EventSetters\Impl\GroupUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\IngredientUpdateSetter.cs" />
