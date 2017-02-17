@@ -64,14 +64,14 @@ namespace StarChef.Listener.Commands.Impl
         public async Task UpdateExternalId(AccountCreatedTransferObject user)
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
-                if (string.IsNullOrEmpty(loginDbConnectionString))
-                    throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
 
-                await Exec(loginDbConnectionString, "sc_orchestration_update_login_external_id", p =>
-                {
-                    p.AddWithValue("@login_id", user.LoginId);
-                    p.AddWithValue("@external_login_id", user.ExternalLoginId);
-                });
+            await Exec(loginDbConnectionString, "sc_orchestration_update_login_external_id", p =>
+            {
+                p.AddWithValue("@login_id", user.LoginId);
+                p.AddWithValue("@external_login_id", user.ExternalLoginId);
+            });
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
@@ -93,7 +93,7 @@ namespace StarChef.Listener.Commands.Impl
             var connectionString = await _csProvider.GetCustomerDb(loginId, loginDbConnectionString);
             if (string.IsNullOrEmpty(connectionString))
                 throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
-            
+
             await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
             {
                 p.AddWithValue("@login_id", loginId);
@@ -106,7 +106,7 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@login_name", username);
                 p.AddWithValue("@forename", firstName);
                 p.AddWithValue("@lastname", lastName);
-            });            
+            });
         }
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>
@@ -154,6 +154,28 @@ namespace StarChef.Listener.Commands.Impl
             return result;
         }
 
+        public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, Guid organizationId)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var connectionString = await _csProvider.GetCustomerDb(organizationId, loginDbConnectionString);
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
+
+            var result = await UseReader<bool>(connectionString, "",
+                parametres => {
+                    parametres.AddWithValue("@event_type_short_name", eventTypeShortName);
+                },
+                async reader =>
+                {
+                    await reader.ReadAsync();
+                    return reader.GetBoolean(0);
+                });
+            return result;
+        }
+
         #region private methods
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>
@@ -194,7 +216,8 @@ namespace StarChef.Listener.Commands.Impl
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.DatabaseError(ex);
                 throw new DatabaseException(ex);
             }
@@ -203,7 +226,7 @@ namespace StarChef.Listener.Commands.Impl
         /// <exception cref="DatabaseException">Database operation is failed</exception>
         private async Task<T> UseReader<T>(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null, Func<SqlDataReader, Task<T>> processReader = null)
         {
-            T result = default (T);
+            T result = default(T);
             try
             {
                 using (var sqlConn = new SqlConnection(connectionString))
@@ -216,9 +239,7 @@ namespace StarChef.Listener.Commands.Impl
                         addParametersAction?.Invoke(sqlCmd.Parameters);
                         using (var reader = await sqlCmd.ExecuteReaderAsync())
                         {
-                            if (reader.HasRows && processReader != null) {
-                                result = await processReader(reader);
-                            }
+                            if (reader.HasRows && processReader != null) { result = await processReader(reader); }
                             if (!reader.IsClosed)
                                 reader.Close();
                         }
@@ -226,11 +247,13 @@ namespace StarChef.Listener.Commands.Impl
                 }
                 return result;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.DatabaseError(ex);
                 throw new DatabaseException(ex);
             }
         }
+
         #endregion
     }
 }

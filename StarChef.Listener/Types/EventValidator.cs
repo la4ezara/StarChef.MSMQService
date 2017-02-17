@@ -14,10 +14,16 @@ namespace StarChef.Listener.Types
     {
         private string _lastError = string.Empty;
 
+        public virtual bool IsEnabled(object payload)
+        {
+            return true;
+        }
+
         public virtual string GetErrors()
         {
             return _lastError;
         }
+
         public virtual bool IsStarChefEvent(object payload)
         {
             var supportedEvents = new[]

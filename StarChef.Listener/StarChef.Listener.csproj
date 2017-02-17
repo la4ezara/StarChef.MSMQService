@@ -207,9 +207,10 @@
     <Compile Include="Validators\AccountStatusChangedValidator.cs" />
     <Compile Include="Validators\AccountUpdatedValidator.cs" />
     <Compile Include="Validators\AccountUpdateFailedValidator.cs" />
-    <Compile Include="Types\AlwaysTrueEventValidator.cs" />
+    <Compile Include="Validators\AlwaysTrueEventValidator.cs" />
     <Compile Include="Types\EventValidator.cs" />
     <Compile Include="Types\MessagingLogger.cs" />
+    <Compile Include="Validators\PriceBandUpdatedValidator.cs" />
     <Compile Include="WindowsServiceClass.cs">
       <SubType>Component</SubType>
     </Compile>

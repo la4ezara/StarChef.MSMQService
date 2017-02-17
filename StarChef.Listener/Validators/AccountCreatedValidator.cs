@@ -1,4 +1,5 @@
-﻿using StarChef.Listener.Types;
+﻿using System;
+using StarChef.Listener.Types;
 using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 
 namespace StarChef.Listener.Validators

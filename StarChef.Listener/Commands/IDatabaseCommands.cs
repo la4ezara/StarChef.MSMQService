@@ -19,6 +19,14 @@ namespace StarChef.Listener.Commands
         Task SavePriceBandData(Guid organisationId, XmlDocument xmlDoc);
 
         /// <summary>
+        /// Returns True if the listener should catch event of the type
+        /// </summary>
+        /// <param name="eventTypeShortName">Type short name (without namespace)</param>
+        /// <param name="organizationId"></param>
+        /// <returns></returns>
+        Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, Guid organizationId);
+
+        /// <summary>
         /// Disable login
         /// </summary>
         /// <param name="loginId"></param>
