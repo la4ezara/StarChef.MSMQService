@@ -25,6 +25,12 @@ namespace StarChef.Listener.Handlers
             {
                 _logger.EventReceived(trackingId, payload);
 
+                if (!Validator.IsEnabled(payload))
+                {
+                    _logger.InfoFormat("Processing of the event is disabled for organization.");
+                    return MessageHandlerResult.Success;
+                }
+
                 if (Validator.IsValid(payload))
                 {
                     var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);

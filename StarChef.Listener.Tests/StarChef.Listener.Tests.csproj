@@ -153,6 +153,7 @@
     <Compile Include="Handlers\Fakes\TestDatabaseCommands.cs" />
     <Compile Include="Handlers\Fakes\TestMessagingLogger.cs" />
     <Compile Include="Handlers\PriceBandEventHandlerTests.cs" />
+    <Compile Include="Helpers\PayloadHelpers.cs" />
     <Compile Include="MessagingHandlersFactoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Types\AccountUpdateFailedValidatorTests.cs" />

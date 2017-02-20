@@ -26,8 +26,8 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetSource(SourceSystem.STARCHEF);
             var payload = builder.Build();
 
-            var validator = new AccountCreateFailedValidator();
             var dbCommands = new TestDatabaseCommands();
+            var validator = new AccountCreateFailedValidator(dbCommands);
             var messagingLogger = new TestMessagingLogger();
             var handler = new AccountCreateFailedEventHandler(dbCommands, validator, messagingLogger);
 
@@ -48,8 +48,8 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetSource(SourceSystem.ADACO);
             var payload = builder.Build();
 
-            var validator = new AccountCreateFailedValidator();
             var dbCommands = new TestDatabaseCommands();
+            var validator = new AccountCreateFailedValidator(dbCommands);
             var messagingLogger = new TestMessagingLogger();
             var handler = new AccountCreateFailedEventHandler(dbCommands, validator, messagingLogger);
 
