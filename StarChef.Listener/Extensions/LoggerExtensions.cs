@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using log4net;
 using StarChef.Listener.Exceptions;
-using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener.Extensions
 {
@@ -31,6 +26,7 @@ namespace StarChef.Listener.Extensions
         {
             logger.InfoFormat("Event processed. [{0}] {1}", trackingId, payload.ToJson());
         }
+
         public static void MessageSent(this ILog logger, object message)
         {
             logger.InfoFormat("Message '{0}' sent: {1}", message.GetType().Name, message.ToJson());
@@ -40,6 +36,11 @@ namespace StarChef.Listener.Extensions
         {
             logger.ErrorFormat("Database operation failed. [{0}] '{1}'", exception.GetType(), exception.Message);
             logger.Error(exception);
+        }
+
+        public static void EventDisabledForOrganization(this ILog logger, object payload)
+        {
+            logger.InfoFormat("Processing of the event is disabled for organization.");
         }
     }
 }

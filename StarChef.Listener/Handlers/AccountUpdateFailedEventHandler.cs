@@ -27,7 +27,7 @@ namespace StarChef.Listener.Handlers
 
                 if (!Validator.IsEnabled(payload))
                 {
-                    _logger.InfoFormat("Processing of the event is disabled for organization.");
+                    _logger.EventDisabledForOrganization(payload);
                     return MessageHandlerResult.Success;
                 }
 
