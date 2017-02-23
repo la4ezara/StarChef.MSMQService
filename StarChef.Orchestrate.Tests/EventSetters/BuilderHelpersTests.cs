@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using Castle.Components.DictionaryAdapter;
 using StarChef.Orchestrate.Models;
 using Xunit;
 
@@ -10,6 +12,7 @@ using RecipeCategory = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated.Typ
 using SourceSystem = Fourth.Orchestration.Model.Menus.Events.SourceSystem;
 using CategoryExportType = Fourth.Orchestration.Model.Menus.Events.CategoryExportType;
 using StarChef.Orchestrate.EventSetters.Impl;
+using StarChef.Orchestrate.Helpers;
 
 namespace StarChef.Orchestrate.Tests.EventSetters
 {
@@ -217,6 +220,62 @@ namespace StarChef.Orchestrate.Tests.EventSetters
             Assert.Equal("02C03BD6-1368-4CDB-8D68-105CBE41FDD5", categoryType.MainCategoriesList[1].SubCategoriesList[0].ParentExternalId); 
             #endregion
 
+        }
+
+        [Fact]
+        public void BuildKitchenAreas_Should_Init_Builder_With_Kitchen_Areas()
+        {
+            List<KitchenArea> kitchenAreaList = new EditableList<KitchenArea>()
+            {
+                new KitchenArea()
+                {
+                    ProductPartId = 36402,
+                    ExternalId = "83A05879-8C70-4583-A36B-0A31D601F0D9",
+                    Name = "Test area 1",
+                    DisplayOrder = 1
+                },
+                 new KitchenArea()
+                {
+                    ProductPartId = 36402,
+                    ExternalId = "AF0FB0B6-34C6-4C9B-BA20-3330FA16A299",
+                    Name = "Test area 2",
+                    DisplayOrder = 2
+                },
+                  new KitchenArea()
+                {
+                    ProductPartId = 36403,
+                    ExternalId = "83A05879-8C70-4583-A36B-0A31D601F0D9",
+                    Name = "Test area 1",
+                    DisplayOrder = 1
+                },
+                 new KitchenArea()
+                {
+                    ProductPartId = 36403,
+                    ExternalId = "AF0FB0B6-34C6-4C9B-BA20-3330FA16A299",
+                    Name = "Test area 2",
+                    DisplayOrder = 2
+                }
+            };
+
+            #region act
+
+            var kitchenAreaLookup = RecipeUpdatedSetter.BuildKitchenAreas(kitchenAreaList);
+
+            #endregion
+
+            #region assert
+
+            // assert
+            Assert.Equal(2, kitchenAreaLookup.Count);
+
+            Assert.Equal(2, kitchenAreaLookup[36402].Count);
+
+            Assert.Equal(2, kitchenAreaLookup[36403].Count);
+
+            Assert.True(kitchenAreaLookup[36402].First(t=> t.DisplayOrder ==2).Name == "Test area 2");
+            Assert.True(kitchenAreaLookup[36402].First(t => t.DisplayOrder == 1).Name == "Test area 1");
+
+            #endregion
         }
     }
 }
