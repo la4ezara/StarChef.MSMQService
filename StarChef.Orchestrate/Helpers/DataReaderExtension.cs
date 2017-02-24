@@ -113,10 +113,10 @@ namespace StarChef.Orchestrate.Helpers
             {
                 var kitchenArea = new KitchenArea
                 {
-                    ProductPartId = reader.GetValueOrDefault<int>(0),
-                    ExternalId = reader[1].ToString(),
-                    Name = reader[2].ToString(),
-                    DisplayOrder = reader.GetValueOrDefault<int>(3)
+                    ProductPartId = reader.GetValue<int>("ProductPartId"),
+                    ExternalId = reader.GetValue<string>("ExternalId"),
+                    Name = reader.GetValue<string>("KitchenAreaName"),
+                    DisplayOrder = reader.GetValue<int>("DisplayOrder")
                 };
 
                 kitchenAreas.Add(kitchenArea);
