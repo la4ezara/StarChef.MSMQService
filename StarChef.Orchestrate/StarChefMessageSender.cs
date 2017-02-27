@@ -239,15 +239,21 @@ namespace StarChef.Orchestrate
         public bool PublishUpdateEvent(UpdateMessage message)
         {
             var result = false;
+            var connectionString = message.DSN;
+            var entityTypeId = message.EntityTypeId;
+
             try
             {
-                using (var bus = _messagingFactory.CreateMessageBus())
+                if (_databaseManager.IsPublishEnabled(connectionString, entityTypeId))
                 {
-                    var payload = CreateUpdateEvent(message);
-                    if (payload != null)
+                    using (var bus = _messagingFactory.CreateMessageBus())
                     {
-                        result = Publish(bus, payload);
-                        LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
+                        var payload = CreateUpdateEvent(message);
+                        if (payload != null)
+                        {
+                            result = Publish(bus, payload);
+                            LogDatabase(connectionString, entityTypeId, message.ProductID, message.ArrivedTime, result);
+                        }
                     }
                 }
             }
@@ -334,15 +340,21 @@ namespace StarChef.Orchestrate
         public bool PublishCommand(UpdateMessage message)
         {
             var result = false;
+            var connectionString = message.DSN;
+            var entityTypeId = message.EntityTypeId;
+
             try
             {
-                using (var bus = _messagingFactory.CreateMessageBus())
+                if (_databaseManager.IsPublishEnabled(connectionString, entityTypeId))
                 {
-                    var payload = CreateCommandPayload(message);
-                    if (payload != null)
+                    using (var bus = _messagingFactory.CreateMessageBus())
                     {
-                        result = Send(bus, payload);
-                        LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
+                        var payload = CreateCommandPayload(message);
+                        if (payload != null)
+                        {
+                            result = Send(bus, payload);
+                            LogDatabase(connectionString, entityTypeId, message.ProductID, message.ArrivedTime, result);
+                        }
                     }
                 }
             }

@@ -121,5 +121,15 @@ namespace StarChef.Common
             }
             return result;
         }
+
+        public bool IsPublishEnabled(string connectionString, int entityTypeId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsSsoEnabled(string connectionString)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

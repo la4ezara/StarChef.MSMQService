@@ -11,21 +11,15 @@ namespace StarChef.Common
                 string spName,
                 params SqlParameter[] parameterValues);
 
-        IDataReader ExecuteReader(
-           string connectionString,
-           string spName,
-           params SqlParameter[] parameterValues
-           );
+        IDataReader ExecuteReader(string connectionString, string spName, params SqlParameter[] parameterValues);
 
-        IDataReader ExecuteReaderMultiResultset(
-           string connectionString,
-           string spName,
-           params SqlParameter[] parameterValues
-           );
+        IDataReader ExecuteReaderMultiResultset(string connectionString, string spName, params SqlParameter[] parameterValues);
 
         string GetSetting(string connectionString, string settingName);
 
         IList<int> GetUsersInGroup(string connectionString, int groupId);
 
+        bool IsPublishEnabled(string connectionString, int entityTypeId);
+        bool IsSsoEnabled(string connectionString);
     }
 }
