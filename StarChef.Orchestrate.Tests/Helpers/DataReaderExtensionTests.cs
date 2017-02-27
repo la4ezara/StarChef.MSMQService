@@ -121,17 +121,16 @@ namespace StarChef.Orchestrate.Tests.Helpers
             var table = new DataTable();
             table.Columns.AddRange(new[]
             {
-                new DataColumn("product_part_id", typeof (int)),
-                new DataColumn("kitchen_area_id", typeof (int)),
-                new DataColumn("lookup_code", typeof (string)),
-                new DataColumn("description", typeof (string)),
-                new DataColumn("display_order", typeof (int))
+                new DataColumn("ProductPartId", typeof (int)),
+                new DataColumn("ExternalId", typeof (string)),
+                new DataColumn("KitchenAreaName", typeof (string)),
+                new DataColumn("DisplayOrder", typeof (int))
             });
 
-            table.Rows.Add(36402, 1, "83A05879-8C70-4583-A36B-0A31D601F0D9", "Test area 1", 1);
-            table.Rows.Add(36402, 2,"AF0FB0B6-34C6-4C9B-BA20-3330FA16A299", "Test area 2", 2);
-            table.Rows.Add(36403, 1, "83A05879-8C70-4583-A36B-0A31D601F0D9", "Test area 1", 1);
-            table.Rows.Add(36403, 2, "AF0FB0B6-34C6-4C9B-BA20-3330FA16A299", "Test area 2", 2);
+            table.Rows.Add(36402,"83A05879-8C70-4583-A36B-0A31D601F0D9", "Test area 1", 1);
+            table.Rows.Add(36402,"AF0FB0B6-34C6-4C9B-BA20-3330FA16A299", "Test area 2", 2);
+            table.Rows.Add(36403, "83A05879-8C70-4583-A36B-0A31D601F0D9", "Test area 1", 1);
+            table.Rows.Add(36403,"AF0FB0B6-34C6-4C9B-BA20-3330FA16A299", "Test area 2", 2);
 
             #region act
 
