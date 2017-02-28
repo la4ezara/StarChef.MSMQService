@@ -11,9 +11,17 @@ namespace StarChef.Common
                 string spName,
                 params SqlParameter[] parameterValues);
 
-        IDataReader ExecuteReader(string connectionString, string spName, params SqlParameter[] parameterValues);
+        IDataReader ExecuteReader(
+            string connectionString,
+            string spName,
+            params SqlParameter[] parameterValues
+            );
 
-        IDataReader ExecuteReaderMultiResultset(string connectionString, string spName, params SqlParameter[] parameterValues);
+        IDataReader ExecuteReaderMultiResultset(
+            string connectionString,
+            string spName,
+            params SqlParameter[] parameterValues
+            );
 
         string GetSetting(string connectionString, string settingName);
 
