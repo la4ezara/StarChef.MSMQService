@@ -224,7 +224,7 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
-                    //All Events are populating under StarChefEventsUpdated Action - Additional action added for 
+                    // All Events are populating under StarChefEventsUpdated Action - Additional action added for 
                     // User because of multiple different actions
                     case (int)Constants.MessageActionType.StarChefEventsUpdated:
                     // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
@@ -236,24 +236,15 @@ namespace StarChef.MSMQService
                         ProcessStarChefEventsUpdated(msg);
                         break;
                     case (int)Constants.MessageActionType.UserDeActivated:
-                        {
-                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
-                                _messageSender.PublishCommand(msg);
-                        }
+                        _messageSender.PublishCommand(msg);
                         break;
                     case (int)Constants.MessageActionType.EntityDeleted:
-                        {
-                            // Construct event and notify subscribers about deletion of an entity
-                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
-                                _messageSender.PublishDeleteEvent(msg);
-                        }
+                        // Construct event and notify subscribers about deletion of an entity
+                        _messageSender.PublishDeleteEvent(msg);
                         break;
                     case (int)Constants.MessageActionType.EntityUpdated:
-                        {
-                            // Construct event and notify subscribers about deletion of an entity
-                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
-                                _messageSender.PublishUpdateEvent(msg);
-                        }
+                        // Construct event and notify subscribers about deletion of an entity
+                        _messageSender.PublishUpdateEvent(msg);
                         break;
                 }
             }
@@ -317,12 +308,6 @@ namespace StarChef.MSMQService
                 new SqlParameter("@pband_id", 0),
                 new SqlParameter("@unit_id", 0),
                 new SqlParameter("@message_arrived_time", msg.ArrivedTime));
-
-            // audit any price changes (for ingredients only)
-            //ExecuteStoredProc(msg.DSN,
-            //	"sc_audit_product_update",
-            //	new SqlParameter("@product_id", msg.ProductID),				
-            //	new SqlParameter("@is_delete", 0));
         }
 
         private void ProcessProductNutrientUpdate(UpdateMessage msg)
@@ -441,7 +426,7 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (entityTypeWrapper.HasValue && IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+            if (entityTypeWrapper.HasValue)
             {
                 _messageSender.Send(entityTypeWrapper.Value,
                                     msg.DSN,
@@ -450,32 +435,6 @@ namespace StarChef.MSMQService
                                     msg.DatabaseID,
                                     arrivedTime);
             }
-        }
-
-        private bool IsPublishEnabled(int entityTypeId, string connectionString, string spName)
-        {
-            bool isEnabled=false;
-
-            //create & open a SqlConnection, and dispose of it after we are done.
-            using (var cn = new SqlConnection(connectionString))
-            {
-                cn.Open();
-
-                // need a command with sensible timeout value (10 minutes), as some 
-                // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
-                };
-                cmd.Parameters.Add(new SqlParameter("@entity_type_id", entityTypeId));
-                var rdr = cmd.ExecuteReader();
-                if (rdr.Read())
-                {
-                    if (!rdr.IsDBNull(0)) isEnabled = rdr.GetBoolean(0);
-                }
-            }
-            return isEnabled;
         }
 
         private int ExecuteStoredProc(string connectionString, string spName)
