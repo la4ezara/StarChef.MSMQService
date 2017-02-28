@@ -1,4 +1,6 @@
-﻿using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.AccountUpdateFailedReason;
+﻿using Moq;
+using StarChef.Listener.Commands;
+using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.AccountUpdateFailedReason;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
@@ -18,7 +20,7 @@ namespace StarChef.Listener.Tests.Types
                 .SetReason(AccountUpdateFailedReason.INVALID_UPDATE_DATA);
             var accountCreated = builder.Build();
 
-            var validator = new AccountUpdateFailedValidator();
+            var validator = new AccountUpdateFailedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValid(accountCreated);
 
             Assert.True(actual);

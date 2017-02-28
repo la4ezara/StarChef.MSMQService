@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Management.Instrumentation;
+using StarChef.Listener.Commands;
 using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
@@ -13,11 +15,23 @@ namespace StarChef.Listener.Types
     abstract class EventValidator
     {
         private string _lastError = string.Empty;
+        protected readonly IDatabaseCommands _databaseCommands;
+
+        protected EventValidator(IDatabaseCommands databaseCommands)
+        {
+            _databaseCommands = databaseCommands;
+        }
+
+        public virtual bool IsEnabled(object payload)
+        {
+            return true;
+        }
 
         public virtual string GetErrors()
         {
             return _lastError;
         }
+
         public virtual bool IsStarChefEvent(object payload)
         {
             var supportedEvents = new[]
@@ -40,6 +54,24 @@ namespace StarChef.Listener.Types
         protected void SetLastError(string error)
         {
             _lastError = error;
+        }
+
+        protected bool GetFromDbConfiguration(Guid organizationGuid, string eventTypeShortName)
+        {
+            var result = _databaseCommands.IsEventEnabledForOrganization(eventTypeShortName, organizationGuid).Result;
+            return result;
+        }
+
+        protected bool GetFromDbConfiguration(int loginId, string eventTypeShortName)
+        {
+            var result = _databaseCommands.IsEventEnabledForOrganization(eventTypeShortName, loginId).Result;
+            return result;
+        }
+
+        protected bool GetFromDbConfiguration(string externalId, string eventTypeShortName)
+        {
+            var result = _databaseCommands.IsEventEnabledForOrganization(eventTypeShortName, externalId).Result;
+            return result;
         }
     }
 }

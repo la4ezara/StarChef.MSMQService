@@ -27,6 +27,12 @@ namespace StarChef.Listener.Handlers
             {
                 _logger.EventReceived(trackingId, payload);
 
+                if (!Validator.IsEnabled(payload))
+                {
+                    _logger.EventDisabledForOrganization(payload);
+                    return MessageHandlerResult.Success;
+                }
+
                 if (Validator.IsValid(payload))
                 {
                     try

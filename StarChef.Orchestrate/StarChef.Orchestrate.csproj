@@ -93,6 +93,7 @@
     <Compile Include="EventFactory.cs" />
     <Compile Include="EventSetters\ICommandSetter.cs" />
     <Compile Include="EventSetters\IEventSetter.cs" />
+    <Compile Include="EventSetters\Impl\BuilderHelpers.cs" />
     <Compile Include="EventSetters\Impl\DeactivateAccountSetter.cs" />
     <Compile Include="EventSetters\Impl\GroupUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\IngredientUpdateSetter.cs" />
@@ -106,7 +107,8 @@
     <Compile Include="IStarChefMessageSender.cs" />
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Customer.cs" />
-    <Compile Include="Models\DataReaderExtension.cs" />
+    <Compile Include="Helpers\DataReaderExtension.cs" />
+    <Compile Include="Models\KitchenArea.cs" />
     <Compile Include="Models\TransferObjects\AccountCreatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountCreateFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountUpdatedTransferObject.cs" />
