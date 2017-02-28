@@ -191,69 +191,60 @@ namespace StarChef.MSMQService
             {
                 switch (msg.Action)
                 {
-                    case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
+                    case (int) Constants.MessageActionType.UpdatedUserDefinedUnit:
                         ProcessUDUUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductSet:
+                    case (int) Constants.MessageActionType.UpdatedProductSet:
                         ProcessProductSetUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedPriceBand:
+                    case (int) Constants.MessageActionType.UpdatedPriceBand:
                         ProcessPriceBandUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedGroup:
+                    case (int) Constants.MessageActionType.UpdatedGroup:
                         ProcessGroupUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductCost:
+                    case (int) Constants.MessageActionType.UpdatedProductCost:
                         ProcessProductCostUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.GlobalUpdate:
+                    case (int) Constants.MessageActionType.GlobalUpdate:
                         ProcessGlobalUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductNutrient:
+                    case (int) Constants.MessageActionType.UpdatedProductNutrient:
                         ProcessProductNutrientUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductIntolerance:
+                    case (int) Constants.MessageActionType.UpdatedProductIntolerance:
                         ProcessProductIntoleranceUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductNutrientInclusive:
+                    case (int) Constants.MessageActionType.UpdatedProductNutrientInclusive:
                         ProcessProductNutrientInclusiveUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.GlobalUpdateBudgeted:
+                    case (int) Constants.MessageActionType.GlobalUpdateBudgeted:
                         ProcessGlobalUpdateBudgeted(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdateAlternateIngredients:
+                    case (int) Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
-                    //All Events are populating under StarChefEventsUpdated Action - Additional action added for 
+                    // All Events are populating under StarChefEventsUpdated Action - Additional action added for 
                     // User because of multiple different actions
-                    case (int)Constants.MessageActionType.StarChefEventsUpdated:
+                    case (int) Constants.MessageActionType.StarChefEventsUpdated:
                     // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
-                    case (int)Constants.MessageActionType.UserCreated:
-                    case (int)Constants.MessageActionType.UserUpdated:
-                    case (int)Constants.MessageActionType.UserActivated:
+                    case (int) Constants.MessageActionType.UserCreated:
+                    case (int) Constants.MessageActionType.UserUpdated:
+                    case (int) Constants.MessageActionType.UserActivated:
                     // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
-                    case (int)Constants.MessageActionType.SalesForceUserCreated:
+                    case (int) Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
-                    case (int)Constants.MessageActionType.UserDeActivated:
-                        {
-                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
-                                _messageSender.PublishCommand(msg);
-                        }
+                    case (int) Constants.MessageActionType.UserDeActivated:
+                        _messageSender.PublishCommand(msg);
                         break;
-                    case (int)Constants.MessageActionType.EntityDeleted:
-                        {
-                            // Construct event and notify subscribers about deletion of an entity
-                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
-                                _messageSender.PublishDeleteEvent(msg);
-                        }
+                    case (int) Constants.MessageActionType.EntityDeleted:
+                        // Construct event and notify subscribers about deletion of an entity
+                        _messageSender.PublishDeleteEvent(msg);
                         break;
-                    case (int)Constants.MessageActionType.EntityUpdated:
-                        {
-                            // Construct event and notify subscribers about deletion of an entity
-                            if (IsPublishEnabled(msg.EntityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
-                                _messageSender.PublishUpdateEvent(msg);
-                        }
+                    case (int) Constants.MessageActionType.EntityUpdated:
+                        // Construct event and notify subscribers about deletion of an entity
+                        _messageSender.PublishUpdateEvent(msg);
                         break;
                 }
             }
@@ -317,12 +308,6 @@ namespace StarChef.MSMQService
                 new SqlParameter("@pband_id", 0),
                 new SqlParameter("@unit_id", 0),
                 new SqlParameter("@message_arrived_time", msg.ArrivedTime));
-
-            // audit any price changes (for ingredients only)
-            //ExecuteStoredProc(msg.DSN,
-            //	"sc_audit_product_update",
-            //	new SqlParameter("@product_id", msg.ProductID),				
-            //	new SqlParameter("@is_delete", 0));
         }
 
         private void ProcessProductNutrientUpdate(UpdateMessage msg)
@@ -441,7 +426,7 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (entityTypeWrapper.HasValue && IsPublishEnabled(entityTypeId, msg.DSN, "sc_get_orchestration_lookup"))
+            if (entityTypeWrapper.HasValue)
             {
                 _messageSender.Send(entityTypeWrapper.Value,
                                     msg.DSN,
@@ -450,32 +435,6 @@ namespace StarChef.MSMQService
                                     msg.DatabaseID,
                                     arrivedTime);
             }
-        }
-
-        private bool IsPublishEnabled(int entityTypeId, string connectionString, string spName)
-        {
-            bool isEnabled=false;
-
-            //create & open a SqlConnection, and dispose of it after we are done.
-            using (var cn = new SqlConnection(connectionString))
-            {
-                cn.Open();
-
-                // need a command with sensible timeout value (10 minutes), as some 
-                // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
-                };
-                cmd.Parameters.Add(new SqlParameter("@entity_type_id", entityTypeId));
-                var rdr = cmd.ExecuteReader();
-                if (rdr.Read())
-                {
-                    if (!rdr.IsDBNull(0)) isEnabled = rdr.GetBoolean(0);
-                }
-            }
-            return isEnabled;
         }
 
         private int ExecuteStoredProc(string connectionString, string spName)

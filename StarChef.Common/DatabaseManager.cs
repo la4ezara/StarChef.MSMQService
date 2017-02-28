@@ -1,4 +1,5 @@
-﻿using System;
+﻿using StarChef.Data;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -124,12 +125,34 @@ namespace StarChef.Common
 
         public bool IsPublishEnabled(string connectionString, int entityTypeId)
         {
-            throw new NotImplementedException();
+            bool isEnabled = false;
+
+            //create & open a SqlConnection, and dispose of it after we are done.
+            using (var cn = new SqlConnection(connectionString))
+            {
+                cn.Open();
+
+                // need a command with sensible timeout value (10 minutes), as some 
+                // of these procs may take several minutes to complete
+                var cmd = new SqlCommand("sc_get_orchestration_lookup", cn)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
+                };
+                cmd.Parameters.Add(new SqlParameter("@entity_type_id", entityTypeId));
+                var rdr = cmd.ExecuteReader();
+                if (rdr.Read())
+                {
+                    if (!rdr.IsDBNull(0)) isEnabled = rdr.GetBoolean(0);
+                }
+            }
+            return isEnabled;
         }
 
         public bool IsSsoEnabled(string connectionString)
         {
-            throw new NotImplementedException();
+            var ssoEnabled = DbManager.GetBoolSetting(Constants.CONFIG_ALLOW_SINGLE_SIGN_ON);
+            return ssoEnabled;
         }
     }
 }
