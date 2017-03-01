@@ -151,8 +151,8 @@ namespace StarChef.Common
 
         public bool IsSsoEnabled(string connectionString)
         {
-            var ssoEnabled = DbManager.GetBoolSetting(Constants.CONFIG_ALLOW_SINGLE_SIGN_ON);
-            return ssoEnabled;
+            var value = GetSetting(connectionString, Constants.CONFIG_ALLOW_SINGLE_SIGN_ON);
+            return Convert.ToBoolean(value);
         }
     }
 }
