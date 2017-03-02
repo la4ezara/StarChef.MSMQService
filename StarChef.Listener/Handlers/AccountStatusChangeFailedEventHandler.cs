@@ -6,7 +6,6 @@ using Fourth.Orchestration.Model.People;
 using log4net;
 using StarChef.Listener.Commands;
 using StarChef.Orchestrate.Models.TransferObjects;
-using System.Transactions;
 using StarChef.Listener.Extensions;
 
 namespace StarChef.Listener.Handlers
@@ -21,6 +20,8 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountStatusChangeFailed payload, string trackingId)
         {
+            ThreadContext.Properties[EXTERNAL_ID] = payload.ExternalId;
+
             if (Validator.IsStarChefEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
@@ -28,12 +29,13 @@ namespace StarChef.Listener.Handlers
                 if (!Validator.IsEnabled(payload))
                 {
                     _logger.InfoFormat("Processing of the event is disabled for organization.");
+                    ThreadContext.Properties.Remove(EXTERNAL_ID);
                     return MessageHandlerResult.Success;
                 }
 
                 if (Validator.IsValid(payload))
                 {
-                    var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
+                    var operationFailed = Mapper.Map<AccountStatusChangeFailedTransferObject>(payload);
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
                     _logger.Processed(trackingId, payload);
                 }
@@ -42,8 +44,12 @@ namespace StarChef.Listener.Handlers
                     var errors = Validator.GetErrors();
                     _logger.InvalidModel(trackingId, payload, errors);
                     await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
+                    ThreadContext.Properties.Remove(EXTERNAL_ID);
                     return MessageHandlerResult.Fatal;
-                }}
+                }
+            }
+
+            ThreadContext.Properties.Remove(EXTERNAL_ID);
             return MessageHandlerResult.Success;
         }
     }

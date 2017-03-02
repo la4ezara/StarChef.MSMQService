@@ -9,9 +9,12 @@ using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Tests.Fixtures;
 using StarChef.Listener.Tests.Handlers.Fakes;
-using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
 using StarChef.Listener.Tests.Helpers;
+using log4net.Core;
+using StarChef.Listener.Exceptions;
+using System.Linq;
+using log4net;
 
 namespace StarChef.Listener.Tests.Handlers
 {
@@ -88,6 +91,205 @@ namespace StarChef.Listener.Tests.Handlers
             // assert
             Assert.Equal(MessageHandlerResult.Fatal, result);
             messagingLogger.Verify(m => m.ReceivedInvalidModel(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<string>()), Times.Once);
+        }
+        
+        [Fact]
+        public void Should_not_have_log_for_non_starchef_events()
+        {
+            // arrange
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetFirstName("1")
+                .SetLastName("1")
+                .SetEmailAddress("1")
+                .SetSource(SourceSystem.ADACO)
+                .SetExternalId(Guid.Empty.ToString());
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
+            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(false);
+
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
+            var logChecker = new LogChecker(handler.GetType(), Level.All);
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            var messageList = logChecker.LoggingEvents;
+            logChecker.Dispose();
+
+            // assert
+            Assert.Equal(messageList.Count, 0);
+
+            Assert.Null(ThreadContext.Properties[AccountCreatedEventHandler.INTERNAL_ID]);
+        }
+
+        [Fact]
+        public void All_logs_should_have_correct_internal_id()
+        {
+            // arrange
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetFirstName("1")
+                .SetLastName("1")
+                .SetEmailAddress("1")
+                .SetSource(SourceSystem.STARCHEF)
+                .SetExternalId(Guid.Empty.ToString());
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
+            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+
+            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
+            var logChecker = new LogChecker(handler.GetType(), Level.All);
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            var messageList = logChecker.LoggingEvents;
+            logChecker.Dispose();
+
+            // assert
+            Assert.All(messageList, item =>
+            {
+                Assert.Equal(item.Properties[AccountCreatedEventHandler.INTERNAL_ID], "1");
+            });
+
+            Assert.Null(ThreadContext.Properties[AccountCreatedEventHandler.INTERNAL_ID]);
+        }
+
+        [Fact]
+        public void All_logs_should_have_correct_internal_id_disabled_event()
+        {
+            // arrange
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetFirstName("1")
+                .SetLastName("1")
+                .SetEmailAddress("1")
+                .SetSource(SourceSystem.STARCHEF)
+                .SetExternalId(Guid.Empty.ToString());
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
+            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+
+            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(false);
+            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
+            var logChecker = new LogChecker(handler.GetType(), Level.All);
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            var messageList = logChecker.LoggingEvents;
+            logChecker.Dispose();
+
+            // assert
+            Assert.All(messageList, item =>
+            {
+                Assert.Equal(item.Properties[AccountCreatedEventHandler.INTERNAL_ID], "1");
+            });
+
+            Assert.Null(ThreadContext.Properties[AccountCreatedEventHandler.INTERNAL_ID]);
+        }
+
+        [Fact]
+        public void All_logs_should_have_correct_internal_id_invalid_payload()
+        {
+            // arrange
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetFirstName("1")
+                .SetLastName("1")
+                .SetEmailAddress("1")
+                .SetSource(SourceSystem.STARCHEF)
+                .SetExternalId(Guid.Empty.ToString());
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
+            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+
+            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(false);
+            validator.Setup(m => m.GetErrors()).Returns(string.Empty);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
+            var logChecker = new LogChecker(handler.GetType(), Level.All);
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            var messageList = logChecker.LoggingEvents;
+            logChecker.Dispose();
+
+            // assert
+            Assert.All(messageList, item =>
+            {
+                Assert.Equal(item.Properties[AccountCreatedEventHandler.INTERNAL_ID], "1");
+            });
+
+            Assert.Null(ThreadContext.Properties[AccountCreatedEventHandler.INTERNAL_ID]);
+        }
+
+        [Fact]
+        public void Should_log_listener_exceptions_and_have_correct_internal_id()
+        {
+            // arrange
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetFirstName("1")
+                .SetLastName("1")
+                .SetEmailAddress("1")
+                .SetSource(SourceSystem.STARCHEF)
+                .SetExternalId(Guid.Empty.ToString());
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            dbCommands.Setup(d => d.UpdateExternalId(It.IsAny<AccountCreatedTransferObject>())).Throws(new ListenerException());
+            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
+            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+
+            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
+            var logChecker = new LogChecker(handler.GetType(), Level.All);
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            var messageList = logChecker.LoggingEvents;
+            logChecker.Dispose();
+
+            // assert
+            Assert.All(messageList, item =>
+            {
+                Assert.Equal(item.Properties[AccountCreatedEventHandler.INTERNAL_ID], "1");
+            });
+
+            Assert.NotNull(
+                messageList.Where(
+                    item => 
+                        item.ExceptionObject != null &&
+                        item.ExceptionObject.GetType() == typeof(ListenerException)).FirstOrDefault()
+                );
+
+            Assert.Null(ThreadContext.Properties[AccountCreatedEventHandler.INTERNAL_ID]);
         }
     }
 }

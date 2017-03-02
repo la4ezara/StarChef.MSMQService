@@ -88,6 +88,8 @@ namespace StarChef.Listener
             {
                 var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.LoginId);
 
+                ThreadContext.Properties["OrganisationId"] = userDetail.Item2;
+
                 var msg = new UpdateMessage(productId: userDetail.Item1,
                                             entityTypeId: (int)Constants.EntityType.User,
                                             action: (int)Constants.MessageActionType.SalesForceUserCreated,
@@ -100,6 +102,10 @@ namespace StarChef.Listener
             {
                 _logger.Error(ex);
                 throw;
+            }
+            finally
+            {
+                ThreadContext.Properties.Remove("OrganisationId");
             }
         }
     }

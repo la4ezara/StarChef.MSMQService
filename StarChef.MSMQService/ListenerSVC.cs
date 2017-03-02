@@ -6,8 +6,8 @@ using System.Configuration;
 using System.Timers;
 using System.Messaging;
 using System.Threading;
-using Microsoft.ApplicationBlocks.ExceptionManagement;
 using System.Collections;
+using log4net;
 
 namespace StarChef.MSMQService
 {
@@ -24,8 +24,12 @@ namespace StarChef.MSMQService
 	/// </summary>
 	public class ListenerSVC : ServiceBase
 	{
-	
-		private const long _tickPeriod = 1000; // 1 second!
+
+        /// <summary> The log4net Logger instance. </summary>
+        private static readonly ILog Logger =
+            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private const long _tickPeriod = 1000; // 1 second!
 
 		private System.Timers.Timer _timer;
 		private bool _IsStarted;
@@ -101,7 +105,9 @@ namespace StarChef.MSMQService
             {
                 if (mqe.MessageQueueErrorCode != MessageQueueErrorCode.IOTimeout &&
                     mqe.MessageQueueErrorCode != MessageQueueErrorCode.MessageNotFound)
-                    ExceptionManager.Publish(mqe);
+                {
+                    Logger.Error(mqe);
+                }
             }
             return ret;
         }

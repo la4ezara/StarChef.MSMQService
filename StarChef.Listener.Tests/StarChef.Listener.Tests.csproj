@@ -146,6 +146,8 @@
     <Compile Include="ConfigObjectMappingTests.cs" />
     <Compile Include="Extensions\MessageEventsExtensionsTests.cs" />
     <Compile Include="Fixtures\ObjectMappingFixture.cs" />
+    <Compile Include="Handlers\AccountStatusChangedEventHandlerTests.cs" />
+    <Compile Include="Handlers\AccountStatusChangeFailedEventHandlerTests.cs" />
     <Compile Include="Handlers\AccountUpdateFailedEventHandlerTests.cs" />
     <Compile Include="Handlers\AccountCreateFailedEventHandlerTests.cs" />
     <Compile Include="Handlers\AccountUpdatedEventHandlerTests.cs" />
@@ -153,6 +155,7 @@
     <Compile Include="Handlers\Fakes\TestDatabaseCommands.cs" />
     <Compile Include="Handlers\Fakes\TestMessagingLogger.cs" />
     <Compile Include="Handlers\PriceBandEventHandlerTests.cs" />
+    <Compile Include="Helpers\LogChecker.cs" />
     <Compile Include="Helpers\PayloadHelpers.cs" />
     <Compile Include="MessagingHandlersFactoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -23,12 +23,16 @@ namespace StarChef.Listener.Handlers
 
         public async Task<MessageHandlerResult> HandleAsync(PriceBandUpdated priceBandUpdated, string trackingId)
         {
+            ThreadContext.Properties[DATABASE_GUID] = priceBandUpdated.CustomerId;
+
             // whole payload cannot be logged because the list may be very big
             _logger.InfoFormat("Data received. CustomerId={0}, CurrencyId={1}, PriceBandsCount={2}", priceBandUpdated.CustomerId, priceBandUpdated.CurrencyId, priceBandUpdated.PriceBandsCount);
 
             if (!Validator.IsEnabled(priceBandUpdated))
             {
                 _logger.InfoFormat("Processing of the event is disabled for organization.");
+
+                ThreadContext.Properties.Remove(DATABASE_GUID);
                 return MessageHandlerResult.Success;
             }
             var priceBandBatchSize = _configuration.PriceBandBatchSize;
@@ -42,6 +46,8 @@ namespace StarChef.Listener.Handlers
                     if (!priceBandUpdated.PriceBandsList.Any())
                     {
                         _logger.InfoFormat("Processed");
+
+                        ThreadContext.Properties.Remove(DATABASE_GUID);
                         return MessageHandlerResult.Success;
                     }
 
@@ -63,11 +69,15 @@ namespace StarChef.Listener.Handlers
                     }
 
                     _logger.InfoFormat("Processed");
+
+                    ThreadContext.Properties.Remove(DATABASE_GUID);
                     return MessageHandlerResult.Success;
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex);
+                    _logger.Error(ex.Message, ex);
+
+                    ThreadContext.Properties.Remove(DATABASE_GUID);
                     return MessageHandlerResult.Retry;
                 }
             }
@@ -75,6 +85,8 @@ namespace StarChef.Listener.Handlers
             var errors = Validator.GetErrors();
             _logger.InvalidModel(trackingId, priceBandUpdated, errors);
             await MessagingLogger.ReceivedInvalidModel(trackingId, priceBandUpdated, errors);
+
+            ThreadContext.Properties.Remove(DATABASE_GUID);
             return MessageHandlerResult.Fatal;
         }
     }
