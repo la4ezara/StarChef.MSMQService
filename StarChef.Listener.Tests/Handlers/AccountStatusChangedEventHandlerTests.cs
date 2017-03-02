@@ -63,43 +63,6 @@ namespace StarChef.Listener.Tests.Handlers
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
-            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
-            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
-            var messagingLogger = new Mock<IMessagingLogger>();
-            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
-
-            // act
-            var result = handler.HandleAsync(payload, "1").Result;
-
-            var messageList = logChecker.LoggingEvents;
-            logChecker.Dispose();
-
-            // assert
-            Assert.All(messageList, item =>
-            {
-                Assert.Equal(item.Properties[AccountStatusChangedEventHandler.EXTERNAL_ID], Guid.Empty.ToString());
-            });
-
-            Assert.Null(ThreadContext.Properties[AccountStatusChangedEventHandler.EXTERNAL_ID]);
-        }
-
-        [Fact]
-        public void All_logs_should_have_correct_external_id_disabled_event()
-        {
-            // arrange
-            var builder = AccountStatusChanged.CreateBuilder();
-            builder
-                .SetSource(SourceSystem.STARCHEF)
-                .SetExternalId(Guid.Empty.ToString())
-                .SetStatus(AccountStatus.ACTIVE);
-            var payload = builder.Build();
-
-            var dbCommands = new Mock<IDatabaseCommands>();
-            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
-
-            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(false);
             validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
             var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
@@ -135,7 +98,6 @@ namespace StarChef.Listener.Tests.Handlers
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
-            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
             validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(false);
             validator.Setup(m => m.GetErrors()).Returns(string.Empty);
             var messagingLogger = new Mock<IMessagingLogger>();
@@ -172,7 +134,6 @@ namespace StarChef.Listener.Tests.Handlers
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
-            validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
             validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
             messagingLogger.Setup(d => d.MessageProcessedSuccessfully(It.IsAny<object>(), It.IsAny<string>())).Throws(new ListenerException());
