@@ -108,6 +108,7 @@
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Helpers\DataReaderExtension.cs" />
+    <Compile Include="Models\KitchenArea.cs" />
     <Compile Include="Models\TransferObjects\AccountCreatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountCreateFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountStatusChangeFailedTransferObject.cs" />

@@ -26,6 +26,7 @@ using UserUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.UserUpdated.B
 using StarChef.Data;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 using StarChef.Orchestrate.EventSetters.Impl;
+using static StarChef.Data.Constants;
 
 namespace StarChef.Orchestrate.Tests
 {
@@ -41,7 +42,10 @@ namespace StarChef.Orchestrate.Tests
             messagingFactory.Setup(m => m.CreateMessageBus()).Returns(bus.Object);
             // use real factory to create an actual command
             var commandFactory = new CommandFactory(new DeactivateAccountSetter());
-            var sender = new StarChefMessageSender(messagingFactory.Object, Mock.Of<IDatabaseManager>(), Mock.Of<IEventFactory>(), commandFactory);
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsSsoEnabled(It.IsAny<string>())).Returns(true);
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
             // the message which is received from MSMQ
             var msg = new UpdateMessage
             {
@@ -53,6 +57,202 @@ namespace StarChef.Orchestrate.Tests
 
             // verify that the command is passed to the Send method of the bus and it has correct values in properties
             bus.Verify(m => m.Send(It.Is<IMessage>(omsg => ((DeactivateAccount) omsg).ExternalId == "test")), Times.Once);
+        }
+
+        [Fact]
+        public void Should_not_send_command_DeactivateAccount_if_publishing_disabled()
+        {
+            // mock bus interface to verify Send method later
+            var bus = new Mock<IMessageBus>();
+            // mock the factory to ensure it returns the mocked version of the bus
+            var messagingFactory = new Mock<IMessagingFactory>();
+            messagingFactory.Setup(m => m.CreateMessageBus()).Returns(bus.Object);
+            // use real factory to create an actual command
+            var commandFactory = new CommandFactory(new DeactivateAccountSetter());
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsSsoEnabled(It.IsAny<string>())).Returns(true);
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(false);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            // the message which is received from MSMQ
+            var msg = new UpdateMessage
+            {
+                Action = (int)Constants.MessageActionType.UserDeActivated,
+                ExternalId = "test"
+            };
+
+            sender.PublishCommand(msg);
+
+            // verify that the command is passed to the Send method of the bus and it has correct values in properties
+            bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
+        }
+
+        [Fact]
+        public void Should_not_send_command_DeactivateAccount_if_sso_disabled()
+        {
+            // mock bus interface to verify Send method later
+            var bus = new Mock<IMessageBus>();
+            // mock the factory to ensure it returns the mocked version of the bus
+            var messagingFactory = new Mock<IMessagingFactory>();
+            messagingFactory.Setup(m => m.CreateMessageBus()).Returns(bus.Object);
+            // use real factory to create an actual command
+            var commandFactory = new CommandFactory(new DeactivateAccountSetter());
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsSsoEnabled(It.IsAny<string>())).Returns(false);
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            // the message which is received from MSMQ
+            var msg = new UpdateMessage
+            {
+                Action = (int)Constants.MessageActionType.UserDeActivated,
+                ExternalId = "test"
+            };
+
+            sender.PublishCommand(msg);
+
+            // verify that the command is passed to the Send method of the bus and it has correct values in properties
+            bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData((int)Constants.EntityType.Ingredient)]
+        [InlineData((int)Constants.EntityType.Dish)]
+        [InlineData((int)Constants.EntityType.User)]
+        [InlineData((int)Constants.EntityType.UserGroup)]
+        [InlineData((int)Constants.EntityType.Supplier)]
+        [InlineData((int)Constants.EntityType.Group)]
+        [InlineData((int)Constants.EntityType.MealPeriodManagement)]
+        [InlineData((int)Constants.EntityType.Menu)]
+        public void Should_not_publish_to_orchestration_if_not_configured_for_entityType(int entityTypeId)
+        {
+            // mock bus interface to verify Send method later
+            var bus = new Mock<IMessageBus>();
+            // mock the factory to ensure it returns the mocked version of the bus
+            var messagingFactory = new Mock<IMessagingFactory>();
+            messagingFactory.Setup(m => m.CreateMessageBus()).Returns(bus.Object);
+            // use real factory to create an actual command
+            var commandFactory = new CommandFactory(new DeactivateAccountSetter());
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(false);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            // the message which is received from MSMQ
+            const int ANY_INT = 0;
+            const string ANY_TEXT = "any";
+            const EnumHelper.EntityTypeWrapper ANY_WRAPPER = EnumHelper.EntityTypeWrapper.Ingredient;
+            sender.Send(ANY_WRAPPER, ANY_TEXT, entityTypeId, ANY_INT, ANY_INT, DateTime.Now);
+
+            // verify that the command is passed to the Send method of the bus and it has correct values in properties
+            bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData((int)Constants.EntityType.Ingredient)]
+        [InlineData((int)Constants.EntityType.Dish)]
+        [InlineData((int)Constants.EntityType.User)]
+        [InlineData((int)Constants.EntityType.UserGroup)]
+        [InlineData((int)Constants.EntityType.Supplier)]
+        [InlineData((int)Constants.EntityType.Group)]
+        [InlineData((int)Constants.EntityType.MealPeriodManagement)]
+        [InlineData((int)Constants.EntityType.Menu)]
+        public void Should_not_send_to_orchestration_if_not_configured_for_entityType(int entityTypeId)
+        {
+            // mock bus interface to verify Send method later
+            var bus = new Mock<IMessageBus>();
+            // mock the factory to ensure it returns the mocked version of the bus
+            var messagingFactory = new Mock<IMessagingFactory>();
+            messagingFactory.Setup(m => m.CreateMessageBus()).Returns(bus.Object);
+            // use real factory to create an actual command
+            var commandFactory = new CommandFactory(new DeactivateAccountSetter());
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(false);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            // the message which is received from MSMQ
+            const int ANY_INT = 0;
+            const string ANY_TEXT = "any";
+            const EnumHelper.EntityTypeWrapper ANY_WRAPPER = EnumHelper.EntityTypeWrapper.Ingredient;
+            sender.Send(ANY_WRAPPER, ANY_TEXT, entityTypeId, ANY_INT, ANY_INT, DateTime.Now);
+
+            // verify that the command is passed to the Send method of the bus and it has correct values in properties
+            bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData((int)Constants.EntityType.User, EnumHelper.EntityTypeWrapper.UserCreated)]
+        [InlineData((int)Constants.EntityType.User, EnumHelper.EntityTypeWrapper.UserActivated)]
+        [InlineData((int)Constants.EntityType.User, EnumHelper.EntityTypeWrapper.UserDeactivated)]
+        public void Should_not_send_sso_related_commands_if_disabled(int entityTypeId, EnumHelper.EntityTypeWrapper entityTypeWrapper)
+        {
+            // mock bus interface to verify Send method later
+            var bus = new Mock<IMessageBus>();
+            // mock the factory to ensure it returns the mocked version of the bus
+            var messagingFactory = new Mock<IMessagingFactory>();
+            messagingFactory.Setup(m => m.CreateMessageBus()).Returns(bus.Object);
+            // use real factory to create an actual command
+            var commandFactory = new CommandFactory(new DeactivateAccountSetter());
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsSsoEnabled(It.IsAny<string>())).Returns(false);
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            // the message which is received from MSMQ
+            const int ANY_INT = 0;
+            const string ANY_TEXT = "any";
+            sender.Send(entityTypeWrapper, ANY_TEXT, entityTypeId, ANY_INT, ANY_INT, DateTime.Now);
+
+            // verify that the command is passed to the Send method of the bus and it has correct values in properties
+            bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
+            bus.Verify(m => m.Publish(It.IsAny<IMessage>()), Times.Never);
+        }
+
+        [Fact]
+        public void Should_not_send_sso_related_command_if_disabled_but_send_event()
+        {
+            // mock bus interface to verify Send method later
+            var bus = new Mock<IMessageBus>();
+            // mock the factory to ensure it returns the mocked version of the bus
+            var messagingFactory = new Mock<IMessagingFactory>();
+            messagingFactory.Setup(m => m.CreateMessageBus()).Returns(bus.Object);
+            // use real factory to create an actual command
+            var commandFactory = new CommandFactory(new DeactivateAccountSetter());
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsSsoEnabled(It.IsAny<string>())).Returns(false);
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            // the message which is received from MSMQ
+            const int ANY_INT = 0;
+            const string ANY_TEXT = "any";
+            // note SendUserUpdatedEventAndCommand is a special kind of wrapper
+            sender.Send(EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand, ANY_TEXT, (int)Constants.EntityType.User, ANY_INT, ANY_INT, DateTime.Now);
+
+            // verify that the command is passed to the Send method of the bus and it has correct values in properties
+            bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
+            bus.Verify(m => m.Publish(It.IsAny<IMessage>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData((int)Constants.EntityType.User, EnumHelper.EntityTypeWrapper.Recipe)]
+        [InlineData((int)Constants.EntityType.User, EnumHelper.EntityTypeWrapper.Ingredient)]
+        [InlineData((int)Constants.EntityType.User, EnumHelper.EntityTypeWrapper.MealPeriod)]
+        [InlineData((int)Constants.EntityType.User, EnumHelper.EntityTypeWrapper.Menu)]
+        public void Should_send_events_when_sso_related_commands_disabled(int entityTypeId, EnumHelper.EntityTypeWrapper entityTypeWrapper)
+        {
+            // mock bus interface to verify Send method later
+            var bus = new Mock<IMessageBus>();
+            // mock the factory to ensure it returns the mocked version of the bus
+            var messagingFactory = new Mock<IMessagingFactory>();
+            messagingFactory.Setup(m => m.CreateMessageBus()).Returns(bus.Object);
+            // use real factory to create an actual command
+            var commandFactory = new CommandFactory(new DeactivateAccountSetter());
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsSsoEnabled(It.IsAny<string>())).Returns(false);
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            // the message which is received from MSMQ
+            const int ANY_INT = 0;
+            const string ANY_TEXT = "any";
+            sender.Send(entityTypeWrapper, ANY_TEXT, entityTypeId, ANY_INT, ANY_INT, DateTime.Now);
+
+            // verify that the command is passed to the Send method of the bus and it has correct values in properties
+            bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
+            bus.Verify(m => m.Publish(It.IsAny<IMessage>()), Times.Once);
         }
 
         [Fact]
@@ -82,7 +282,9 @@ namespace StarChef.Orchestrate.Tests
                 eventSetter.Object,
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>());
 
-            var sender = new StarChefMessageSender(messagingFactory.Object, Mock.Of<IDatabaseManager>(), eventFactory, Mock.Of<ICommandFactory>());
+            var databaseManager = new Mock<IDatabaseManager>();
+            databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, eventFactory, Mock.Of<ICommandFactory>());
             
             // the message which is received from MSMQ
             var msg = new UpdateMessage

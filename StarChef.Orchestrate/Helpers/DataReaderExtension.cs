@@ -105,6 +105,25 @@ namespace StarChef.Orchestrate.Helpers
             #endregion
         }
 
+        internal static void ReadKitchenAreas(this IDataReader reader, out List<KitchenArea> kitchenAreas)
+        {
+            kitchenAreas = new List<KitchenArea>();
+            #region load data from reader
+            while (reader.Read())
+            {
+                var kitchenArea = new KitchenArea
+                {
+                    ProductPartId = reader.GetValue<int>("ProductPartId"),
+                    ExternalId = reader.GetValue<string>("ExternalId"),
+                    Name = reader.GetValue<string>("KitchenAreaName"),
+                    DisplayOrder = reader.GetValue<int>("DisplayOrder")
+                };
+
+                kitchenAreas.Add(kitchenArea);
+            }
+            #endregion
+        }
+
         [DebuggerDisplay(@"\{{TagName}\}")]
         private struct CategoryRecord
         {

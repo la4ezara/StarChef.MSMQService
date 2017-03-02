@@ -113,5 +113,44 @@ namespace StarChef.Orchestrate.Tests.Helpers
 
             #endregion
         }
+
+        [Fact]
+        public void ReadKitchenAreas_should_read_types_and_categories_from_one_list()
+        {
+            // create list like it should be selected from DB
+            var table = new DataTable();
+            table.Columns.AddRange(new[]
+            {
+                new DataColumn("ProductPartId", typeof (int)),
+                new DataColumn("ExternalId", typeof (string)),
+                new DataColumn("KitchenAreaName", typeof (string)),
+                new DataColumn("DisplayOrder", typeof (int))
+            });
+
+            table.Rows.Add(36402,"83A05879-8C70-4583-A36B-0A31D601F0D9", "Test area 1", 1);
+            table.Rows.Add(36402,"AF0FB0B6-34C6-4C9B-BA20-3330FA16A299", "Test area 2", 2);
+            table.Rows.Add(36403, "83A05879-8C70-4583-A36B-0A31D601F0D9", "Test area 1", 1);
+            table.Rows.Add(36403,"AF0FB0B6-34C6-4C9B-BA20-3330FA16A299", "Test area 2", 2);
+
+            #region act
+
+            var reader = table.CreateDataReader();
+            var kitchenAreas = new List<KitchenArea>();
+            reader.ReadKitchenAreas(out kitchenAreas);
+
+            #endregion
+
+            #region assert
+
+            // assert
+            Assert.Equal(4, kitchenAreas.Count);
+            Assert.Equal(2, kitchenAreas.Count(t => t.Name == "Test area 1"));
+            Assert.Equal(2, kitchenAreas.Count(t => t.Name == "Test area 2"));
+
+            Assert.Equal(2, kitchenAreas.Count(t => t.ProductPartId == 36402));
+            Assert.Equal(2, kitchenAreas.Count(t => t.ProductPartId == 36403));
+
+            #endregion
+        }
     }
 }

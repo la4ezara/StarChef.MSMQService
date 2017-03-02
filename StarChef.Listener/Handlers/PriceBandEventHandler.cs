@@ -30,7 +30,7 @@ namespace StarChef.Listener.Handlers
 
             if (!Validator.IsEnabled(priceBandUpdated))
             {
-                _logger.InfoFormat("Processing of the event is disabled for organization.");
+                _logger.EventDisabledForOrganization(priceBandUpdated);
 
                 ThreadContext.Properties.Remove(DATABASE_GUID);
                 return MessageHandlerResult.Success;
