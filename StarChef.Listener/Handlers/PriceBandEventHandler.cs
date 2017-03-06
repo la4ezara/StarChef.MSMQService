@@ -14,10 +14,16 @@ namespace StarChef.Listener.Handlers
     public class PriceBandEventHandler : ListenerEventHandler, IMessageHandler<PriceBandUpdated>
     {
         private readonly IConfiguration _configuration;
-        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly ILog _logger;
 
         public PriceBandEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, IConfiguration configuration) : base(dbCommands, validator, messagingLogger)
         {
+            _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            _configuration = configuration;
+        }
+        public PriceBandEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, IConfiguration configuration, ILog errorLogger) : base(dbCommands, validator, messagingLogger)
+        {
+            _logger = errorLogger;
             _configuration = configuration;
         }
 

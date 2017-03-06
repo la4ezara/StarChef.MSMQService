@@ -114,8 +114,8 @@ namespace StarChef.Listener.Tests.Handlers
             var configuration = new Mock<IConfiguration>();
             configuration.SetupGet(p => p.PriceBandBatchSize).Returns(1);
 
-            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(PriceBandEventHandler), Level.All);
+            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -154,8 +154,8 @@ namespace StarChef.Listener.Tests.Handlers
             var configuration = new Mock<IConfiguration>();
             configuration.SetupGet(p => p.PriceBandBatchSize).Returns(1);
 
-            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(PriceBandEventHandler), Level.All);
+            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -198,8 +198,8 @@ namespace StarChef.Listener.Tests.Handlers
             var configuration = new Mock<IConfiguration>();
             configuration.SetupGet(p => p.PriceBandBatchSize).Returns(1);
 
-            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(PriceBandEventHandler), Level.All);
+            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -244,8 +244,8 @@ namespace StarChef.Listener.Tests.Handlers
             var configuration = new Mock<IConfiguration>();
             configuration.SetupGet(p => p.PriceBandBatchSize).Returns(1);
 
-            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(PriceBandEventHandler), Level.All);
+            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -290,8 +290,8 @@ namespace StarChef.Listener.Tests.Handlers
             var configuration = new Mock<IConfiguration>();
             configuration.SetupGet(p => p.PriceBandBatchSize).Returns(1);
 
-            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(PriceBandEventHandler), Level.All);
+            var handler = new PriceBandEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, configuration.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;

@@ -32,8 +32,8 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(false);
 
             var messagingLogger = new Mock<IMessagingLogger>();
-            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(AccountStatusChangedEventHandler), Level.All);
+            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -65,8 +65,8 @@ namespace StarChef.Listener.Tests.Handlers
 
             validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
-            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(AccountStatusChangedEventHandler), Level.All);
+            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -101,8 +101,8 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(false);
             validator.Setup(m => m.GetErrors()).Returns(string.Empty);
             var messagingLogger = new Mock<IMessagingLogger>();
-            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(AccountStatusChangedEventHandler), Level.All);
+            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -137,8 +137,8 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
             messagingLogger.Setup(d => d.MessageProcessedSuccessfully(It.IsAny<object>(), It.IsAny<string>())).Throws(new ListenerException());
-            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
-            var logChecker = new LogChecker(handler.GetType(), Level.All);
+            var logChecker = new LogChecker(typeof(AccountStatusChangedEventHandler), Level.All);
+            var handler = new AccountStatusChangedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
