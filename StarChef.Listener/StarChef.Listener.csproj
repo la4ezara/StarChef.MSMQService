@@ -169,6 +169,7 @@
     <Compile Include="Commands\IConnectionStringProvider.cs" />
     <Compile Include="Commands\Impl\ConnectionStringProvider.cs" />
     <Compile Include="ConfigObjectMapping.cs" />
+    <Compile Include="Constant.cs" />
     <Compile Include="Exceptions\DatabaseException.cs" />
     <Compile Include="Exceptions\ConnectionStringNotFoundException.cs" />
     <Compile Include="Exceptions\ConnectionStringLookupException.cs" />

@@ -41,6 +41,7 @@ namespace StarChef.MSMQService
 
             // Start log4net up
             XmlConfigurator.Configure();
+            log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
         }
 
         public void Listen(object resetEvent)
