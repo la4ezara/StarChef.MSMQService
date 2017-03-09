@@ -2,7 +2,6 @@ using System;
 using System.Messaging;
 using System.Data;
 using System.Data.SqlClient;
-using Microsoft.ApplicationBlocks.ExceptionManagement;
 using StarChef.Data;
 using System.Diagnostics;
 using System.Threading;
@@ -42,6 +41,7 @@ namespace StarChef.MSMQService
 
             // Start log4net up
             XmlConfigurator.Configure();
+            log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
         }
 
         public void Listen(object resetEvent)
@@ -66,6 +66,11 @@ namespace StarChef.MSMQService
                         msg.Formatter = format;
                         string messageId = msg.Id;
                         updmsg = (UpdateMessage) msg.Body;
+
+                        if (updmsg != null)
+                        {
+                            ThreadContext.Properties["OrganisationId"] = updmsg.DatabaseID;
+                        }
 
                         step1:
                         if (!ListenerSVC.ActiveTaskDatabaseIDs.Contains(updmsg.DatabaseID))
@@ -144,13 +149,14 @@ namespace StarChef.MSMQService
             }
             catch (Exception ex)
             {
-                ExceptionManager.Publish(new Exception(ex.StackTrace));
+                Logger.Error(ex.Message, ex);
+                    
                 if (msg != null)
                 {
                     msg.Formatter = format;
                     updmsg = (UpdateMessage)msg.Body;
                     SendMail(updmsg);
-                    ExceptionManager.Publish(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
+                    Logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
                     mqm.mqSendToPoisonQueue(updmsg, msg.Priority);
                     ListenerSVC.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
                 }
@@ -160,6 +166,7 @@ namespace StarChef.MSMQService
                 mqm.mqDisconnect();
                 if(resetEvent != null)
                     ((ManualResetEvent)resetEvent).Set();
+                ThreadContext.Properties.Remove("OrganisationId");
             }
         }
 

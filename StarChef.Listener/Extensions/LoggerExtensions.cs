@@ -18,7 +18,7 @@ namespace StarChef.Listener.Extensions
 
         public static void ListenerException(this ILog logger, ListenerException exception, string trackingId, object data)
         {
-            logger.Error(string.Format("Exception of type {0} is occurred with message: {1}", exception.GetType().Name, exception.Message));
+            logger.Error(string.Format("Exception of type {0} is occurred with message: {1}", exception.GetType().Name, exception.Message), exception);
             logger.Error(string.Format("Exception data: [{0}]{1}", trackingId, data.ToJson()));
         }
 

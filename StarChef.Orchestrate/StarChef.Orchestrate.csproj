@@ -111,6 +111,7 @@
     <Compile Include="Models\KitchenArea.cs" />
     <Compile Include="Models\TransferObjects\AccountCreatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountCreateFailedTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\AccountStatusChangeFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountUpdatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountUpdateFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\FailedTransferObject.cs" />
@@ -120,7 +121,9 @@
     <Compile Include="StarChefMessageSender.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

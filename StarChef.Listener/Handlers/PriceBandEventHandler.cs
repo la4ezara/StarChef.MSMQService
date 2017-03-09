@@ -14,21 +14,31 @@ namespace StarChef.Listener.Handlers
     public class PriceBandEventHandler : ListenerEventHandler, IMessageHandler<PriceBandUpdated>
     {
         private readonly IConfiguration _configuration;
-        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly ILog _logger;
 
         public PriceBandEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, IConfiguration configuration) : base(dbCommands, validator, messagingLogger)
         {
+            _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            _configuration = configuration;
+        }
+        public PriceBandEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, IConfiguration configuration, ILog errorLogger) : base(dbCommands, validator, messagingLogger)
+        {
+            _logger = errorLogger;
             _configuration = configuration;
         }
 
         public async Task<MessageHandlerResult> HandleAsync(PriceBandUpdated priceBandUpdated, string trackingId)
         {
+            ThreadContext.Properties[DATABASE_GUID] = priceBandUpdated.CustomerId;
+
             // whole payload cannot be logged because the list may be very big
             _logger.InfoFormat("Data received. CustomerId={0}, CurrencyId={1}, PriceBandsCount={2}", priceBandUpdated.CustomerId, priceBandUpdated.CurrencyId, priceBandUpdated.PriceBandsCount);
 
             if (!Validator.IsEnabled(priceBandUpdated))
             {
                 _logger.EventDisabledForOrganization(priceBandUpdated);
+
+                ThreadContext.Properties.Remove(DATABASE_GUID);
                 return MessageHandlerResult.Success;
             }
             var priceBandBatchSize = _configuration.PriceBandBatchSize;
@@ -42,6 +52,8 @@ namespace StarChef.Listener.Handlers
                     if (!priceBandUpdated.PriceBandsList.Any())
                     {
                         _logger.InfoFormat("Processed");
+
+                        ThreadContext.Properties.Remove(DATABASE_GUID);
                         return MessageHandlerResult.Success;
                     }
 
@@ -63,11 +75,15 @@ namespace StarChef.Listener.Handlers
                     }
 
                     _logger.InfoFormat("Processed");
+
+                    ThreadContext.Properties.Remove(DATABASE_GUID);
                     return MessageHandlerResult.Success;
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex);
+                    _logger.Error(ex.Message, ex);
+
+                    ThreadContext.Properties.Remove(DATABASE_GUID);
                     return MessageHandlerResult.Retry;
                 }
             }
@@ -75,6 +91,8 @@ namespace StarChef.Listener.Handlers
             var errors = Validator.GetErrors();
             _logger.InvalidModel(trackingId, priceBandUpdated, errors);
             await MessagingLogger.ReceivedInvalidModel(trackingId, priceBandUpdated, errors);
+
+            ThreadContext.Properties.Remove(DATABASE_GUID);
             return MessageHandlerResult.Fatal;
         }
     }
