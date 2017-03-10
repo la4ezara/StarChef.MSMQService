@@ -13,6 +13,7 @@ namespace StarChef.Orchestrate
             string dbConnectionString,
             int entityTypeId,
             int entityId,
+            string entityExternalId,
             int databaseId,
             DateTime messageArrivedTime);
 

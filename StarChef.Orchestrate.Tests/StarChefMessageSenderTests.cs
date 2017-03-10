@@ -138,7 +138,7 @@ namespace StarChef.Orchestrate.Tests
             const int ANY_INT = 0;
             const string ANY_TEXT = "any";
             const EnumHelper.EntityTypeWrapper ANY_WRAPPER = EnumHelper.EntityTypeWrapper.Ingredient;
-            sender.Send(ANY_WRAPPER, ANY_TEXT, entityTypeId, ANY_INT, ANY_INT, DateTime.Now);
+            sender.Send(ANY_WRAPPER, ANY_TEXT, entityTypeId, ANY_INT, ANY_TEXT, ANY_INT, DateTime.Now);
 
             // verify that the command is passed to the Send method of the bus and it has correct values in properties
             bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
@@ -169,7 +169,7 @@ namespace StarChef.Orchestrate.Tests
             const int ANY_INT = 0;
             const string ANY_TEXT = "any";
             const EnumHelper.EntityTypeWrapper ANY_WRAPPER = EnumHelper.EntityTypeWrapper.Ingredient;
-            sender.Send(ANY_WRAPPER, ANY_TEXT, entityTypeId, ANY_INT, ANY_INT, DateTime.Now);
+            sender.Send(ANY_WRAPPER, ANY_TEXT, entityTypeId, ANY_INT, ANY_TEXT, ANY_INT, DateTime.Now);
 
             // verify that the command is passed to the Send method of the bus and it has correct values in properties
             bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
@@ -195,7 +195,7 @@ namespace StarChef.Orchestrate.Tests
             // the message which is received from MSMQ
             const int ANY_INT = 0;
             const string ANY_TEXT = "any";
-            sender.Send(entityTypeWrapper, ANY_TEXT, entityTypeId, ANY_INT, ANY_INT, DateTime.Now);
+            sender.Send(entityTypeWrapper, ANY_TEXT, entityTypeId, ANY_INT, ANY_TEXT, ANY_INT, DateTime.Now);
 
             // verify that the command is passed to the Send method of the bus and it has correct values in properties
             bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
@@ -220,7 +220,7 @@ namespace StarChef.Orchestrate.Tests
             const int ANY_INT = 0;
             const string ANY_TEXT = "any";
             // note SendUserUpdatedEventAndCommand is a special kind of wrapper
-            sender.Send(EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand, ANY_TEXT, (int)Constants.EntityType.User, ANY_INT, ANY_INT, DateTime.Now);
+            sender.Send(EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand, ANY_TEXT, (int)Constants.EntityType.User, ANY_INT, ANY_TEXT, ANY_INT, DateTime.Now);
 
             // verify that the command is passed to the Send method of the bus and it has correct values in properties
             bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
@@ -248,7 +248,7 @@ namespace StarChef.Orchestrate.Tests
             // the message which is received from MSMQ
             const int ANY_INT = 0;
             const string ANY_TEXT = "any";
-            sender.Send(entityTypeWrapper, ANY_TEXT, entityTypeId, ANY_INT, ANY_INT, DateTime.Now);
+            sender.Send(entityTypeWrapper, ANY_TEXT, entityTypeId, ANY_INT, ANY_TEXT, ANY_INT, DateTime.Now);
 
             // verify that the command is passed to the Send method of the bus and it has correct values in properties
             bus.Verify(m => m.Send(It.IsAny<IMessage>()), Times.Never);
