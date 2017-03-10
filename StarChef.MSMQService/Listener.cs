@@ -439,6 +439,7 @@ namespace StarChef.MSMQService
                                     msg.DSN,
                                     entityTypeId,
                                     entityId,
+                                    msg.ExternalId,
                                     msg.DatabaseID,
                                     arrivedTime);
             }
