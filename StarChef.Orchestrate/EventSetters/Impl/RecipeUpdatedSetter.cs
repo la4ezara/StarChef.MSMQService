@@ -103,7 +103,9 @@ namespace StarChef.Orchestrate
             //read intolerances
             if(reader.NextResult())
             {
-                builder.SetContainsMilkOrMilkProducts(reader.GetBoolean(1))
+                if (reader.Read())
+                {
+                    builder.SetContainsMilkOrMilkProducts(reader.GetBoolean(1))
                     .SetContainsEggOrEggDerivatives(reader.GetBoolean(2))
                     .SetContainsCerealsThatContainGluten(reader.GetBoolean(3))
                     .SetContainsPeanuts(reader.GetBoolean(4))
@@ -118,17 +120,21 @@ namespace StarChef.Orchestrate
                     .SetContainsSulphurDioxideOrSulphites(reader.GetBoolean(13))
                     .SetContainsLupinFlourOrLupinProducts(reader.GetBoolean(14))
                     .SetContainsGlutenOrGlutenProducts(reader.GetBoolean(15));
+                }
             }
 
             //read nutritions
             if (reader.NextResult())
             {
-                builder.SetEnergyKJperServing(reader.GetDouble(1))
+                if (reader.Read())
+                {
+                    builder.SetEnergyKJperServing(reader.GetDouble(1))
                     .SetEnergyKCalPerServing(reader.GetDouble(2))
                     .SetFatPerServing(reader.GetDouble(3))
                     .SetSaturatedFatPerServing(reader.GetDouble(4))
                     .SetSugarPerServing(reader.GetDouble(5))
                     .SetSaltPerServing(reader.GetDouble(6));
+                }
             }
 
             return true;
