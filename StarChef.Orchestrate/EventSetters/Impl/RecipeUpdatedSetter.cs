@@ -100,6 +100,37 @@ namespace StarChef.Orchestrate
                 BuilderHelpers.BuildCategoryTypes(builder, createCategoryType, createCategory, categoryTypes);
             }
 
+            //read intolerances
+            if(reader.NextResult())
+            {
+                builder.SetContainsMilkOrMilkProducts(reader.GetBoolean(1))
+                    .SetContainsEggOrEggDerivatives(reader.GetBoolean(2))
+                    .SetContainsCerealsThatContainGluten(reader.GetBoolean(3))
+                    .SetContainsPeanuts(reader.GetBoolean(4))
+                    .SetContainsNutsOrNutTrace(reader.GetBoolean(5))
+                    .SetContainsSesameSeedOrSesameSeedProducts(reader.GetBoolean(6))
+                    .SetContainsSoya(reader.GetBoolean(7))
+                    .SetContainsFishOrFishProducts(reader.GetBoolean(8))
+                    .SetContainsCrustaceans(reader.GetBoolean(9))
+                    .SetContainsMolluscs(reader.GetBoolean(10))
+                    .SetContainsMustardOrMustardProducts(reader.GetBoolean(11))
+                    .SetContainsCeleryOrCeleriacProducts(reader.GetBoolean(12))
+                    .SetContainsSulphurDioxideOrSulphites(reader.GetBoolean(13))
+                    .SetContainsLupinFlourOrLupinProducts(reader.GetBoolean(14))
+                    .SetContainsGlutenOrGlutenProducts(reader.GetBoolean(15));
+            }
+
+            //read nutritions
+            if (reader.NextResult())
+            {
+                builder.SetEnergyKJperServing(reader.GetDouble(1))
+                    .SetEnergyKCalPerServing(reader.GetDouble(2))
+                    .SetFatPerServing(reader.GetDouble(3))
+                    .SetSaturatedFatPerServing(reader.GetDouble(4))
+                    .SetSugarPerServing(reader.GetDouble(5))
+                    .SetSaltPerServing(reader.GetDouble(6));
+            }
+
             return true;
         }
 
