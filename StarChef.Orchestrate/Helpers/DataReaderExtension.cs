@@ -77,14 +77,14 @@ namespace StarChef.Orchestrate.Helpers
                 var categoryRecord = stack.Peek();
                 if (categoryRecord.TagParentId.HasValue)
                 {
-                    var parentRecord = records.Single(i => i.TagId == categoryRecord.TagParentId.Value && !i.IsSelected);
+                    var parentRecord = records.Single(i => i.TagId == categoryRecord.TagParentId.Value && !i.IsSelected && i.ProductId == categoryRecord.ProductId);
                     stack.Push(parentRecord);
                 }
                 else // met a category type 
                 {
                     // build the leg of items from the top to the selected one
                     var typeRecord = stack.Pop(); // skip the type
-                    var categoryType = categoryTypes.Single(t => t.Id == typeRecord.TagId);
+                    var categoryType = categoryTypes.Single(t => t.Id == typeRecord.TagId && t.ProductId == typeRecord.ProductId);
 
                     var currentRecord = stack.Pop();
                     var parentCategory = currentRecord.CreateCategory();
