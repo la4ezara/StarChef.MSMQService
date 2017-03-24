@@ -42,6 +42,7 @@ namespace StarChef.Listener.Handlers
                     var user = Mapper.Map<AccountCreatedTransferObject>(payload);
                     try
                     {
+                        await DbCommands.AddUser(user);//!!!!!!!!! to be removed
                         await DbCommands.UpdateExternalId(user);
                         await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                         _logger.Processed(trackingId, payload);

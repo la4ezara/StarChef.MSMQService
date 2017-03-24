@@ -11,6 +11,7 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
         public bool IsCalledAnyMethod { get; private set; } = false;
         public bool IsExternalIdUpdated { get; private set; } = false;
         public bool IsUserUpdated { get; private set; } = false;
+        public bool IsUserCreated { get; private set; } = false;
         public bool IsUserDisabled { get; private set; } = false;
 
         public Task DisableLogin(int? loginId = default(int?), string externalLoginId = null)
@@ -45,6 +46,20 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
                 IsCalledAnyMethod = true;
             return Task.CompletedTask;
         }
+
+        public Task AddUser(AccountCreatedTransferObject user)
+        {
+            IsUserCreated =
+               IsCalledAnyMethod = true;
+            return Task.CompletedTask;
+        }
+
+        public Task<Tuple<int, int, int, int>> GetUserId(int loginId)
+        {
+            IsCalledAnyMethod = true;
+            return Task.FromResult(new Tuple<int, int, int, int>(1, 1, 1, 1));
+        }
+
         public Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId)
         {
             IsCalledAnyMethod = true;

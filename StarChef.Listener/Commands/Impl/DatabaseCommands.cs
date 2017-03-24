@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Xml;
 using log4net;
+using Newtonsoft.Json;
 using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
@@ -70,6 +73,62 @@ namespace StarChef.Listener.Commands.Impl
             await Exec(loginDbConnectionString, "sc_orchestration_update_login_external_id", p =>
             {
                 p.AddWithValue("@login_id", user.LoginId);
+                p.AddWithValue("@external_login_id", user.ExternalLoginId);
+            });
+        }
+
+        public async Task AddUser(AccountCreatedTransferObject user)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var appSettings = ConfigurationManager.AppSettings["Jsons"];
+            Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>(appSettings);
+
+            await Exec(loginDbConnectionString, "sc_admin_save_preferences", p =>
+            {
+                p.AddWithValue("@email", user.EmailAddress);
+                p.AddWithValue("@login_name", user.Username);
+                p.AddWithValue("@forename", user.FirstName);
+                p.AddWithValue("@lastname", user.LastName);
+                p.AddWithValue("@user_desc", values["user_desc"]);
+                p.AddWithValue("@user_notes", values["user_notes"]);
+                p.AddWithValue("@contact_number", values["contact_number"]);
+                p.AddWithValue("@ugroup_id", values["ugroup_id"]);
+                p.AddWithValue("@language_id", values["language_id"]);
+                p.AddWithValue("@user_config", values["user_config"]);
+                p.AddWithValue("@is_enabled", values["is_enabled"]);
+                p.AddWithValue("@is_deleted", values["is_deleted"]);
+                p.AddWithValue("@is_anonymous", values["is_anonymous"]);
+                p.AddWithValue("@upicture_id", values["upicture_id"]);
+                p.AddWithValue("@upicture_location", values["upicture_location"]);
+                p.AddWithValue("@width", values["width"]);
+                p.AddWithValue("@height", values["height"]);
+                p.AddWithValue("@nutrition_type_id", values["nutrition_type_id"]);
+                p.AddWithValue("@modified_by", values["modified_by"]);
+            });
+
+            var ids = await GetUserId(loginDbConnectionString, user.LoginId);
+            if (ids == null)
+                throw new ListenerException("Cannot map external account to the StarChef account");
+                var userId = ids.Item1;
+                var userConfig = ids.Item2;
+                var isEnabled = ids.Item3;
+                var isDeleted = ids.Item4;
+
+            await Exec(loginDbConnectionString, "sc_admin_update_login", p =>
+            {
+                p.AddWithValue("@login_id", user.LoginId);
+                p.AddWithValue("@login_name", user.Username);
+                p.AddWithValue("@db_application_id", values["db_application_id"]);
+                p.AddWithValue("@db_database_id", values["db_database_id"]);
+                p.AddWithValue("@user_id", userId);
+                p.AddWithValue("@db_role_id", values["db_role_id"]);
+                p.AddWithValue("@login_password", values["login_password"]);
+                p.AddWithValue("@login_config", userConfig);
+                p.AddWithValue("@is_enabled", isEnabled);
+                p.AddWithValue("@is_deleted", isDeleted);
                 p.AddWithValue("@external_login_id", user.ExternalLoginId);
             });
         }
@@ -233,6 +292,27 @@ namespace StarChef.Listener.Commands.Impl
                 return new Tuple<int, int>(dbLoginId, dbUserId);
             };
             var result = await UseReader(loginDbConnectionString, "sc_orchestration_get_loginuser_id", addParametersAction, processReader);
+            return result;
+        }
+
+        private async Task<Tuple<int, int, int, int, int>> GetUserId(string loginDbConnectionString, int? userId = default(int?))
+        {
+            Action<SqlParameterCollection> addParametersAction = parameters =>
+            {
+                if (userId.HasValue)
+                    parameters.AddWithValue("@user_id", userId.Value);
+            };
+            Func<SqlDataReader, Task<Tuple<int, int, int, int, int>>> processReader = async reader =>
+            {
+                await reader.ReadAsync();
+                var dbUserId = reader.GetInt32(0);
+                var dbUserConfig = reader.GetInt32(2);
+                var isEnabled = reader.GetInt32(3);
+                var isDeleted = reader.GetInt32(4);
+                var modifiedBy = reader.GetInt32(5);
+                return new Tuple<int, int, int, int, int>(dbUserId, dbUserConfig, isEnabled, isDeleted, modifiedBy);
+            };
+            var result = await UseReader(loginDbConnectionString, "get_user_data", addParametersAction, processReader);
             return result;
         }
 

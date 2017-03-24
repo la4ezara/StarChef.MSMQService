@@ -86,9 +86,12 @@ namespace StarChef.Listener.Commands
         /// <param name="code">Short unique name of the operation. The code may come from external system as well as from the SC itself</param>
         /// <param name="details">Additional details about the event, for examples errors description</param>
         /// <param name="payloadJson">(Optional) JSON representation of event's payload </param>
+        /// <param name="user"></param>
         /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
         /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         /// <returns></returns>
+        Task AddUser(AccountCreatedTransferObject user);
+
         Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null);
 
         /// <summary>
