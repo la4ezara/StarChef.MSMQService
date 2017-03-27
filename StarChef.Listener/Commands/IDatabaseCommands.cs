@@ -54,6 +54,8 @@ namespace StarChef.Listener.Commands
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         Task DisableLogin(int? loginId = null, string externalLoginId = null);
 
+        Task EnableLogin(int? loginId = null, string externalLoginId = null);
+
         /// <summary>
         ///     Update some fields of user data
         /// </summary>

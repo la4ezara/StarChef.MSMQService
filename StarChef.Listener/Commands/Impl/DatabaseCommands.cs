@@ -92,21 +92,8 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@login_name", user.Username);
                 p.AddWithValue("@forename", user.FirstName);
                 p.AddWithValue("@lastname", user.LastName);
-                p.AddWithValue("@user_desc", values["user_desc"]);
-                p.AddWithValue("@user_notes", values["user_notes"]);
-                p.AddWithValue("@contact_number", values["contact_number"]);
                 p.AddWithValue("@ugroup_id", values["ugroup_id"]);
                 p.AddWithValue("@language_id", values["language_id"]);
-                p.AddWithValue("@user_config", values["user_config"]);
-                p.AddWithValue("@is_enabled", values["is_enabled"]);
-                p.AddWithValue("@is_deleted", values["is_deleted"]);
-                p.AddWithValue("@is_anonymous", values["is_anonymous"]);
-                p.AddWithValue("@upicture_id", values["upicture_id"]);
-                p.AddWithValue("@upicture_location", values["upicture_location"]);
-                p.AddWithValue("@width", values["width"]);
-                p.AddWithValue("@height", values["height"]);
-                p.AddWithValue("@nutrition_type_id", values["nutrition_type_id"]);
-                p.AddWithValue("@modified_by", values["modified_by"]);
             });
 
             var ids = await GetUserId(loginDbConnectionString, user.LoginId);
@@ -192,6 +179,25 @@ namespace StarChef.Listener.Commands.Impl
             await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@user_id", existingUserId));
         }
 
+        public async Task EnableLogin(int? loginId = default(int?), string externalLoginId = null)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var ids = await GetLoginUserId(loginDbConnectionString, loginId, externalLoginId);
+            if (ids == null)
+                throw new ListenerException("Cannot map external account to the StarChef account");
+            var existingLoginId = ids.Item1;
+            var existingUserId = ids.Item2;
+
+            var connectionString = await _csProvider.GetCustomerDb(existingLoginId, loginDbConnectionString);
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
+
+            await Exec(loginDbConnectionString, "sc_orchestration_enable_user", p => p.AddWithValue("@login_id", existingLoginId));
+            await Exec(connectionString, "sc_orchestration_enable_user", p => p.AddWithValue("@user_id", existingUserId));
+        }
         /// <exception cref="DatabaseException">Database operation is failed</exception>
         public async Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId)
         {

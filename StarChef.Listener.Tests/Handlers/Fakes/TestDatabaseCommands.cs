@@ -13,10 +13,18 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
         public bool IsUserUpdated { get; private set; } = false;
         public bool IsUserCreated { get; private set; } = false;
         public bool IsUserDisabled { get; private set; } = false;
+        public bool IsUserEnabled { get; private set; } = false;
 
         public Task DisableLogin(int? loginId = default(int?), string externalLoginId = null)
         {
             IsUserDisabled =
+                IsCalledAnyMethod = true;
+            return Task.CompletedTask;
+        }
+
+        public Task EnableLogin(int? loginId = default(int?), string externalLoginId = null)
+        {
+            IsUserEnabled =
                 IsCalledAnyMethod = true;
             return Task.CompletedTask;
         }
