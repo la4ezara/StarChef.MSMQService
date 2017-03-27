@@ -54,6 +54,16 @@ namespace StarChef.Listener.Commands
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         Task DisableLogin(int? loginId = null, string externalLoginId = null);
 
+        /// <summary>
+        /// Enable login
+        /// </summary>
+        /// <param name="loginId"></param>
+        /// <param name="externalLoginId"></param>
+        /// <returns>If both identifiers are specified, the login id is used</returns>
+        /// <exception cref="DatabaseException">Database operation is failed</exception>
+        /// <exception cref="ConnectionStringNotFoundException">Customer DB connections string is not found</exception>
+        /// <exception cref="ListenerException">Cannot map external account to the StarChef account</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         Task EnableLogin(int? loginId = null, string externalLoginId = null);
 
         /// <summary>
