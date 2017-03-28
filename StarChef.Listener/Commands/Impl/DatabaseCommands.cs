@@ -20,10 +20,12 @@ namespace StarChef.Listener.Commands.Impl
     {
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly IConnectionStringProvider _csProvider;
+        private readonly IConfiguration _configuration;
 
-        public DatabaseCommands(IConnectionStringProvider csProvider)
+        public DatabaseCommands(IConnectionStringProvider csProvider, IConfiguration configuration)
         {
             _csProvider = csProvider;
+            _configuration = configuration;
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
@@ -83,8 +85,7 @@ namespace StarChef.Listener.Commands.Impl
             if (string.IsNullOrEmpty(loginDbConnectionString))
                 throw new ConnectionStringNotFoundException("Login DB connection string is not found");
 
-            var appSettings = ConfigurationManager.AppSettings["Jsons"];
-            Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>(appSettings);
+            var values = _configuration.UserDefaults;
 
             await Exec(loginDbConnectionString, "sc_admin_save_preferences", p =>
             {

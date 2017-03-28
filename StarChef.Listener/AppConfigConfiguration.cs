@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -17,6 +18,16 @@ namespace StarChef.Listener
                 if (int.TryParse(ConfigurationManager.AppSettings["PriceBandBatchSize"], out priceBandBatchSize))
                     return priceBandBatchSize;
                 return 500;
+            }
+        }
+
+        public Dictionary<string, string> UserDefaults
+        {
+            get
+            {
+                var appSettings = ConfigurationManager.AppSettings["UserDefaults"];
+                Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>(appSettings);
+                return values;
             }
         }
     }
