@@ -32,7 +32,7 @@ namespace StarChef.Listener.Types
             return _lastError;
         }
 
-        public virtual bool IsStarChefEvent(object payload)
+        public virtual bool IsAllowedEvent(object payload)
         {
             return true;
         }

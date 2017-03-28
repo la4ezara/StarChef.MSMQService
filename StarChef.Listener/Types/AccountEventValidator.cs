@@ -18,7 +18,7 @@ namespace StarChef.Listener.Types
         {
         }
 
-        public override bool IsStarChefEvent(object payload)
+        public override bool IsAllowedEvent(object payload)
         {
             var supportedEvents = new[]
             {

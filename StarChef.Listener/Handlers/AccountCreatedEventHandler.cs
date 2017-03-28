@@ -33,7 +33,7 @@ namespace StarChef.Listener.Handlers
         {
             ThreadContext.Properties[INTERNAL_ID] = payload.InternalId;
 
-            if (Validator.IsStarChefEvent(payload))
+            if (Validator.IsAllowedEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
 

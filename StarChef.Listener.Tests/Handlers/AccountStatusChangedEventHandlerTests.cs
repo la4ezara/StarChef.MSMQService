@@ -29,7 +29,7 @@ namespace StarChef.Listener.Tests.Handlers
 
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(false);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(false);
 
             var messagingLogger = new Mock<IMessagingLogger>();
             var logChecker = new LogChecker(typeof(AccountStatusChangedEventHandler), Level.All);
@@ -61,7 +61,7 @@ namespace StarChef.Listener.Tests.Handlers
 
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
@@ -96,7 +96,7 @@ namespace StarChef.Listener.Tests.Handlers
 
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(false);
             validator.Setup(m => m.GetErrors()).Returns(string.Empty);
@@ -132,7 +132,7 @@ namespace StarChef.Listener.Tests.Handlers
 
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();

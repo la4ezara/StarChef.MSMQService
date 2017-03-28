@@ -25,7 +25,7 @@ namespace StarChef.Listener.Tests.Types
         [MemberData("AccountEventsWithStarChefSourceSystem")]
         public void Should_return_True_for_event_with_StartChef_source(object payload, object validator)
         {
-            var actual = ((EventValidator)validator).IsStarChefEvent(payload);
+            var actual = ((EventValidator)validator).IsAllowedEvent(payload);
 
             Assert.True(actual);
         }
@@ -34,7 +34,7 @@ namespace StarChef.Listener.Tests.Types
         [MemberData("AccountEventsWithNonStarChefSourceSystem")]
         public void Should_return_False_for_event_with_nonStartChef_source(object payload, object validator)
         {
-            var actual = ((EventValidator)validator).IsStarChefEvent(payload);
+            var actual = ((EventValidator)validator).IsAllowedEvent(payload);
 
             Assert.False(actual);
         }
@@ -43,7 +43,7 @@ namespace StarChef.Listener.Tests.Types
         [MemberData("AccountEventsWithoutSourceSystem")]
         public void Should_return_False_if_source_is_not_set_for_event(object payload, object validator)
         {
-            var actual = ((EventValidator)validator).IsStarChefEvent(payload);
+            var actual = ((EventValidator)validator).IsAllowedEvent(payload);
 
             Assert.False(actual);
         }

@@ -105,7 +105,7 @@ namespace StarChef.Listener.Tests.Handlers
 
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
@@ -145,7 +145,7 @@ namespace StarChef.Listener.Tests.Handlers
 
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
@@ -189,7 +189,7 @@ namespace StarChef.Listener.Tests.Handlers
 
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(false);
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
@@ -234,7 +234,7 @@ namespace StarChef.Listener.Tests.Handlers
 
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(false);
@@ -281,7 +281,7 @@ namespace StarChef.Listener.Tests.Handlers
             var dbCommands = new Mock<IDatabaseCommands>();
             dbCommands.Setup(d => d.SavePriceBandData(It.IsAny<Guid>(), It.IsAny<XmlDocument>())).Throws(new Exception());
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
-            validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);

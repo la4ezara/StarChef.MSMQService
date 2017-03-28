@@ -29,7 +29,7 @@ namespace StarChef.Listener.Handlers
         {
             ThreadContext.Properties[EXTERNAL_ID] = payload.ExternalId;
 
-            if (Validator.IsStarChefEvent(payload))
+            if (Validator.IsAllowedEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
 
