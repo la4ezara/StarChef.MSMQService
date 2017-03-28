@@ -20,7 +20,7 @@ namespace StarChef.Listener.Validators
             return GetFromDbConfiguration(e.ExternalId, typeof(AccountUpdateFailed).Name);
         }
 
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(AccountUpdateFailed)) return false;

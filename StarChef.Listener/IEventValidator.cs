@@ -6,7 +6,7 @@ namespace StarChef.Listener
     {
         string GetErrors();
         bool IsStarChefEvent(object payload);
-        bool IsValid(object payload);
+        bool IsValidPayload(object payload);
         bool IsEnabled(object payload);
     }
 }

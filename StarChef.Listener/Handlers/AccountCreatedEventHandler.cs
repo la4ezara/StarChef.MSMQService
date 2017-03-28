@@ -37,7 +37,7 @@ namespace StarChef.Listener.Handlers
             {
                 _logger.EventReceived(trackingId, payload);
 
-                if (Validator.IsValid(payload))
+                if (Validator.IsValidPayload(payload))
                 {
                     var user = Mapper.Map<AccountCreatedTransferObject>(payload);
                     try

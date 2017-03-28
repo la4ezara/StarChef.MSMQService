@@ -20,7 +20,7 @@ namespace StarChef.Listener.Types
             return true;
         }
 
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             return true;
         }

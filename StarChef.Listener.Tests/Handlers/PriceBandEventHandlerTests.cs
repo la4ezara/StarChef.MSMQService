@@ -31,7 +31,7 @@ namespace StarChef.Listener.Tests.Handlers
             var databaseCommands = Mock.Of<IDatabaseCommands>();
             var eventValidator = new Mock<IEventValidator>();
             eventValidator.Setup(m => m.IsEnabled(It.IsAny<PriceBandUpdated>())).Returns(true);
-            eventValidator.Setup(m => m.IsValid(It.IsAny<PriceBandUpdated>())).Returns(true);
+            eventValidator.Setup(m => m.IsValidPayload(It.IsAny<PriceBandUpdated>())).Returns(true);
             var handler = new PriceBandEventHandler(databaseCommands, eventValidator.Object, Mock.Of<IMessagingLogger>(), configuration);
 
             var priceBandUpdated = PriceBandUpdated.CreateBuilder();
@@ -85,7 +85,7 @@ namespace StarChef.Listener.Tests.Handlers
             var result = handler.HandleAsync(priceBandUpdated, Guid.Empty.ToString()).Result;
 
             Assert.Equal(MessageHandlerResult.Success, result);
-            eventValidator.Verify(m => m.IsValid(It.IsAny<PriceBandUpdated>()), Times.Never);
+            eventValidator.Verify(m => m.IsValidPayload(It.IsAny<PriceBandUpdated>()), Times.Never);
         }
         
         [Fact]
@@ -108,7 +108,7 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
-            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
 
             var configuration = new Mock<IConfiguration>();
@@ -148,7 +148,7 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
-            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
 
             var configuration = new Mock<IConfiguration>();
@@ -192,7 +192,7 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(false);
-            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
 
             var configuration = new Mock<IConfiguration>();
@@ -237,7 +237,7 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
-            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(false);
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(false);
             validator.Setup(m => m.GetErrors()).Returns(string.Empty);
             var messagingLogger = new Mock<IMessagingLogger>();
 
@@ -284,7 +284,7 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
             validator.Setup(m => m.IsEnabled(It.IsAny<object>())).Returns(true);
-            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
 
             var configuration = new Mock<IConfiguration>();

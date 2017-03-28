@@ -114,7 +114,7 @@ namespace StarChef.Listener.Tests.Handlers
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
-            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
             var logChecker = new LogChecker(typeof(AccountUpdateFailedEventHandler), Level.All);
             var handler = new AccountUpdateFailedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
@@ -150,7 +150,7 @@ namespace StarChef.Listener.Tests.Handlers
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
             validator.Setup(m => m.IsStarChefEvent(payload)).Returns(true);
 
-            validator.Setup(m => m.IsValid(It.IsAny<object>())).Returns(false);
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(false);
             validator.Setup(m => m.GetErrors()).Returns(string.Empty);
             var messagingLogger = new Mock<IMessagingLogger>();
             var logChecker = new LogChecker(typeof(AccountUpdateFailedEventHandler), Level.All);

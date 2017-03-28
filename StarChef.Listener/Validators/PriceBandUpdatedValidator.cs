@@ -20,7 +20,7 @@ namespace StarChef.Listener.Validators
             return GetFromDbConfiguration(Guid.Parse(e.CustomerId), typeof (PriceBandUpdated).Name);
         }
 
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(PriceBandUpdated)) return false;

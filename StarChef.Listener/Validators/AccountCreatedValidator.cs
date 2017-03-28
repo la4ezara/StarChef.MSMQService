@@ -21,7 +21,7 @@ namespace StarChef.Listener.Validators
             return GetFromDbConfiguration(loginId, typeof(AccountCreated).Name);
         }
 
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(AccountCreated)) return false;
