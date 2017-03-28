@@ -32,6 +32,11 @@ namespace StarChef.Listener.Types
             return _lastError;
         }
 
+        /// <summary>
+        /// If derived this method validates the event type and issuer are supported by the handler
+        /// </summary>
+        /// <param name="payload">Event payload</param>
+        /// <returns></returns>
         public virtual bool IsAllowedEvent(object payload)
         {
             return true;

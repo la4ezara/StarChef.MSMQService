@@ -34,7 +34,7 @@ namespace StarChef.Listener.Types
             if (!supportedEvents.Contains(payload.GetType())) return false;
 
             dynamic p = payload; // Let's assign to dynamic var because there is no common type for the events, but they have common properties
-            return p.HasSource && p.Source == SourceSystem.STARCHEF;
+            return p.HasSource && new[] { SourceSystem.STARCHEF /* other allowed source systems */}.Contains((SourceSystem)p.Source);
         }
     }
 }
