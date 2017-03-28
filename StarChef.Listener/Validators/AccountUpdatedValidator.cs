@@ -5,13 +5,13 @@ using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 
 namespace StarChef.Listener.Validators
 {
-    class AccountUpdatedValidator : EventValidator, IEventValidator
+    class AccountUpdatedValidator : AccountEventValidator, IEventValidator
     {
         public AccountUpdatedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
         {
         }
 
-        public bool IsEnabled(object payload)
+        public override bool IsEnabled(object payload)
         {
             var e = payload as AccountUpdated;
             if (e == null)

@@ -5,13 +5,13 @@ using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountSta
 
 namespace StarChef.Listener.Validators
 {
-    class AccountStatusChangedValidator : EventValidator, IEventValidator
+    class AccountStatusChangedValidator : AccountEventValidator, IEventValidator
     {
         public AccountStatusChangedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
         {
         }
 
-        public bool IsEnabled(object payload)
+        public override bool IsEnabled(object payload)
         {
             var e = payload as AccountStatusChanged;
             if (e == null)

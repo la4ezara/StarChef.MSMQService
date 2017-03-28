@@ -5,13 +5,13 @@ using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.Accou
 
 namespace StarChef.Listener.Validators
 {
-    class AccountStatusChangeFailedValidator : EventValidator, IEventValidator
+    class AccountStatusChangeFailedValidator : AccountEventValidator, IEventValidator
     {
         public AccountStatusChangeFailedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
         {
         }
 
-        public bool IsEnabled(object payload)
+        public override bool IsEnabled(object payload)
         {
             var e = payload as AccountStatusChangeFailed;
             if (e == null)

@@ -11,18 +11,13 @@ namespace StarChef.Listener.Validators
         {
         }
 
-        public bool IsEnabled(object payload)
+        public override bool IsEnabled(object payload)
         {
             var e = payload as PriceBandUpdated;
             if (e == null)
                 throw new ArgumentException("The type of the payload is not supported");
 
             return GetFromDbConfiguration(Guid.Parse(e.CustomerId), typeof (PriceBandUpdated).Name);
-        }
-
-        public override bool IsStarChefEvent(object payload)
-        {
-            return true;
         }
 
         public bool IsValid(object payload)

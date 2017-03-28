@@ -34,21 +34,7 @@ namespace StarChef.Listener.Types
 
         public virtual bool IsStarChefEvent(object payload)
         {
-            var supportedEvents = new[]
-            {
-                typeof (AccountCreated),
-                typeof (AccountCreateFailed),
-                typeof (AccountUpdated),
-                typeof (AccountUpdateFailed),
-                typeof (AccountStatusChanged),
-                typeof (AccountStatusChangeFailed),
-            };
-            if (payload == null) return false;
-
-            if (!supportedEvents.Contains(payload.GetType())) return false;
-
-            dynamic p = payload; // Let's assign to dynamic var because there is no common type for the events, but they have common properties
-            return p.HasSource && p.Source == SourceSystem.STARCHEF;
+            return true;
         }
 
         protected void SetLastError(string error)
