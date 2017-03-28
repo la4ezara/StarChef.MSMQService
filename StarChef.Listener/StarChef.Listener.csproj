@@ -210,6 +210,7 @@
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Types\AccountEventValidator.cs" />
     <Compile Include="Validators\AccountCreatedValidator.cs" />
     <Compile Include="Validators\AccountCreateFailedValidator.cs" />
     <Compile Include="Validators\AccountStatusChangeFailedValidator.cs" />

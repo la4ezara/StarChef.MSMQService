@@ -15,12 +15,12 @@ namespace StarChef.Listener.Types
             return true;
         }
 
-        public bool IsStarChefEvent(object payload)
+        public bool IsAllowedEvent(object payload)
         {
             return true;
         }
 
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             return true;
         }

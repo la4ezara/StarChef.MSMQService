@@ -20,7 +20,7 @@ namespace StarChef.Listener.Tests.Types
             var accountCreated = builder.Build();
 
             var validator = new AccountCreateFailedValidator(Mock.Of<IDatabaseCommands>());
-            var actual = validator.IsValid(accountCreated);
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.True(actual);
         }

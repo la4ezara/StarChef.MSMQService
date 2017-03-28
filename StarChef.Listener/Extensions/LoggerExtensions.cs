@@ -1,6 +1,7 @@
 ﻿using System;
 using log4net;
 using StarChef.Listener.Exceptions;
+using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener.Extensions
 {
@@ -42,5 +43,32 @@ namespace StarChef.Listener.Extensions
         {
             logger.InfoFormat("Processing of the event is disabled for organization.");
         }
+        
+        public static void UpdatingUserExternalId(this ILog logger, AccountCreatedTransferObject user)
+        {
+            logger.InfoFormat("Set externalId ({0}) to user with loginId={1}", user.ExternalLoginId, user.LoginId);
+        }
+
+        public static void AddingUser(this ILog logger, AccountCreatedTransferObject user)
+        {
+            logger.InfoFormat("Adding new user ({0})", user.ToJson());
+        }
+
+        public static void EnablingUser(this ILog logger, object payload)
+        {
+            logger.InfoFormat("Enabling the user ({0})", payload.ToJson());
+        }
+
+        public static void DisablingUser(this ILog logger, object payload)
+        {
+            logger.InfoFormat("Disabling the user ({0})", payload.ToJson());
+        }
+
+        public static void UpdatingUser(this ILog logger, AccountUpdatedTransferObject user)
+        {
+            logger.InfoFormat("Updateting the user ({0})", user.ToJson());
+        }
+        
+
     }
 }

@@ -43,7 +43,7 @@ namespace StarChef.Listener.Handlers
             }
             var priceBandBatchSize = _configuration.PriceBandBatchSize;
 
-            if (Validator.IsValid(priceBandUpdated))
+            if (Validator.IsValidPayload(priceBandUpdated))
             {
                 var organisationGuid = new Guid(priceBandUpdated.CustomerId);
 

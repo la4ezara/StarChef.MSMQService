@@ -29,16 +29,23 @@ namespace StarChef.Listener.Handlers
         {
             ThreadContext.Properties[EXTERNAL_ID] = payload.ExternalId;
 
-            if (Validator.IsStarChefEvent(payload))
+            if (Validator.IsAllowedEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
 
-                if (Validator.IsValid(payload))
+                if (Validator.IsValidPayload(payload))
                 {
                     var user = Mapper.Map<AccountUpdatedTransferObject>(payload);
 
                     try
                     {
+                        var isUserExists = await DbCommands.IsUserExists(externalLoginId: user.ExternalLoginId);
+                        if (isUserExists)
+                        {
+                            _logger.UpdatingUser(user);
+                            await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
+                        }
+
                         await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                         _logger.Processed(trackingId, payload);
                     }

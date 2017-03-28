@@ -30,14 +30,14 @@ namespace StarChef.Listener
         /// <exception cref="NotSupportedMessageException">Raised when message type is not supported</exception>
         public IMessageHandler CreateHandler<T>()
         {
+            var configuration = new AppConfigConfiguration();
             var csProvider = new ConnectionStringProvider();
-            var dbCommands = new DatabaseCommands(csProvider);
+            var dbCommands = new DatabaseCommands(csProvider, configuration);
             var messagingLogger = new MessagingLogger(dbCommands);
 
             if (typeof(T) == typeof(PriceBandUpdated))
             {
                 var validator = new PriceBandUpdatedValidator(dbCommands);
-                var configuration = new AppConfigConfiguration();
                 return new PriceBandEventHandler(dbCommands, validator, messagingLogger, configuration);
             }
 

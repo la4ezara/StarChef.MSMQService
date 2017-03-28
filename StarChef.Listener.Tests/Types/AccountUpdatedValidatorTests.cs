@@ -22,7 +22,7 @@ namespace StarChef.Listener.Tests.Types
             var accountCreated = builder.Build();
 
             var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
-            var actual = validator.IsValid(accountCreated);
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.True(actual);
         }
@@ -39,7 +39,7 @@ namespace StarChef.Listener.Tests.Types
             var accountCreated = builder.Build();
 
             var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
-            var actual = validator.IsValid(accountCreated);
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.False(actual);
         }
@@ -56,7 +56,7 @@ namespace StarChef.Listener.Tests.Types
             var accountCreated = builder.Build();
 
             var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
-            var actual = validator.IsValid(accountCreated);
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.False(actual);
         }
@@ -73,7 +73,7 @@ namespace StarChef.Listener.Tests.Types
             var accountCreated = builder.Build();
 
             var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
-            var actual = validator.IsValid(accountCreated);
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.False(actual);
         }
@@ -90,7 +90,7 @@ namespace StarChef.Listener.Tests.Types
             var accountCreated = builder.Build();
 
             var validator = new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>());
-            var actual = validator.IsValid(accountCreated);
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.False(actual);
         }

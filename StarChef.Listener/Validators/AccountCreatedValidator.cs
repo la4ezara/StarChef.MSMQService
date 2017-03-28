@@ -5,13 +5,13 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 
 namespace StarChef.Listener.Validators
 {
-    class AccountCreatedValidator : EventValidator, IEventValidator
+    class AccountCreatedValidator : AccountEventValidator, IEventValidator
     {
         public AccountCreatedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
         {
         }
 
-        public bool IsEnabled(object payload)
+        public override bool IsEnabled(object payload)
         {
             var e = payload as AccountCreated;
             if (e == null)
@@ -21,7 +21,7 @@ namespace StarChef.Listener.Validators
             return GetFromDbConfiguration(loginId, typeof(AccountCreated).Name);
         }
 
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(AccountCreated)) return false;

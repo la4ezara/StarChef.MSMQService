@@ -8,7 +8,9 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
-using static Fourth.Orchestration.Model.People.Events;
+using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountStatusChanged;
+using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.AccountStatusChangeFailed;
+using AccountStatus = Fourth.Orchestration.Model.People.Events.AccountStatus;
 
 namespace StarChef.Listener
 {
@@ -59,6 +61,13 @@ namespace StarChef.Listener
                                 o.Condition(src => src.DetailsCount > 0);
                                 o.MapFrom(src => src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]"));
                             })
+                            .ForAllOtherMembers(m => m.Ignore());
+                #endregion
+
+                #region AccountStatusChanged => AccountStatusChangedTransferObject
+                c.CreateMap<AccountStatusChanged, AccountStatusChangedTransferObject>()
+                            .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
+                            .ForMember(dest => dest.IsActive, o => o.MapFrom(src => src.Status == AccountStatus.ACTIVE))
                             .ForAllOtherMembers(m => m.Ignore());
                 #endregion
 

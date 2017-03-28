@@ -5,13 +5,13 @@ using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 
 namespace StarChef.Listener.Validators
 {
-    class AccountUpdatedValidator : EventValidator, IEventValidator
+    class AccountUpdatedValidator : AccountEventValidator, IEventValidator
     {
         public AccountUpdatedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
         {
         }
 
-        public bool IsEnabled(object payload)
+        public override bool IsEnabled(object payload)
         {
             var e = payload as AccountUpdated;
             if (e == null)
@@ -20,7 +20,7 @@ namespace StarChef.Listener.Validators
             return GetFromDbConfiguration(e.ExternalId, typeof(AccountUpdated).Name);
         }
 
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(AccountUpdated)) return false;

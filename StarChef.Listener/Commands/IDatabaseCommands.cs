@@ -35,6 +35,14 @@ namespace StarChef.Listener.Commands
         Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, int loginId);
 
         /// <summary>
+        /// Returns True if user is exists
+        /// </summary>
+        /// <param name="loginId"></param>
+        /// <param name="externalLoginId">It will be skipped if <paramref name="loginId"></paramref> is specified</param>
+        /// <returns></returns>
+        Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null);
+
+        /// <summary>
         /// Returns True if the listener should catch event of the type
         /// </summary>
         /// <param name="eventTypeShortName"></param>
@@ -53,6 +61,18 @@ namespace StarChef.Listener.Commands
         /// <exception cref="ListenerException">Cannot map external account to the StarChef account</exception>
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         Task DisableLogin(int? loginId = null, string externalLoginId = null);
+
+        /// <summary>
+        /// Enable login
+        /// </summary>
+        /// <param name="loginId"></param>
+        /// <param name="externalLoginId"></param>
+        /// <returns>If both identifiers are specified, the login id is used</returns>
+        /// <exception cref="DatabaseException">Database operation is failed</exception>
+        /// <exception cref="ConnectionStringNotFoundException">Customer DB connections string is not found</exception>
+        /// <exception cref="ListenerException">Cannot map external account to the StarChef account</exception>
+        /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
+        Task EnableLogin(int? loginId = null, string externalLoginId = null);
 
         /// <summary>
         ///     Update some fields of user data
@@ -86,9 +106,12 @@ namespace StarChef.Listener.Commands
         /// <param name="code">Short unique name of the operation. The code may come from external system as well as from the SC itself</param>
         /// <param name="details">Additional details about the event, for examples errors description</param>
         /// <param name="payloadJson">(Optional) JSON representation of event's payload </param>
+        /// <param name="user"></param>
         /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
         /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         /// <returns></returns>
+        Task AddUser(AccountCreatedTransferObject user);
+
         Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null);
 
         /// <summary>

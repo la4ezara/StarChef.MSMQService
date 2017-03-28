@@ -28,14 +28,20 @@ namespace StarChef.Listener.Handlers
         {
             ThreadContext.Properties[INTERNAL_ID] = payload.InternalId;
 
-            if (Validator.IsStarChefEvent(payload))
+            if (Validator.IsAllowedEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
 
-                if (Validator.IsValid(payload))
+                if (Validator.IsValidPayload(payload))
                 {
                     var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
 
+                    var isUserExists = await DbCommands.IsUserExists(operationFailed.LoginId);
+                    if (isUserExists)
+                    {
+                        _logger.DisablingUser(operationFailed);
+                        await DbCommands.DisableLogin(operationFailed.LoginId);
+                    }
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
                     _logger.Processed(trackingId, payload);
                 }

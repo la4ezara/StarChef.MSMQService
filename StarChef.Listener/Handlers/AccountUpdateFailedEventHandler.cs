@@ -29,11 +29,11 @@ namespace StarChef.Listener.Handlers
         {
             ThreadContext.Properties[EXTERNAL_ID] = payload.ExternalId;
 
-            if (Validator.IsStarChefEvent(payload))
+            if (Validator.IsAllowedEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
 
-                if (Validator.IsValid(payload))
+                if (Validator.IsValidPayload(payload))
                 {
                     var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);

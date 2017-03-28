@@ -5,13 +5,13 @@ using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.Accou
 
 namespace StarChef.Listener.Validators
 {
-    class AccountStatusChangeFailedValidator : EventValidator, IEventValidator
+    class AccountStatusChangeFailedValidator : AccountEventValidator, IEventValidator
     {
         public AccountStatusChangeFailedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
         {
         }
 
-        public bool IsEnabled(object payload)
+        public override bool IsEnabled(object payload)
         {
             var e = payload as AccountStatusChangeFailed;
             if (e == null)
@@ -20,7 +20,7 @@ namespace StarChef.Listener.Validators
             return GetFromDbConfiguration(e.ExternalId, typeof(AccountStatusChangeFailed).Name);
         }
 
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(AccountStatusChangeFailed)) return false;
