@@ -219,6 +219,14 @@ namespace StarChef.Listener.Commands.Impl
             return result;
         }
 
+        public async Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+
+            var ids = await GetLoginUserId(loginDbConnectionString, loginId, externalLoginId);
+            return ids != null;
+        }
+
         public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, Guid organizationId)
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
@@ -292,10 +300,14 @@ namespace StarChef.Listener.Commands.Impl
             };
             Func<SqlDataReader, Task<Tuple<int, int>>> processReader = async reader =>
             {
-                await reader.ReadAsync();
-                var dbLoginId = reader.GetInt32(0);
-                var dbUserId = reader.GetInt32(1);
-                return new Tuple<int, int>(dbLoginId, dbUserId);
+                if (reader.HasRows)
+                {
+                    await reader.ReadAsync();
+                    var dbLoginId = reader.GetInt32(0);
+                    var dbUserId = reader.GetInt32(1);
+                    return new Tuple<int, int>(dbLoginId, dbUserId);
+                }
+                return null;
             };
             var result = await UseReader(loginDbConnectionString, "sc_orchestration_get_loginuser_id", addParametersAction, processReader);
             return result;

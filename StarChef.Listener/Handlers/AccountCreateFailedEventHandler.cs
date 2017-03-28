@@ -36,6 +36,12 @@ namespace StarChef.Listener.Handlers
                 {
                     var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
 
+                    var isUserExists = await DbCommands.IsUserExists(operationFailed.LoginId);
+                    if (isUserExists)
+                    {
+                        _logger.DisablingUser(operationFailed);
+                        await DbCommands.DisableLogin(operationFailed.LoginId);
+                    }
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
                     _logger.Processed(trackingId, payload);
                 }

@@ -6,6 +6,7 @@ using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener.Tests.Handlers.Fakes
 {
+    [Obsolete("User Moq instead of this class")]
     internal class TestDatabaseCommands : IDatabaseCommands
     {
         public bool IsCalledAnyMethod { get; private set; } = false;
@@ -87,6 +88,12 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
         }
 
         public Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, string externalId)
+        {
+            IsCalledAnyMethod = true;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> IsUserExists(int? loginId = default(int?), string externalLoginId = null)
         {
             IsCalledAnyMethod = true;
             return Task.FromResult(true);

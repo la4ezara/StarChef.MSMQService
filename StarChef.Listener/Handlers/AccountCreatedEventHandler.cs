@@ -42,7 +42,18 @@ namespace StarChef.Listener.Handlers
                     var user = Mapper.Map<AccountCreatedTransferObject>(payload);
                     try
                     {
-                        await DbCommands.UpdateExternalId(user);
+                        var isUserExists = await DbCommands.IsUserExists(user.LoginId);
+                        if (isUserExists)
+                        {
+                            _logger.UpdatingUserExternalId(user);
+                            await DbCommands.UpdateExternalId(user);
+                        }
+                        else
+                        {
+                            _logger.AddingUser(user);
+                            await DbCommands.AddUser(user);
+                        }
+
                         await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                         _logger.Processed(trackingId, payload);
 

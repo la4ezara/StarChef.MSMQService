@@ -218,7 +218,7 @@ namespace StarChef.Listener.Tests.Handlers
             var payload = builder.Build();
 
             var dbCommands = new Mock<IDatabaseCommands>();
-            dbCommands.Setup(d => d.UpdateExternalId(It.IsAny<AccountCreatedTransferObject>())).Throws(new ListenerException());
+            dbCommands.Setup(d => d.IsUserExists(It.IsAny<int?>(), It.IsAny<string>())).Throws(new ListenerException());
             var validator = new Mock<IEventValidator>(MockBehavior.Strict);
             validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
 
