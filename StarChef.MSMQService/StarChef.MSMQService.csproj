@@ -109,24 +109,28 @@
       <HintPath>..\packages\Autofac.4.1.1\lib\net45\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.dll</HintPath>
+    <Reference Include="Fourth.Orchestration, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Model, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.Model.1.1.53\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.SharedMemoryStub, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Model, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.Model.1.1.57\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Google.ProtocolBuffers, Version=2.4.1.555, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
@@ -140,10 +144,6 @@
     <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.ApplicationBlocks.ExceptionManagement">
-      <Name>Microsoft.ApplicationBlocks.ExceptionManagement</Name>
-      <HintPath>..\ThirdPartyReferences\Microsoft.ApplicationBlocks.ExceptionManagement.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
@@ -175,6 +175,10 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SharedMemory, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\SharedMemory.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="StarChef.Data">
@@ -223,6 +227,7 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Constant.cs" />
     <Compile Include="ContainerConfig.cs" />
     <Compile Include="Listener.cs">
       <SubType>Code</SubType>

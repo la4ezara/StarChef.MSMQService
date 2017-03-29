@@ -100,6 +100,43 @@ namespace StarChef.Orchestrate
                 BuilderHelpers.BuildCategoryTypes(builder, createCategoryType, createCategory, categoryTypes);
             }
 
+            //read intolerances
+            if(reader.NextResult())
+            {
+                if (reader.Read())
+                {
+                    if (!reader.IsDBNull(1)) builder.SetContainsMilkOrMilkProducts(reader.GetBoolean(1));
+                    if (!reader.IsDBNull(2)) builder.SetContainsEggOrEggDerivatives(reader.GetBoolean(2));
+                    if (!reader.IsDBNull(3)) builder.SetContainsCerealsThatContainGluten(reader.GetBoolean(3));
+                    if (!reader.IsDBNull(4)) builder.SetContainsPeanuts(reader.GetBoolean(4));
+                    if (!reader.IsDBNull(5)) builder.SetContainsNutsOrNutTrace(reader.GetBoolean(5));
+                    if (!reader.IsDBNull(6)) builder.SetContainsSesameSeedOrSesameSeedProducts(reader.GetBoolean(6));
+                    if (!reader.IsDBNull(7)) builder.SetContainsSoya(reader.GetBoolean(7));
+                    if (!reader.IsDBNull(8)) builder.SetContainsFishOrFishProducts(reader.GetBoolean(8));
+                    if (!reader.IsDBNull(9)) builder.SetContainsCrustaceans(reader.GetBoolean(9));
+                    if (!reader.IsDBNull(10)) builder.SetContainsMolluscs(reader.GetBoolean(10));
+                    if (!reader.IsDBNull(11)) builder.SetContainsMustardOrMustardProducts(reader.GetBoolean(11));
+                    if (!reader.IsDBNull(12)) builder.SetContainsCeleryOrCeleriacProducts(reader.GetBoolean(12));
+                    if (!reader.IsDBNull(13)) builder.SetContainsSulphurDioxideOrSulphites(reader.GetBoolean(13));
+                    if (!reader.IsDBNull(14)) builder.SetContainsLupinFlourOrLupinProducts(reader.GetBoolean(14));
+                    if (!reader.IsDBNull(15)) builder.SetContainsGlutenOrGlutenProducts(reader.GetBoolean(15));
+                }
+            }
+
+            //read nutritions
+            if (reader.NextResult())
+            {
+                if (reader.Read())
+                {
+                    if (!reader.IsDBNull(1)) builder.SetEnergyKJperServing(reader.GetDouble(1));
+                    if (!reader.IsDBNull(2)) builder.SetEnergyKCalPerServing(reader.GetDouble(2));
+                    if (!reader.IsDBNull(3)) builder.SetFatPerServing(reader.GetDouble(3));
+                    if (!reader.IsDBNull(4)) builder.SetSaturatedFatPerServing(reader.GetDouble(4));
+                    if (!reader.IsDBNull(5)) builder.SetSugarPerServing(reader.GetDouble(5));
+                    if (!reader.IsDBNull(6)) builder.SetSaltPerServing(reader.GetDouble(6));
+                }
+            }
+
             return true;
         }
 

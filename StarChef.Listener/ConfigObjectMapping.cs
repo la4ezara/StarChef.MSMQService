@@ -8,6 +8,9 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
+using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountStatusChanged;
+using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.AccountStatusChangeFailed;
+using AccountStatus = Fourth.Orchestration.Model.People.Events.AccountStatus;
 
 namespace StarChef.Listener
 {
@@ -53,6 +56,24 @@ namespace StarChef.Listener
                 c.CreateMap<AccountUpdateFailed, AccountUpdateFailedTransferObject>()
                             .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
+                            .ForMember(dest => dest.Description, o =>
+                            {
+                                o.Condition(src => src.DetailsCount > 0);
+                                o.MapFrom(src => src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]"));
+                            })
+                            .ForAllOtherMembers(m => m.Ignore());
+                #endregion
+
+                #region AccountStatusChanged => AccountStatusChangedTransferObject
+                c.CreateMap<AccountStatusChanged, AccountStatusChangedTransferObject>()
+                            .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
+                            .ForMember(dest => dest.IsActive, o => o.MapFrom(src => src.Status == AccountStatus.ACTIVE))
+                            .ForAllOtherMembers(m => m.Ignore());
+                #endregion
+
+                #region AccountStatusChangeFailed => AccountStatusChangeFailedTransferObject
+                c.CreateMap<AccountStatusChangeFailed, AccountStatusChangeFailedTransferObject>()
+                            .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
                             .ForMember(dest => dest.Description, o =>
                             {
                                 o.Condition(src => src.DetailsCount > 0);

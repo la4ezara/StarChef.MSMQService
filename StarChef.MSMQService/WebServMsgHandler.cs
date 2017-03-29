@@ -3,8 +3,7 @@ using System.Xml;
 using System.Messaging;
 using System.Data;
 using System.Data.SqlClient;
-using Microsoft.ApplicationBlocks.ExceptionManagement;
-using StarChef.Data;
+using log4net;
 
 namespace StarChef.MSMQService
 {
@@ -13,7 +12,10 @@ namespace StarChef.MSMQService
 	/// </summary>
 	public class WebServMsgHandler
 	{
-		public WebServMsgHandler()
+        private static readonly ILog Logger =
+            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public WebServMsgHandler()
 		{
 			//
 			// TODO: Add constructor logic here
@@ -57,7 +59,7 @@ namespace StarChef.MSMQService
 				// This means that the request was never logged as started,
 				//  but it still needs to be tidied up
 				TidyRequest(-1, nonsqlex.Message, RequestGuid, sp_name_and_paramsXML, UserDSN);
-				ExceptionManager.Publish(nonsqlex);
+				Logger.Error(nonsqlex);
 				return false;
 			}
             return true;
@@ -102,7 +104,7 @@ namespace StarChef.MSMQService
 				// This means that the request was never logged as started,
 				//  but it still needs to be tidied up
 				TidyRequest(-1, nonsqlex.Message, RequestGuid, costUpdateXml, UserDSN);
-				ExceptionManager.Publish(nonsqlex);
+				Logger.Error(nonsqlex);
 				return false;
 			}
 			return true;
@@ -122,7 +124,7 @@ namespace StarChef.MSMQService
 			}
 			catch (Exception anotherex)
 			{
-				ExceptionManager.Publish(anotherex);
+                Logger.Error(anotherex);
 			}
 			return;
 		}

@@ -3,7 +3,6 @@ using System.Messaging;
 using System.Reflection;
 using log4net;
 using StarChef.Common;
-using StarChef.Data;
 
 namespace StarChef.MSMQService
 {

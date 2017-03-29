@@ -30,14 +30,14 @@ namespace StarChef.Listener
         /// <exception cref="NotSupportedMessageException">Raised when message type is not supported</exception>
         public IMessageHandler CreateHandler<T>()
         {
+            var configuration = new AppConfigConfiguration();
             var csProvider = new ConnectionStringProvider();
-            var dbCommands = new DatabaseCommands(csProvider);
+            var dbCommands = new DatabaseCommands(csProvider, configuration);
             var messagingLogger = new MessagingLogger(dbCommands);
 
             if (typeof(T) == typeof(PriceBandUpdated))
             {
                 var validator = new PriceBandUpdatedValidator(dbCommands);
-                var configuration = new AppConfigConfiguration();
                 return new PriceBandEventHandler(dbCommands, validator, messagingLogger, configuration);
             }
 
@@ -88,6 +88,8 @@ namespace StarChef.Listener
             {
                 var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.LoginId);
 
+                ThreadContext.Properties["OrganisationId"] = userDetail.Item2;
+
                 var msg = new UpdateMessage(productId: userDetail.Item1,
                                             entityTypeId: (int)Constants.EntityType.User,
                                             action: (int)Constants.MessageActionType.SalesForceUserCreated,
@@ -100,6 +102,10 @@ namespace StarChef.Listener
             {
                 _logger.Error(ex);
                 throw;
+            }
+            finally
+            {
+                ThreadContext.Properties.Remove("OrganisationId");
             }
         }
     }

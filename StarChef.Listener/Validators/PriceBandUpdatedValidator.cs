@@ -11,7 +11,7 @@ namespace StarChef.Listener.Validators
         {
         }
 
-        public bool IsEnabled(object payload)
+        public override bool IsEnabled(object payload)
         {
             var e = payload as PriceBandUpdated;
             if (e == null)
@@ -20,12 +20,7 @@ namespace StarChef.Listener.Validators
             return GetFromDbConfiguration(Guid.Parse(e.CustomerId), typeof (PriceBandUpdated).Name);
         }
 
-        public override bool IsStarChefEvent(object payload)
-        {
-            return true;
-        }
-
-        public bool IsValid(object payload)
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(PriceBandUpdated)) return false;
