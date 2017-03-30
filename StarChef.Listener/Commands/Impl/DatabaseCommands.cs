@@ -86,8 +86,10 @@ namespace StarChef.Listener.Commands.Impl
                 throw new ConnectionStringNotFoundException("Login DB connection string is not found");
 
             var values = _configuration.UserDefaults;
-
-            await Exec(loginDbConnectionString, "sc_admin_save_preferences", p =>
+            var orgId = int.Parse(values["db_database_id"]);
+            var connectionString = await _csProvider.GetCustomerDb(orgId, loginDbConnectionString);
+            
+            await Exec(connectionString, "sc_admin_save_preferences", p =>
             {
                 p.AddWithValue("@email", user.EmailAddress);
                 p.AddWithValue("@login_name", user.Username);
