@@ -28,5 +28,13 @@ namespace StarChef.Listener.Commands
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         /// <returns></returns>
         Task<string> GetCustomerDb(int loginId, string connectionStringLoginDb);
+
+        /// <summary>
+        /// Return organization Id by Org Guid
+        /// </summary>
+        /// <param name="orgGuid"></param>
+        /// <param name="connectionStringLoginDb"></param>
+        /// <returns></returns>
+        Task<int> GetCustomerDbId(Guid orgGuid, string connectionStringLoginDb);
     }
 }

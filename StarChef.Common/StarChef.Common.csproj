@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DatabaseManager.cs" />
+    <Compile Include="DataReaderExtension.cs" />
     <Compile Include="IDatabaseManager.cs" />
     <Compile Include="EnumHelper.cs" />
     <Compile Include="log4netHelper.cs" />
