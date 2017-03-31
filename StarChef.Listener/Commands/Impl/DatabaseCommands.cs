@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -118,12 +119,19 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@db_database_id", orgId);
                 p.AddWithValue("@user_id", userId);
                 p.AddWithValue("@db_role_id", values["db_role_id"]);
-                p.AddWithValue("@login_password", values["login_password"]);
+                p.AddWithValue("@login_password", RandomString(16));
                 p.AddWithValue("@login_config", userConfig);
                 p.AddWithValue("@is_enabled", isEnabled);
                 p.AddWithValue("@is_deleted", isDeleted);
                 p.AddWithValue("@external_login_id", user.ExternalLoginId);
             });
+        }
+
+        private static readonly Random _random = new Random();
+        public static string RandomString(int length)
+        {
+            const string CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(CHARS, length).Select(s => s[_random.Next(s.Length)]).ToArray());
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
