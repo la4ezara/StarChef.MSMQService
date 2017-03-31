@@ -7,12 +7,13 @@ using System.Reflection;
 using System.Threading.Tasks;
 using log4net;
 using StarChef.Listener.Exceptions;
+using StarChef.Common;
 
 namespace StarChef.Listener.Commands.Impl
 {
     internal class ConnectionStringProvider : IConnectionStringProvider
     {
-        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         public async Task<string> GetCustomerDb(int loginId, string connectionStringLoginDb)
@@ -63,7 +64,7 @@ namespace StarChef.Listener.Commands.Impl
                         var rtnVal = sqlCmd.ExecuteScalar();
                         if (rtnVal == null || rtnVal == DBNull.Value)
                         {
-                            Logger.Error(string.Format("There is no organization with the given organization Guid: {0}", organizationId));
+                            _logger.Error(string.Format("There is no organization with the given organization Guid: {0}", organizationId));
                             return null;
                         }
                         return rtnVal.ToString();
@@ -79,6 +80,42 @@ namespace StarChef.Listener.Commands.Impl
                     exception = ex;
                 }
                 throw new ConnectionStringLookupException("Error is occurred while getting a customer DB", exception);
+            }
+        }
+
+        public async Task<int> GetCustomerDbId(Guid orgGuid, string connectionStringLoginDb)
+        {
+            using (var sqlConnection = new SqlConnection(connectionStringLoginDb))
+            {
+                Exception exception = null;
+                await sqlConnection.OpenAsync();
+                try
+                {
+                    using (var sqlCmd = new SqlCommand("sc_get_database_details", sqlConnection))
+                    {
+                        sqlCmd.CommandType = CommandType.StoredProcedure;
+                        sqlCmd.Parameters.Add("@db_database_guid", SqlDbType.UniqueIdentifier).Value = orgGuid;
+                        var reader = sqlCmd.ExecuteReader();
+                        if (await reader.ReadAsync())
+                        {
+                            var orgId = reader.GetValue<int>("db_database_id");
+                            return orgId;
+                        }
+                    }
+                }
+                catch (InvalidCastException ex)
+                {
+                    exception = ex;
+                }
+                catch (SqlException ex)
+                {
+                    exception = ex;
+                }
+                catch (IOException ex)
+                {
+                    exception = ex;
+                }
+                throw new DatabaseException(exception);
             }
         }
 

@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -86,9 +87,14 @@ namespace StarChef.Listener.Commands.Impl
                 throw new ConnectionStringNotFoundException("Login DB connection string is not found");
 
             var values = _configuration.UserDefaults;
+            var orgGuid = Guid.Parse(values["db_database_guid"]);
+            var orgId = await _csProvider.GetCustomerDbId(orgGuid, loginDbConnectionString);
+            var connectionString = await _csProvider.GetCustomerDb(orgGuid, loginDbConnectionString);
 
-            await Exec(loginDbConnectionString, "sc_admin_save_preferences", p =>
+            var dbUserId = new SqlParameter("@user_id", SqlDbType.Int) {Direction = ParameterDirection.Output};
+            await Exec(connectionString, "sc_admin_save_preferences", p =>
             {
+                p.Add(dbUserId);
                 p.AddWithValue("@email", user.EmailAddress);
                 p.AddWithValue("@login_name", user.Username);
                 p.AddWithValue("@forename", user.FirstName);
@@ -97,28 +103,35 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@language_id", values["language_id"]);
             });
 
-            var ids = await GetUserId(loginDbConnectionString, user.LoginId);
+            var userId = Convert.ToInt32(dbUserId.Value);
+            var ids = await GetUserId(connectionString, userId);
             if (ids == null)
                 throw new ListenerException("Cannot map external account to the StarChef account");
-                var userId = ids.Item1;
-                var userConfig = ids.Item2;
-                var isEnabled = ids.Item3;
-                var isDeleted = ids.Item4;
+            var userConfig = ids.Item2;
+            var isEnabled = ids.Item3;
+            var isDeleted = ids.Item4;
 
             await Exec(loginDbConnectionString, "sc_admin_update_login", p =>
             {
-                p.AddWithValue("@login_id", user.LoginId);
+                p.AddWithValue("@login_id", user.LoginId).Direction = ParameterDirection.Output;
                 p.AddWithValue("@login_name", user.Username);
                 p.AddWithValue("@db_application_id", values["db_application_id"]);
-                p.AddWithValue("@db_database_id", values["db_database_id"]);
+                p.AddWithValue("@db_database_id", orgId);
                 p.AddWithValue("@user_id", userId);
                 p.AddWithValue("@db_role_id", values["db_role_id"]);
-                p.AddWithValue("@login_password", values["login_password"]);
+                p.AddWithValue("@login_password", RandomString(16));
                 p.AddWithValue("@login_config", userConfig);
                 p.AddWithValue("@is_enabled", isEnabled);
                 p.AddWithValue("@is_deleted", isDeleted);
                 p.AddWithValue("@external_login_id", user.ExternalLoginId);
             });
+        }
+
+        private static readonly Random _random = new Random();
+        public static string RandomString(int length)
+        {
+            const string CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(CHARS, length).Select(s => s[_random.Next(s.Length)]).ToArray());
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
@@ -314,24 +327,24 @@ namespace StarChef.Listener.Commands.Impl
             return result;
         }
 
-        private async Task<Tuple<int, int, int, int, int>> GetUserId(string loginDbConnectionString, int? userId = default(int?))
+        private async Task<Tuple<int, int, bool, bool, int>> GetUserId(string connectionString, int? userId = default(int?))
         {
             Action<SqlParameterCollection> addParametersAction = parameters =>
             {
                 if (userId.HasValue)
                     parameters.AddWithValue("@user_id", userId.Value);
             };
-            Func<SqlDataReader, Task<Tuple<int, int, int, int, int>>> processReader = async reader =>
+            Func<SqlDataReader, Task<Tuple<int, int, bool, bool, int>>> processReader = async reader =>
             {
                 await reader.ReadAsync();
                 var dbUserId = reader.GetInt32(0);
                 var dbUserConfig = reader.GetInt32(2);
-                var isEnabled = reader.GetInt32(3);
-                var isDeleted = reader.GetInt32(4);
+                var isEnabled = reader.GetBoolean(3);
+                var isDeleted = reader.GetBoolean(4);
                 var modifiedBy = reader.GetInt32(5);
-                return new Tuple<int, int, int, int, int>(dbUserId, dbUserConfig, isEnabled, isDeleted, modifiedBy);
+                return new Tuple<int, int, bool, bool, int>(dbUserId, dbUserConfig, isEnabled, isDeleted, modifiedBy);
             };
-            var result = await UseReader(loginDbConnectionString, "get_user_data", addParametersAction, processReader);
+            var result = await UseReader(connectionString, "get_user_data", addParametersAction, processReader);
             return result;
         }
 
