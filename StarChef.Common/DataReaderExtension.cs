@@ -20,7 +20,7 @@ namespace StarChef.Common
             var item = reader[colIndex];
             return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
         }
-
+                
         public static bool IsDBNull(this IDataReader reader, string colName)
         {
             var colIndex = reader.GetOrdinal(colName);
