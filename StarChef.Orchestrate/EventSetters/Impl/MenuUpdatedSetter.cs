@@ -37,13 +37,6 @@ namespace StarChef.Orchestrate
                     .SetExternalId(reader[1].ToString())
                     .SetMenuName(reader[2].ToString())
                     .SetMenuType((byte)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET);
-
-                //This is for Menu Buffet Sales 
-                var menuCountName = "menu_count";
-                if (!reader.IsDBNull(menuCountName))
-                {
-                    builder.SetBuffetMenuSales(reader.GetValue<double>(menuCountName));
-                }
             }
 
             if (reader.NextResult())
@@ -66,14 +59,6 @@ namespace StarChef.Orchestrate
                         .SetRecipeName(reader[1].ToString())
                         .SetCourseName(reader[2].ToString())
                         .SetDisplayOrder((int)reader[3]);
-
-                    //This is for menu buffet Sales Mix
-                    var sellQuantityName = "sell_quantity";
-                    if (!reader.IsDBNull(sellQuantityName))
-                    {
-                        recipeBuilder.SetSellQuantity(reader.GetValue<double>(sellQuantityName));
-                    }
-
                     builder.AddRecipes(recipeBuilder);
                 }
             }
