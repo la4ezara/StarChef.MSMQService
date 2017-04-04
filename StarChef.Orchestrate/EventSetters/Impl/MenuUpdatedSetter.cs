@@ -8,6 +8,9 @@ namespace StarChef.Orchestrate
 {
     public class MenuUpdatedSetter : IEventSetter<Events.MenuUpdated.Builder>
     {
+        const string SELL_QUANTITY_NAME = "sell_quantity";
+        const string MENU_COUNT_NAME = "menu_count";
+
         public bool SetForDelete(Events.MenuUpdated.Builder builder, string entityExternalId, int databaseId)
         {
             if (builder == null) return false;
@@ -36,13 +39,12 @@ namespace StarChef.Orchestrate
                     .SetCustomerName(cust.Name)
                     .SetExternalId(reader[1].ToString())
                     .SetMenuName(reader[2].ToString())
-                    .SetMenuType((byte)reader[3] == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET);
+                    .SetMenuType(reader.GetValue<byte>("menu_type_id") == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET);
 
                 //This is for Menu Buffet Sales 
-                var menuCountName = "menu_count";
-                if (!reader.IsDBNull(menuCountName))
+                if (!reader.IsDBNull(MENU_COUNT_NAME))
                 {
-                    builder.SetBuffetMenuSales(reader.GetValue<double>(menuCountName));
+                    builder.SetBuffetMenuSales(reader.GetValue<double>(MENU_COUNT_NAME));
                 }
             }
 
@@ -68,10 +70,9 @@ namespace StarChef.Orchestrate
                         .SetDisplayOrder((int)reader[3]);
 
                     //This is for menu buffet Sales Mix
-                    var sellQuantityName = "sell_quantity";
-                    if (!reader.IsDBNull(sellQuantityName))
+                    if (!reader.IsDBNull(SELL_QUANTITY_NAME))
                     {
-                        recipeBuilder.SetSellQuantity(reader.GetValue<double>(sellQuantityName));
+                        recipeBuilder.SetSellQuantity(reader.GetValue<double>(SELL_QUANTITY_NAME));
                     }
 
                     builder.AddRecipes(recipeBuilder);
