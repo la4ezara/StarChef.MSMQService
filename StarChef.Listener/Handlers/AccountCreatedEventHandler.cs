@@ -39,6 +39,7 @@ namespace StarChef.Listener.Handlers
 
                 if (Validator.IsValidPayload(payload))
                 {
+                    _logger.Info("Mapping");
                     var user = Mapper.Map<AccountCreatedTransferObject>(payload);
                     try
                     {
