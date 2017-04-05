@@ -66,7 +66,7 @@ namespace StarChef.Listener.Tests.Handlers
             var eventValidator = new Mock<IEventValidator>();
             eventValidator.Setup(m => m.IsEnabled(It.IsAny<PriceBandUpdated>())).Returns(true);
             var handler = new PriceBandEventHandler(Mock.Of<IDatabaseCommands>(), eventValidator.Object, Mock.Of<IMessagingLogger>(), Mock.Of<IConfiguration>());
-            var priceBandUpdated = PayloadHelpers.Construct<PriceBandUpdated>(new Type[0]);
+            var priceBandUpdated = PayloadHelpers.Construct<PriceBandUpdated>();
 
             var result = handler.HandleAsync(priceBandUpdated, Guid.Empty.ToString()).Result;
 
@@ -80,7 +80,7 @@ namespace StarChef.Listener.Tests.Handlers
             var eventValidator = new Mock<IEventValidator>();
             eventValidator.Setup(m => m.IsEnabled(It.IsAny<PriceBandUpdated>())).Returns(false);
             var handler = new PriceBandEventHandler(Mock.Of<IDatabaseCommands>(), eventValidator.Object, Mock.Of<IMessagingLogger>(), Mock.Of<IConfiguration>());
-            var priceBandUpdated = PayloadHelpers.Construct<PriceBandUpdated>(new Type[0]);
+            var priceBandUpdated = PayloadHelpers.Construct<PriceBandUpdated>();
 
             var result = handler.HandleAsync(priceBandUpdated, Guid.Empty.ToString()).Result;
 
