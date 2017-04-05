@@ -64,16 +64,15 @@ namespace StarChef.Listener
 
         protected override void OnStop()
         {
-            _logger.Info("Stopped");
-
-            try
-            {
-                MessageBusController.Stop();
-            }
+            try { MessageBusController.Stop(); }
             catch (Exception ex)
             {
                 _logger.Info("Failed to stop StarChef.Listener service due to unexpected error", ex);
                 throw;
+            }
+            finally
+            {
+                _logger.Info("Stopped");
             }
         }
     }

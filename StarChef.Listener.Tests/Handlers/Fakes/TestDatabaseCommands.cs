@@ -56,11 +56,11 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
             return Task.CompletedTask;
         }
 
-        public Task AddUser(AccountCreatedTransferObject user)
+        public Task<int> AddUser(AccountCreatedTransferObject user)
         {
             IsUserCreated =
                IsCalledAnyMethod = true;
-            return Task.CompletedTask;
+            return Task.FromResult(0);
         }
 
         public Task<Tuple<int, int, int, int>> GetUserId(int loginId)
