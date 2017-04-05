@@ -357,12 +357,15 @@ namespace StarChef.Listener.Commands.Impl
             {
                 using (var sqlConn = new SqlConnection(connectionString))
                 {
+                    _logger.Debug("Opening connection");
                     await sqlConn.OpenAsync();
 
                     using (var sqlCmd = new SqlCommand(spName, sqlConn))
                     {
                         sqlCmd.CommandType = CommandType.StoredProcedure;
                         addParametersAction?.Invoke(sqlCmd.Parameters);
+
+                        _logger.DebugFormat("Executing SP: {0}", spName);
                         await sqlCmd.ExecuteNonQueryAsync();
                     }
                 }
