@@ -4,10 +4,8 @@ using System.ServiceProcess;
 using System.Messaging;
 using System.Threading;
 using System.Collections;
-using System.Timers;
 using log4net;
 using StarChef.MSMQService.Configuration;
-using StarChef.MSMQService.Configuration.Impl;
 using Autofac;
 using log4net.Config;
 using StarChef.Common;
@@ -30,7 +28,7 @@ namespace StarChef.MSMQService
 	{
 	    private IAppConfiguration _appConfiguration;
 	    private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private System.Threading.Timer _timer;
+        private Timer _timer;
 		private bool _isStarted;
         private IContainer _container;
 
@@ -50,8 +48,25 @@ namespace StarChef.MSMQService
             XmlConfigurator.Configure();
             log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
 		}
-        
-        protected int GetMessageCount(string mqName)
+
+	    /// <summary> 
+	    /// Required method for Designer support - do not modify 
+	    /// the contents of this method with the code editor.
+	    /// </summary>
+	    private void InitializeComponent()
+	    {
+	        _components = new Container();
+	        ServiceName = "StarChef.MSMQService";
+	    }
+
+	    static void Main()
+	    {
+	        var servicesToRun = new ServiceBase[] { new ListenerService() };
+
+	        Run(servicesToRun);
+	    }
+
+	    protected int GetMessageCount(string mqName)
         {
             MessageQueue q = new MessageQueue(mqName);
             int count = 0;
@@ -87,89 +102,54 @@ namespace StarChef.MSMQService
             return ret;
         }
 
-		// The main entry point for the process
-		static void Main()
-		{
-		    var servicesToRun = new ServiceBase[] { new ListenerService() };
+	    private void ServiceTask(object state)
+	    {
+	        _logger.Info("Processing is started");
 
-		    Run(servicesToRun);
-		}
+	        try
+	        {
+	            var listener = _container.Resolve<IListener>();
+	            listener.ExecuteAsync().Wait();
+	        }
+	        catch (AggregateException e)
+	        {
+	            _logger.Error(e.GetBaseException());
+	        }
+	        catch (Exception e)
+	        {
+	            _logger.Error(e);
+	        }
+	        _logger.Info("Processing is finished");
+	    }
 
-	    /// <summary> 
-		/// Required method for Designer support - do not modify 
-		/// the contents of this method with the code editor.
-		/// </summary>
-		private void InitializeComponent()
-		{
-			_components = new Container();
-			ServiceName = "StarChef.MSMQService";
-		}
-
-		/// <summary>
-		/// Clean up any resources being used.
-		/// </summary>
-		protected override void Dispose( bool disposing )
-		{
-			if( disposing )
-			{
-				if (_components != null) 
-				{
-					_components.Dispose();
-				}
-			}
-			base.Dispose( disposing );
-		}
-
-		/// <summary>
-		/// Set things in motion so your service can do its work.
-		/// </summary>
-		protected override void OnStart(string[] args)
-		{
-            _logger.Info("Service is started.");
-
-            var builder = new ContainerBuilder();
-            builder.RegisterModule<DependencyConfiguration>();
-            _container = builder.Build();
+	    // The main entry point for the process
 
 
-            _appConfiguration = _container.Resolve<IAppConfiguration>();
+	    /// <summary>
+	    /// Set things in motion so your service can do its work.
+	    /// </summary>
+	    protected override void OnStart(string[] args)
+	    {
+	        _logger.Info("Service is started.");
 
-            var maxThreadCount = _appConfiguration.MsmqThreadCount;
-            ThreadPool.SetMaxThreads(maxThreadCount, 0);
-            GlobalUpdateTimeStamps = new Hashtable();
-            ActiveTaskDatabaseIDs = new Hashtable();
+	        var builder = new ContainerBuilder();
+	        builder.RegisterModule<DependencyConfiguration>();
+	        _container = builder.Build();
 
-            var periodSetting = _appConfiguration.Interval;
-		    _logger.DebugFormat("Service is configured to run each {0} ms", periodSetting);
+	        _appConfiguration = _container.Resolve<IAppConfiguration>();
+	        var maxThreadCount = _appConfiguration.MsmqThreadCount;
+	        ThreadPool.SetMaxThreads(maxThreadCount, 0);
+	        GlobalUpdateTimeStamps = new Hashtable();
+	        ActiveTaskDatabaseIDs = new Hashtable();
 
-            var period = TimeSpan.FromMilliseconds(periodSetting);
-            _isStarted = true;
-            _timer = new System.Threading.Timer(ServiceTask, null, TimeSpan.Zero, period);
+	        var periodSetting = _appConfiguration.Interval;
+	        var period = TimeSpan.FromMilliseconds(periodSetting);
+	        _isStarted = true;
+            _logger.DebugFormat("Service is configured to run each {0} ms", periodSetting);
+            _timer = new Timer(ServiceTask, null, TimeSpan.Zero, period);
+	    }
 
-        }
-
-        private void ServiceTask(object state)
-        {
-            _logger.Info("Processing is started");
-
-            try
-            {
-                var listener = _container.Resolve<IListener>();
-                listener.ExecuteAsync().Wait();
-            }
-            catch (AggregateException e)
-            {
-                _logger.Error(e.GetBaseException());
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e);
-            }
-            _logger.Info("Processing is finished");
-        }
-
-
-        /// <summary>
+	    /// <summary>
         /// Stop this service.
         /// </summary>
         protected override void OnStop()
@@ -198,5 +178,20 @@ namespace StarChef.MSMQService
 	    {
             _logger.Info("Service is shutdown.");
         }
+
+	    /// <summary>
+	    /// Clean up any resources being used.
+	    /// </summary>
+	    protected override void Dispose( bool disposing )
+	    {
+	        if( disposing )
+	        {
+	            if (_components != null) 
+	            {
+	                _components.Dispose();
+	            }
+	        }
+	        base.Dispose( disposing );
+	    }
 	}
 }
