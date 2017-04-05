@@ -67,8 +67,6 @@ namespace StarChef.MSMQService
 
 	    private void ServiceTask(object state)
 	    {
-	        _logger.Info("Processing is started");
-
 	        try
 	        {
 	            var listener = _container.Resolve<IListener>();
@@ -82,7 +80,6 @@ namespace StarChef.MSMQService
 	        {
 	            _logger.Error(e);
 	        }
-	        _logger.Info("Processing is finished");
 	    }
 
 	    // The main entry point for the process
