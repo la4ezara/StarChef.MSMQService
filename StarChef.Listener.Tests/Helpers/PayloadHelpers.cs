@@ -5,6 +5,11 @@ namespace StarChef.Listener.Tests.Helpers
 {
     internal class PayloadHelpers
     {
+        public static T Construct<T>()
+        {
+            return Construct<T>(new Type[] {});
+        }
+
         public static T Construct<T>(Type[] paramTypes, params object[] paramValues)
         {
             var t = typeof (T);

@@ -34,65 +34,65 @@ namespace StarChef.Listener.Handlers
             // whole payload cannot be logged because the list may be very big
             _logger.InfoFormat("Data received. CustomerId={0}, CurrencyId={1}, PriceBandsCount={2}", priceBandUpdated.CustomerId, priceBandUpdated.CurrencyId, priceBandUpdated.PriceBandsCount);
 
-            if (!Validator.IsEnabled(priceBandUpdated))
+            try
             {
-                _logger.EventDisabledForOrganization(priceBandUpdated);
-
-                ThreadContext.Properties.Remove(DATABASE_GUID);
-                return MessageHandlerResult.Success;
-            }
-            var priceBandBatchSize = _configuration.PriceBandBatchSize;
-
-            if (Validator.IsValidPayload(priceBandUpdated))
-            {
-                var organisationGuid = new Guid(priceBandUpdated.CustomerId);
-
-                try
+                if (!Validator.IsEnabled(priceBandUpdated))
                 {
-                    if (!priceBandUpdated.PriceBandsList.Any())
-                    {
-                        _logger.InfoFormat("Processed");
-
-                        ThreadContext.Properties.Remove(DATABASE_GUID);
-                        return MessageHandlerResult.Success;
-                    }
-
-                    var blocks = Convert.ToInt32(priceBandUpdated.PriceBandsCount/priceBandBatchSize);
-                    var tailBlockSize = Convert.ToInt32(priceBandUpdated.PriceBandsCount%priceBandBatchSize);
-                    if (tailBlockSize > 0) blocks += 1;
-
-                    _logger.InfoFormat("Processing {0} blocks of data, each {1} rows, the last block contains {2} rows",
-                        blocks,
-                        priceBandBatchSize,
-                        tailBlockSize);
-
-                    var blockNum = 0;
-                    foreach (var xml in priceBandUpdated.ToSmallXmls(priceBandBatchSize))
-                    {
-                        _logger.InfoFormat("Processing: " + xml.InnerXml);
-                        await DbCommands.SavePriceBandData(organisationGuid, xml);
-                        _logger.InfoFormat("Processed blocks {0} of {1}", ++blockNum, blocks);
-                    }
-
-                    _logger.InfoFormat("Processed");
-
-                    ThreadContext.Properties.Remove(DATABASE_GUID);
+                    _logger.EventDisabledForOrganization(priceBandUpdated);
                     return MessageHandlerResult.Success;
                 }
-                catch (Exception ex)
+                var priceBandBatchSize = _configuration.PriceBandBatchSize;
+
+                if (Validator.IsValidPayload(priceBandUpdated))
                 {
-                    _logger.Error(ex.Message, ex);
+                    var organisationGuid = new Guid(priceBandUpdated.CustomerId);
 
-                    ThreadContext.Properties.Remove(DATABASE_GUID);
-                    return MessageHandlerResult.Retry;
+                    try
+                    {
+                        if (!priceBandUpdated.PriceBandsList.Any())
+                        {
+                            _logger.InfoFormat("Processed");
+
+                            return MessageHandlerResult.Success;
+                        }
+
+                        var blocks = Convert.ToInt32(priceBandUpdated.PriceBandsCount / priceBandBatchSize);
+                        var tailBlockSize = Convert.ToInt32(priceBandUpdated.PriceBandsCount % priceBandBatchSize);
+                        if (tailBlockSize > 0) blocks += 1;
+
+                        _logger.InfoFormat("Processing {0} blocks of data, each {1} rows, the last block contains {2} rows",
+                            blocks,
+                            priceBandBatchSize,
+                            tailBlockSize);
+
+                        var blockNum = 0;
+                        foreach (var xml in priceBandUpdated.ToSmallXmls(priceBandBatchSize))
+                        {
+                            _logger.InfoFormat("Processing: " + xml.InnerXml);
+                            await DbCommands.SavePriceBandData(organisationGuid, xml);
+                            _logger.InfoFormat("Processed blocks {0} of {1}", ++blockNum, blocks);
+                        }
+
+                        _logger.InfoFormat("Processed");
+
+                        return MessageHandlerResult.Success;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex.Message, ex);
+                        return MessageHandlerResult.Retry;
+                    }
                 }
+
+                var errors = Validator.GetErrors();
+                _logger.InvalidModel(trackingId, priceBandUpdated, errors);
+                await MessagingLogger.ReceivedInvalidModel(trackingId, priceBandUpdated, errors);
             }
-
-            var errors = Validator.GetErrors();
-            _logger.InvalidModel(trackingId, priceBandUpdated, errors);
-            await MessagingLogger.ReceivedInvalidModel(trackingId, priceBandUpdated, errors);
-
-            ThreadContext.Properties.Remove(DATABASE_GUID);
+            finally
+            {
+                ThreadContext.Properties.Remove(DATABASE_GUID);
+            }
+            
             return MessageHandlerResult.Fatal;
         }
     }

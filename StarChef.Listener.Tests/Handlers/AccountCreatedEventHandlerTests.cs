@@ -76,7 +76,7 @@ namespace StarChef.Listener.Tests.Handlers
         public void Should_register_error_with_model()
         {
             // arrange
-            var payload = PayloadHelpers.Construct<AccountCreated>(new Type[0]);
+            var payload = PayloadHelpers.Construct<AccountCreated>();
             var dbCommands = new Mock<IDatabaseCommands>();
             var validator = new Mock<IEventValidator>();
             validator.Setup(m => m.IsAllowedEvent(It.IsAny<object>())).Returns(true);
