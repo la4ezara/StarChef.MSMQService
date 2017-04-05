@@ -38,6 +38,12 @@ namespace StarChef.Listener.Validators
                 SetLastError("InternalId is missing");
                 return false;
             }
+            int internalId;
+            if (!int.TryParse(e.InternalId, out internalId))
+            {
+                SetLastError("InternalId is not Int32: " + e.InternalId);
+                return false;
+            }
             if (!e.HasReason)
             {
                 SetLastError("Reason is missing");

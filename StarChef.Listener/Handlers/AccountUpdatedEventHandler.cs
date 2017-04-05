@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
 using Fourth.Orchestration.Messaging;
@@ -28,46 +29,53 @@ namespace StarChef.Listener.Handlers
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountUpdated payload, string trackingId)
         {
             ThreadContext.Properties[EXTERNAL_ID] = payload.ExternalId;
-
-            if (Validator.IsAllowedEvent(payload))
+            try
             {
-                _logger.EventReceived(trackingId, payload);
-
-                if (Validator.IsValidPayload(payload))
+                if (Validator.IsAllowedEvent(payload))
                 {
-                    var user = Mapper.Map<AccountUpdatedTransferObject>(payload);
+                    _logger.EventReceived(trackingId, payload);
 
-                    try
+                    if (Validator.IsValidPayload(payload))
                     {
-                        var isUserExists = await DbCommands.IsUserExists(externalLoginId: user.ExternalLoginId);
-                        if (isUserExists)
+                        var user = Mapper.Map<AccountUpdatedTransferObject>(payload);
+
+                        try
                         {
-                            _logger.UpdatingUser(user);
-                            await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
-                        }
+                            var isUserExists = await DbCommands.IsUserExists(externalLoginId: user.ExternalLoginId);
+                            if (isUserExists)
+                            {
+                                _logger.UpdatingUser(user);
+                                await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
+                            }
 
-                        await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
-                        _logger.Processed(trackingId, payload);
+                            await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
+                            _logger.Processed(trackingId, payload);
+                        }
+                        catch (ListenerException ex)
+                        {
+                            _logger.ListenerException(ex, trackingId, user);
+                            return MessageHandlerResult.Fatal;
+                        }
                     }
-                    catch (ListenerException ex)
+                    else
                     {
-                        _logger.ListenerException(ex, trackingId, user);
-                        ThreadContext.Properties.Remove(EXTERNAL_ID);
+
+                        var errors = Validator.GetErrors();
+                        _logger.InvalidModel(trackingId, payload, errors);
+                        await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                         return MessageHandlerResult.Fatal;
                     }
                 }
-                else
-                {
-
-                    var errors = Validator.GetErrors();
-                    _logger.InvalidModel(trackingId, payload, errors);
-                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
-                    ThreadContext.Properties.Remove(EXTERNAL_ID);
-                    return MessageHandlerResult.Fatal;
-                }
             }
-
-            ThreadContext.Properties.Remove(EXTERNAL_ID);
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                return MessageHandlerResult.Fatal;
+            }
+            finally
+            {
+                ThreadContext.Properties.Remove(EXTERNAL_ID);
+            }
             return MessageHandlerResult.Success;
         }
     }

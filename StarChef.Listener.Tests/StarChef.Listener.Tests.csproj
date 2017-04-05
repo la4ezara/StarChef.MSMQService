@@ -173,6 +173,7 @@
     <Compile Include="Types\AccountCreatedValidatorTests.cs" />
     <Compile Include="Types\EventValidatorTests.cs" />
     <Compile Include="Validators\AccountCreatedValidatorTests.cs" />
+    <Compile Include="Validators\AccountCreateFailedValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
