@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel;
 using System.ServiceProcess;
-using System.Messaging;
 using System.Threading;
 using System.Collections;
 using log4net;
@@ -65,42 +64,6 @@ namespace StarChef.MSMQService
 
 	        Run(servicesToRun);
 	    }
-
-	    protected int GetMessageCount(string mqName)
-        {
-            MessageQueue q = new MessageQueue(mqName);
-            int count = 0;
-            Cursor cursor = q.CreateCursor();
-
-            Message m = PeekWithoutTimeout(q, cursor, PeekAction.Current);
-            if (m != null)
-            {
-                count = 1;
-                while ((PeekWithoutTimeout(q, cursor, PeekAction.Next)) != null)
-                {
-                    count++;
-                }
-            }
-            return count;
-        }
-
-        protected Message PeekWithoutTimeout(MessageQueue q, Cursor cursor, PeekAction action)
-        {
-            Message ret = null;
-            try
-            {
-                ret = q.Peek(new TimeSpan(1), cursor, action);
-            }
-            catch (MessageQueueException mqe)
-            {
-                if (mqe.MessageQueueErrorCode != MessageQueueErrorCode.IOTimeout &&
-                    mqe.MessageQueueErrorCode != MessageQueueErrorCode.MessageNotFound)
-                {
-                    _logger.Error(mqe);
-                }
-            }
-            return ret;
-        }
 
 	    private void ServiceTask(object state)
 	    {
