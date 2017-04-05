@@ -27,16 +27,10 @@ namespace StarChef.MSMQService
 	public class ListenerSVC : ServiceBase
 	{
 	    private readonly IAppConfiguration _appConfiguration;
-
-	    /// <summary> The log4net Logger instance. </summary>
-        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+	    private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private const long TICK_PERIOD = 1000; // 1 second!
-
 		private readonly System.Timers.Timer _timer;
 		private bool _isStarted;
-		private string _queuePath;
-	    private EventLog log = new EventLog();
 
 		/// <summary> 
 		/// Required designer variable.
@@ -62,7 +56,6 @@ namespace StarChef.MSMQService
 			//Code to start the timer "tick", which runs the actual MSMQ listener.
 			_timer = new System.Timers.Timer {Interval = TICK_PERIOD};
 		    _timer.Elapsed += TimerTick;
-		    log.Source = "StarChef-ListenerSVC";
 		}
 
 		private void TimerTick(object sender, ElapsedEventArgs e) 
