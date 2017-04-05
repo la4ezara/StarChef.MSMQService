@@ -16,14 +16,14 @@ namespace StarChef.MSMQService
 	/// ListenerSVC -- StarChef.MSMQService.exe
 	/// 
 	/// Deployment
-	/// 1) Copy the StarChef.MSMQService.exe togetger with StarChef.MSMQService.exe.config and StarChef.Data.dll file to the 
+	/// 1) Copy the StarChef.MSMQService.exe together with StarChef.MSMQService.exe.config and StarChef.Data.dll file to the 
 	///    desired destination
 	///	2) Edit the StarChef.MSMQService.exe.config, property StarChef_QueueName to reflect the name of the queue that 
 	///	   is to be listened
 	///	3) Run C:\WINDOWS\Microsoft.NET\Framework\v1.1.4322\installutil StarChef.MSMQService.exe		
 	/// 
 	/// </summary>
-	public class ListenerSVC : ServiceBase
+	public class ListenerService : ServiceBase
 	{
 	    private readonly IAppConfiguration _appConfiguration;
 	    private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -34,13 +34,13 @@ namespace StarChef.MSMQService
 		/// <summary> 
 		/// Required designer variable.
 		/// </summary>
-		private System.ComponentModel.Container _components = null;
+		private Container _components;
 
 	    public static ManualResetEvent[] ResetEvents;
         public static Hashtable GlobalUpdateTimeStamps;
         public static Hashtable ActiveTaskDatabaseIDs;
 
-		public ListenerSVC(IAppConfiguration appConfiguration)
+		public ListenerService(IAppConfiguration appConfiguration)
 		{
 		    _appConfiguration = appConfiguration;
 		    // This call is required by the Windows.Forms Component Designer.
@@ -109,7 +109,7 @@ namespace StarChef.MSMQService
 		// The main entry point for the process
 		static void Main()
 		{
-		    var servicesToRun = new ServiceBase[] { new ListenerSVC(new AppConfiguration()) };
+		    var servicesToRun = new ServiceBase[] { new ListenerService(new AppConfiguration()) };
 
 		    Run(servicesToRun);
 		}

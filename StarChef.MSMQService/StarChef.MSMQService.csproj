@@ -29,7 +29,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>StarChef.MSMQService</RootNamespace>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
-    <StartupObject>StarChef.MSMQService.ListenerSVC</StartupObject>
+    <StartupObject>StarChef.MSMQService.ListenerService</StartupObject>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -234,7 +234,7 @@
     <Compile Include="Listener.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ListenerSVC.cs">
+    <Compile Include="ListenerService.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="MSMQHelper.cs">
@@ -249,8 +249,8 @@
     <Compile Include="WebServMsgHandler.cs">
       <SubType>Code</SubType>
     </Compile>
-    <EmbeddedResource Include="ListenerSVC.resx">
-      <DependentUpon>ListenerSVC.cs</DependentUpon>
+    <EmbeddedResource Include="ListenerService.resx">
+      <DependentUpon>ListenerService.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ProjectInstaller.resx">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>

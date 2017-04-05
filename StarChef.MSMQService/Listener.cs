@@ -67,14 +67,14 @@ namespace StarChef.MSMQService
                         }
 
                         step1:
-                        if (!ListenerSVC.ActiveTaskDatabaseIDs.Contains(updmsg.DatabaseID))
+                        if (!ListenerService.ActiveTaskDatabaseIDs.Contains(updmsg.DatabaseID))
                         {
-                            if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate && ListenerSVC.GlobalUpdateTimeStamps.Contains(updmsg.DatabaseID))
+                            if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate && ListenerService.GlobalUpdateTimeStamps.Contains(updmsg.DatabaseID))
                             {
-                                if (TimeSpan.FromMinutes(DateTime.Now.Subtract((DateTime) ListenerSVC.GlobalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(Double.Parse(ConfigurationSettings.AppSettings.Get("GlobalUpdateWaitTime"))))
+                                if (TimeSpan.FromMinutes(DateTime.Now.Subtract((DateTime) ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(Double.Parse(ConfigurationSettings.AppSettings.Get("GlobalUpdateWaitTime"))))
                                 {
-                                    ListenerSVC.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
-                                    ListenerSVC.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
+                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
+                                    ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
                                     msg = mqm.mqReceive(messageId);
                                 }
                                 else
@@ -94,9 +94,9 @@ namespace StarChef.MSMQService
                             {
                                 if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate)
                                 {
-                                    ListenerSVC.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
+                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
                                 }
-                                ListenerSVC.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
+                                ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
                                 msg = mqm.mqReceive(messageId);
                             }
 
@@ -122,7 +122,7 @@ namespace StarChef.MSMQService
                                     updmsg = (UpdateMessage) msg.Body;
                                     updmsg.ArrivedTime = msg.ArrivedTime;
                                     ProcessMessage(updmsg);
-                                    ListenerSVC.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
+                                    ListenerService.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
                                 }
                             }
                         }
@@ -152,7 +152,7 @@ namespace StarChef.MSMQService
                     SendMail(updmsg);
                     _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
                     mqm.mqSendToPoisonQueue(updmsg, msg.Priority);
-                    ListenerSVC.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
+                    ListenerService.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
                 }
             }
             finally
