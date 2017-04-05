@@ -33,56 +33,66 @@ namespace StarChef.Listener.Handlers
         {
             ThreadContext.Properties[INTERNAL_ID] = payload.InternalId;
 
-            if (Validator.IsAllowedEvent(payload))
+            try
             {
-                _logger.EventReceived(trackingId, payload);
-
-                if (Validator.IsValidPayload(payload))
+                if (Validator.IsAllowedEvent(payload))
                 {
-                    _logger.Info("Mapping");
-                    var user = Mapper.Map<AccountCreatedTransferObject>(payload);
-                    try
+                    _logger.EventReceived(trackingId, payload);
+
+                    if (Validator.IsValidPayload(payload))
                     {
-                        var isUserExists = await DbCommands.IsUserExists(user.LoginId);
-                        if (isUserExists)
+                        AccountCreatedTransferObject user = null;
+                        try
                         {
-                            _logger.UpdatingUserExternalId(user);
-                            await DbCommands.UpdateExternalId(user);
-                        }
-                        else
-                        {
-                            _logger.AddingUser(user);
-                            user.LoginId = await DbCommands.AddUser(user);
-                        }
+                            user = Mapper.Map<AccountCreatedTransferObject>(payload);
+                            var isUserExists = await DbCommands.IsUserExists(user.LoginId);
+                            if (isUserExists)
+                            {
+                                _logger.UpdatingUserExternalId(user);
+                                await DbCommands.UpdateExternalId(user);
+                            }
+                            else
+                            {
+                                _logger.AddingUser(user);
+                                user.LoginId = await DbCommands.AddUser(user);
+                            }
 
-                        await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
-                        _logger.Processed(trackingId, payload);
+                            await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
+                            _logger.Processed(trackingId, payload);
 
-                        // run subscribed post-events
-                        var evt = OnProcessed;
-                        if (evt != null)
+                            // run subscribed post-events
+                            var evt = OnProcessed;
+                            if (evt != null)
+                            {
+                                _logger.Info("Post-processing the event");
+                                await evt(this, user);
+                            }
+                        }
+                        catch (ListenerException ex)
                         {
-                            _logger.Info("Post-processing the event");
-                            await evt(this, user);
+
+                            _logger.ListenerException(ex, trackingId, user);
+                            return MessageHandlerResult.Fatal;
                         }
                     }
-                    catch (ListenerException ex)
+                    else
                     {
-                        _logger.ListenerException(ex, trackingId, user);
-                        ThreadContext.Properties.Remove(INTERNAL_ID);
+                        var errors = Validator.GetErrors();
+                        _logger.InvalidModel(trackingId, payload, errors);
+                        await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                         return MessageHandlerResult.Fatal;
                     }
                 }
-                else
-                {
-                    var errors = Validator.GetErrors();
-                    _logger.InvalidModel(trackingId, payload, errors);
-                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
-                    ThreadContext.Properties.Remove(INTERNAL_ID);
-                    return MessageHandlerResult.Fatal;
-                }}
-
-            ThreadContext.Properties.Remove(INTERNAL_ID);
+            }
+            catch (System.Exception e)
+            {
+                _logger.Error(e);
+                return MessageHandlerResult.Fatal;
+            }
+            finally
+            {
+                ThreadContext.Properties.Remove(INTERNAL_ID);
+            }
             return MessageHandlerResult.Success;
         }
     }
