@@ -80,7 +80,7 @@ namespace StarChef.Listener.Commands.Impl
             });
         }
 
-        public async Task AddUser(AccountCreatedTransferObject user)
+        public async Task<int> AddUser(AccountCreatedTransferObject user)
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
             if (string.IsNullOrEmpty(loginDbConnectionString))
@@ -111,9 +111,10 @@ namespace StarChef.Listener.Commands.Impl
             var isEnabled = ids.Item3;
             var isDeleted = ids.Item4;
 
+            var dbLoginId = new SqlParameter("@login_id", SqlDbType.Int) { Direction = ParameterDirection.Output };
             await Exec(loginDbConnectionString, "sc_admin_update_login", p =>
             {
-                p.AddWithValue("@login_id", user.LoginId).Direction = ParameterDirection.Output;
+                p.Add(dbLoginId);
                 p.AddWithValue("@login_name", user.Username);
                 p.AddWithValue("@db_application_id", values["db_application_id"]);
                 p.AddWithValue("@db_database_id", orgId);
@@ -125,6 +126,7 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@is_deleted", isDeleted);
                 p.AddWithValue("@external_login_id", user.ExternalLoginId);
             });
+            return Convert.ToInt32(dbLoginId.Value);
         }
 
         private static readonly Random _random = new Random();
