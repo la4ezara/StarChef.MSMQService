@@ -12,6 +12,7 @@ using Autofac;
 using log4net;
 using log4net.Config;
 using StarChef.Common;
+using StarChef.MSMQService.Configuration;
 
 namespace StarChef.MSMQService
 {
@@ -20,24 +21,17 @@ namespace StarChef.MSMQService
     /// </summary>
     public class Listener
     {
-        /// <summary> The log4net Logger instance. </summary>
-        private static readonly ILog Logger =
-            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        private string _QueuePath;
+        private readonly IAppConfiguration _appConfiguration;
+        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary> The IOC scope used to resolve dependencies. </summary>
         private static ILifetimeScope _scope;
 
         private IStarChefMessageSender _messageSender;
 
-        //private string _AccessDBPath;
-        private EventLog log = new EventLog();
-
-        public Listener(string sQueuePath)
+        public Listener(IAppConfiguration appConfiguration)
         {
-            _QueuePath = sQueuePath;
-            log.Source = "StarChef-Listner";
+            _appConfiguration = appConfiguration;
 
             // Start log4net up
             XmlConfigurator.Configure();
@@ -47,7 +41,7 @@ namespace StarChef.MSMQService
         public void Listen(object resetEvent)
         {
             Message msg = null;
-            MSMQManager mqm = new MSMQManager {MQName = _QueuePath};
+            MSMQManager mqm = new MSMQManager {MQName = _appConfiguration .QueuePath};
             UpdateMessage updmsg = null;
             UpdateMessage u = new UpdateMessage();
             XmlMessageFormatter format = new XmlMessageFormatter(new Type[] { u.GetType() });
@@ -149,14 +143,14 @@ namespace StarChef.MSMQService
             }
             catch (Exception ex)
             {
-                Logger.Error(ex.Message, ex);
+                _logger.Error(ex.Message, ex);
                     
                 if (msg != null)
                 {
                     msg.Formatter = format;
                     updmsg = (UpdateMessage)msg.Body;
                     SendMail(updmsg);
-                    Logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
+                    _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
                     mqm.mqSendToPoisonQueue(updmsg, msg.Priority);
                     ListenerSVC.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
                 }
@@ -174,20 +168,21 @@ namespace StarChef.MSMQService
         {
             try
             {
-                MailMessage mail = new MailMessage
+                var mail = new MailMessage
                 {
-                    From = new MailAddress(ConfigurationManager.AppSettings["FromAddress"].ToString(), ConfigurationManager.AppSettings["Alias"].ToString())
+                    From = new MailAddress(_appConfiguration.FromAddress, _appConfiguration.Alias)
                 };
-                mail.To.Add(ConfigurationManager.AppSettings["ToAddress"].ToString());
+                mail.To.Add(_appConfiguration.ToAddress);
                 mail.IsBodyHtml = true;
-                mail.Subject = ConfigurationManager.AppSettings["Subject"].ToString();
+                mail.Subject = _appConfiguration.Subject;
                 mail.Body = message.ToString();
                 mail.Priority = MailPriority.High;
-                SmtpClient smtp = new SmtpClient();
+                var smtp = new SmtpClient();
                 smtp.Send(mail);
             }
-            catch (System.Exception)
+            catch (Exception e)
             {
+                _logger.Error(e);
                 throw;
             }
         }
@@ -199,7 +194,7 @@ namespace StarChef.MSMQService
                 switch (msg.Action)
                 {
                     case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
-                        ProcessUDUUpdate(msg);
+                        ProcessUduUpdate(msg);
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductSet:
                         ProcessProductSetUpdate(msg);
@@ -257,7 +252,7 @@ namespace StarChef.MSMQService
             }
         }
 
-        private void ProcessUDUUpdate(UpdateMessage msg)
+        private void ProcessUduUpdate(UpdateMessage msg)
         {
             ExecuteStoredProc(msg.DSN,
                 "sc_calculate_dish_pricing",
@@ -445,31 +440,29 @@ namespace StarChef.MSMQService
             }
         }
 
-        private int ExecuteStoredProc(string connectionString, string spName)
-        {
-            return ExecuteStoredProc(connectionString, spName, null);
-        }
-
         private int ExecuteStoredProc(string connectionString, string spName, params SqlParameter[] parameterValues)
         {
             //create & open a SqlConnection, and dispose of it after we are done.
-            using (SqlConnection cn = new SqlConnection(connectionString))
+            using (var cn = new SqlConnection(connectionString))
             {
                 cn.Open();
 
                 // need a command with sensible timeout value (10 minutes), as some 
                 // of these procs may take several minutes to complete
-                SqlCommand cmd = new SqlCommand(spName, cn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC; //600
+                var cmd = new SqlCommand(spName, cn)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
+                };
+                //600
 
                 // add params
                 if (parameterValues != null)
-                    foreach (SqlParameter param in parameterValues)
+                    foreach (var param in parameterValues)
                         cmd.Parameters.Add(param);
 
                 // run proc
-                int retval = cmd.ExecuteNonQuery();
+                var retval = cmd.ExecuteNonQuery();
                 return retval;
             }
         }

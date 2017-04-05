@@ -8,6 +8,8 @@ using System.Messaging;
 using System.Threading;
 using System.Collections;
 using log4net;
+using StarChef.MSMQService.Configuration;
+using StarChef.MSMQService.Configuration.Impl;
 
 namespace StarChef.MSMQService
 {
@@ -24,52 +26,52 @@ namespace StarChef.MSMQService
 	/// </summary>
 	public class ListenerSVC : ServiceBase
 	{
+	    private readonly IAppConfiguration _appConfiguration;
 
-        /// <summary> The log4net Logger instance. </summary>
-        private static readonly ILog Logger =
-            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+	    /// <summary> The log4net Logger instance. </summary>
+        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const long _tickPeriod = 1000; // 1 second!
+        private const long TICK_PERIOD = 1000; // 1 second!
 
-		private System.Timers.Timer _timer;
-		private bool _IsStarted;
-		private string _QueuePath;
+		private readonly System.Timers.Timer _timer;
+		private bool _isStarted;
+		private string _queuePath;
 	    private EventLog log = new EventLog();
 
 		/// <summary> 
 		/// Required designer variable.
 		/// </summary>
-		private System.ComponentModel.Container components = null;
+		private System.ComponentModel.Container _components = null;
 
-        private readonly int _maxThreadCount;
-        public static ManualResetEvent[] resetEvents;
+	    public static ManualResetEvent[] ResetEvents;
         public static Hashtable GlobalUpdateTimeStamps;
         public static Hashtable ActiveTaskDatabaseIDs;
 
-		public ListenerSVC()
+		public ListenerSVC(IAppConfiguration appConfiguration)
 		{
-			// This call is required by the Windows.Forms Component Designer.
-			InitializeComponent();
+		    _appConfiguration = appConfiguration;
+		    // This call is required by the Windows.Forms Component Designer.
+		    InitializeComponent();
             
-            _maxThreadCount = Int32.Parse(ConfigurationSettings.AppSettings.Get("MSMQThreadCount"));
-            ThreadPool.SetMaxThreads(_maxThreadCount, 0);
-            resetEvents = new ManualResetEvent[_maxThreadCount];
+            var maxThreadCount = _appConfiguration.MsmqThreadCount;
+            ThreadPool.SetMaxThreads(maxThreadCount, 0);
+            ResetEvents = new ManualResetEvent[maxThreadCount];
             GlobalUpdateTimeStamps = new Hashtable();
             ActiveTaskDatabaseIDs = new Hashtable();
 
 			//Code to start the timer "tick", which runs the actual MSMQ listener.
-			_timer = new System.Timers.Timer {Interval = _tickPeriod};
+			_timer = new System.Timers.Timer {Interval = TICK_PERIOD};
 		    _timer.Elapsed += TimerTick;
 		    log.Source = "StarChef-ListenerSVC";
 		}
 
 		private void TimerTick(object sender, ElapsedEventArgs e) 
 		{
-			if (_IsStarted)
+			if (_isStarted)
 			{
 			    _timer.Stop();
 			    
-			    Listener iListener = new Listener(_QueuePath);
+			    var iListener = new Listener(_appConfiguration);
                 ThreadPool.QueueUserWorkItem(iListener.Listen);
                 
 			    _timer.Start();
@@ -106,7 +108,7 @@ namespace StarChef.MSMQService
                 if (mqe.MessageQueueErrorCode != MessageQueueErrorCode.IOTimeout &&
                     mqe.MessageQueueErrorCode != MessageQueueErrorCode.MessageNotFound)
                 {
-                    Logger.Error(mqe);
+                    _logger.Error(mqe);
                 }
             }
             return ret;
@@ -121,9 +123,9 @@ namespace StarChef.MSMQService
 			//
 			//   ServicesToRun = new System.ServiceProcess.ServiceBase[] {new ListenerSVC(), new MySecondUserService()};
 			//
-		    ServiceBase[] ServicesToRun = new ServiceBase[] { new ListenerSVC() };
+		    var servicesToRun = new ServiceBase[] { new ListenerSVC(new AppConfiguration()) };
 
-		    Run(ServicesToRun);
+		    Run(servicesToRun);
 		}
 
 	    /// <summary> 
@@ -132,7 +134,7 @@ namespace StarChef.MSMQService
 		/// </summary>
 		private void InitializeComponent()
 		{
-			components = new System.ComponentModel.Container();
+			_components = new System.ComponentModel.Container();
 			ServiceName = "StarChef.MSMQService";
 		}
 
@@ -143,9 +145,9 @@ namespace StarChef.MSMQService
 		{
 			if( disposing )
 			{
-				if (components != null) 
+				if (_components != null) 
 				{
-					components.Dispose();
+					_components.Dispose();
 				}
 			}
 			base.Dispose( disposing );
@@ -158,9 +160,9 @@ namespace StarChef.MSMQService
 		{
 			//start the timer.
 			_timer.Enabled = true;
-			_IsStarted = true;	
+			_isStarted = true;	
 			
-			_QueuePath = ConfigurationSettings.AppSettings.Get("StarChef.MSMQ.Queue");
+			_queuePath = _appConfiguration.QueuePath;
 			
 		}
  
@@ -169,9 +171,34 @@ namespace StarChef.MSMQService
 		/// </summary>
 		protected override void OnStop()
 		{
-			_IsStarted = false;
+			_isStarted = false;
 
 			// TODO: Add code here to perform any tear-down necessary to stop your service.
 		}
+
+	    protected override void OnContinue()
+	    {
+	        base.OnContinue();
+	    }
+
+	    protected override void OnPause()
+	    {
+	        base.OnPause();
+	    }
+
+	    protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
+	    {
+	        return base.OnPowerEvent(powerStatus);
+	    }
+
+	    protected override void OnShutdown()
+	    {
+	        base.OnShutdown();
+	    }
+
+	    protected override void OnSessionChange(SessionChangeDescription changeDescription)
+	    {
+	        base.OnSessionChange(changeDescription);
+	    }
 	}
 }

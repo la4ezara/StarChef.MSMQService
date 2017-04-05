@@ -227,6 +227,8 @@
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Configuration\Impl\AppConfiguration.cs" />
+    <Compile Include="Configuration\IAppConfiguration.cs" />
     <Compile Include="Constant.cs" />
     <Compile Include="ContainerConfig.cs" />
     <Compile Include="Listener.cs">
