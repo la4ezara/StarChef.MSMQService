@@ -1,7 +1,6 @@
 using System;
-using System.Diagnostics;
+using System.ComponentModel;
 using System.ServiceProcess;
-using System.Configuration;
 //necessary for using a timer
 using System.Timers;
 using System.Messaging;
@@ -110,12 +109,6 @@ namespace StarChef.MSMQService
 		// The main entry point for the process
 		static void Main()
 		{
-		    // More than one user Service may run within the same process. To add
-			// another service to this process, change the following line to
-			// create a second service object. For example,
-			//
-			//   ServicesToRun = new System.ServiceProcess.ServiceBase[] {new ListenerSVC(), new MySecondUserService()};
-			//
 		    var servicesToRun = new ServiceBase[] { new ListenerSVC(new AppConfiguration()) };
 
 		    Run(servicesToRun);
@@ -127,7 +120,7 @@ namespace StarChef.MSMQService
 		/// </summary>
 		private void InitializeComponent()
 		{
-			_components = new System.ComponentModel.Container();
+			_components = new Container();
 			ServiceName = "StarChef.MSMQService";
 		}
 
@@ -153,9 +146,7 @@ namespace StarChef.MSMQService
 		{
 			//start the timer.
 			_timer.Enabled = true;
-			_isStarted = true;	
-			
-			_queuePath = _appConfiguration.QueuePath;
+			_isStarted = true;
 			
 		}
  
@@ -171,27 +162,23 @@ namespace StarChef.MSMQService
 
 	    protected override void OnContinue()
 	    {
-	        base.OnContinue();
+            _logger.Info("Service is continued.");
 	    }
 
 	    protected override void OnPause()
 	    {
-	        base.OnPause();
-	    }
+            _logger.Info("Service is paused.");
+        }
 
 	    protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
 	    {
-	        return base.OnPowerEvent(powerStatus);
-	    }
+            _logger.InfoFormat("Power event is occurred: {0}.", powerStatus);
+            return true;
+        }
 
 	    protected override void OnShutdown()
 	    {
-	        base.OnShutdown();
-	    }
-
-	    protected override void OnSessionChange(SessionChangeDescription changeDescription)
-	    {
-	        base.OnSessionChange(changeDescription);
-	    }
+            _logger.Info("Service is shutdown.");
+        }
 	}
 }
