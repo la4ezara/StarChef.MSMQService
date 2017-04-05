@@ -51,7 +51,7 @@ namespace StarChef.Listener.Handlers
                         else
                         {
                             _logger.AddingUser(user);
-                            await DbCommands.AddUser(user);
+                            user.LoginId = await DbCommands.AddUser(user);
                         }
 
                         await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);

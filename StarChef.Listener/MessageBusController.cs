@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Reflection;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Messaging.Azure;
@@ -21,7 +22,7 @@ namespace StarChef.Listener
         private static readonly Lazy<IMessageStore> _messageStore = new Lazy<IMessageStore>(() => new AzureMessageStore());
         private static readonly Lazy<IMessagingFactory> _factory = new Lazy<IMessagingFactory>(() => new AzureMessagingFactory(_messageStore.Value));
         private static readonly Lazy<IMessagingHandlersFactory> _handlersFactory = new Lazy<IMessagingHandlersFactory>(() => new MessagingHandlersFactory());
-        private static readonly Lazy<IMessageListener> _listener = new Lazy<IMessageListener>(() => _factory.Value.CreateMessageListener("StarChef.AzureListener"));
+        private static readonly Lazy<IMessageListener> _listener = new Lazy<IMessageListener>(() => _factory.Value.CreateMessageListener(ConfigurationManager.AppSettings["StarChefListenerName"]));
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static void Start()
