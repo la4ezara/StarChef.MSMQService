@@ -363,6 +363,7 @@ namespace StarChef.Listener.Commands.Impl
                     {
                         sqlCmd.CommandType = CommandType.StoredProcedure;
                         addParametersAction?.Invoke(sqlCmd.Parameters);
+
                         await sqlCmd.ExecuteNonQueryAsync();
                     }
                 }
