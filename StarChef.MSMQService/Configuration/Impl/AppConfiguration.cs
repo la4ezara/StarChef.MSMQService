@@ -9,6 +9,8 @@ namespace StarChef.MSMQService.Configuration.Impl
 
         public string FromAddress => ConfigurationManager.AppSettings["FromAddress"];
 
+        public long Interval => long.Parse(ConfigurationManager.AppSettings["interval"]);
+
         public int MsmqThreadCount => int.Parse(ConfigurationManager.AppSettings.Get("MSMQThreadCount"));
 
         public string QueuePath => ConfigurationManager.AppSettings.Get("StarChef.MSMQ.Queue");

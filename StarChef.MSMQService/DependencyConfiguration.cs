@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Autofac.Core;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Messaging.Azure;
 using Fourth.Orchestration.Storage;
@@ -11,25 +12,24 @@ using Events = Fourth.Orchestration.Model.Menus.Events;
 
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
 using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
-
+using System;
+using StarChef.MSMQService.Configuration;
+using StarChef.MSMQService.Configuration.Impl;
 
 namespace StarChef.MSMQService
 {
     /// <summary>
     /// Responsible for setting up and configuring the dependencies.
     /// </summary>
-    public class ContainerConfig
+    public class DependencyConfiguration : Module
     {
-        /// <summary> The log4net Logger instance. </summary>
         private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
 
-        /// <summary>
-        /// Sets up the IoC container with the correct dependencies.
-        /// </summary>
-        /// <returns>A container with the correct dependencies configured.</returns>
-        public static IContainer Configure()
+        protected override void Load(ContainerBuilder builder)
         {
-            var builder = new ContainerBuilder();
+            builder.RegisterType<Listener>().As<IListener>().InstancePerLifetimeScope();
+            builder.RegisterType<AppConfiguration>().As<IAppConfiguration>().InstancePerLifetimeScope();
 
             // Set the messaging implementation
             builder.RegisterType<AzureMessageStore>().As<IMessageStore>().InstancePerLifetimeScope();
@@ -54,8 +54,6 @@ namespace StarChef.MSMQService
             #endregion
 
             _logger.Info("Dependencies are configured.");
-
-            return builder.Build();
         }
     }
 }

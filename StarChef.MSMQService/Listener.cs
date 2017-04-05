@@ -13,32 +13,26 @@ using log4net;
 using log4net.Config;
 using StarChef.Common;
 using StarChef.MSMQService.Configuration;
+using System.Threading.Tasks;
 
 namespace StarChef.MSMQService
 {
     /// <summary>
     /// Summary description for Listener.
     /// </summary>
-    public class Listener
+    public class Listener : IListener
     {
         private readonly IAppConfiguration _appConfiguration;
         private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly IStarChefMessageSender _messageSender;
 
-        /// <summary> The IOC scope used to resolve dependencies. </summary>
-        private static ILifetimeScope _scope;
-
-        private IStarChefMessageSender _messageSender;
-
-        public Listener(IAppConfiguration appConfiguration)
+        public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender)
         {
             _appConfiguration = appConfiguration;
-
-            // Start log4net up
-            XmlConfigurator.Configure();
-            log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
+            _messageSender = messageSender;
         }
 
-        public void Listen(object resetEvent)
+        public Task ExecuteAsync()
         {
             Message msg = null;
             MSMQManager mqm = new MSMQManager {MQName = _appConfiguration .QueuePath};
@@ -52,11 +46,6 @@ namespace StarChef.MSMQService
                     msg = mqm.mqPeek(cursor, PeekAction.Current);
                     if (msg != null)
                     {
-                        // create sender only when there is a message
-                        var container = ContainerConfig.Configure();
-                        _scope = container.BeginLifetimeScope();
-                        _messageSender = _scope.Resolve<IStarChefMessageSender>();
-
                         msg.Formatter = format;
                         string messageId = msg.Id;
                         updmsg = (UpdateMessage) msg.Body;
@@ -158,10 +147,9 @@ namespace StarChef.MSMQService
             finally
             {
                 mqm.mqDisconnect();
-                if(resetEvent != null)
-                    ((ManualResetEvent)resetEvent).Set();
                 ThreadContext.Properties.Remove("OrganisationId");
             }
+            return Task.CompletedTask;
         }
 
         private void SendMail(UpdateMessage message)

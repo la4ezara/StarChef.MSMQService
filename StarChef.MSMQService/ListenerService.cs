@@ -1,14 +1,17 @@
 using System;
 using System.ComponentModel;
 using System.ServiceProcess;
-//necessary for using a timer
-using System.Timers;
 using System.Messaging;
 using System.Threading;
 using System.Collections;
+using System.Timers;
 using log4net;
 using StarChef.MSMQService.Configuration;
 using StarChef.MSMQService.Configuration.Impl;
+using Autofac;
+using log4net.Config;
+using StarChef.Common;
+using IContainer = Autofac.IContainer;
 
 namespace StarChef.MSMQService
 {
@@ -25,49 +28,27 @@ namespace StarChef.MSMQService
 	/// </summary>
 	public class ListenerService : ServiceBase
 	{
-	    private readonly IAppConfiguration _appConfiguration;
+	    private IAppConfiguration _appConfiguration;
 	    private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private const long TICK_PERIOD = 1000; // 1 second!
-		private readonly System.Timers.Timer _timer;
+        private System.Threading.Timer _timer;
 		private bool _isStarted;
+        private IContainer _container;
 
-		/// <summary> 
-		/// Required designer variable.
-		/// </summary>
-		private Container _components;
+        /// <summary> 
+        /// Required designer variable.
+        /// </summary>
+        private Container _components;
 
-	    public static ManualResetEvent[] ResetEvents;
-        public static Hashtable GlobalUpdateTimeStamps;
+	    public static Hashtable GlobalUpdateTimeStamps;
         public static Hashtable ActiveTaskDatabaseIDs;
 
-		public ListenerService(IAppConfiguration appConfiguration)
+		public ListenerService()
 		{
-		    _appConfiguration = appConfiguration;
-		    // This call is required by the Windows.Forms Component Designer.
-		    InitializeComponent();
-            
-            var maxThreadCount = _appConfiguration.MsmqThreadCount;
-            ThreadPool.SetMaxThreads(maxThreadCount, 0);
-            ResetEvents = new ManualResetEvent[maxThreadCount];
-            GlobalUpdateTimeStamps = new Hashtable();
-            ActiveTaskDatabaseIDs = new Hashtable();
+            InitializeComponent();
 
-			//Code to start the timer "tick", which runs the actual MSMQ listener.
-			_timer = new System.Timers.Timer {Interval = TICK_PERIOD};
-		    _timer.Elapsed += TimerTick;
-		}
-
-		private void TimerTick(object sender, ElapsedEventArgs e) 
-		{
-			if (_isStarted)
-			{
-			    _timer.Stop();
-			    
-			    var iListener = new Listener(_appConfiguration);
-                ThreadPool.QueueUserWorkItem(iListener.Listen);
-                
-			    _timer.Start();
-			}
+            // Start log4net up
+            XmlConfigurator.Configure();
+            log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
 		}
         
         protected int GetMessageCount(string mqName)
@@ -109,7 +90,7 @@ namespace StarChef.MSMQService
 		// The main entry point for the process
 		static void Main()
 		{
-		    var servicesToRun = new ServiceBase[] { new ListenerService(new AppConfiguration()) };
+		    var servicesToRun = new ServiceBase[] { new ListenerService() };
 
 		    Run(servicesToRun);
 		}
@@ -144,21 +125,58 @@ namespace StarChef.MSMQService
 		/// </summary>
 		protected override void OnStart(string[] args)
 		{
-			//start the timer.
-			_timer.Enabled = true;
-			_isStarted = true;
-			
-		}
- 
-		/// <summary>
-		/// Stop this service.
-		/// </summary>
-		protected override void OnStop()
+            _logger.Info("Service is started.");
+
+            var builder = new ContainerBuilder();
+            builder.RegisterModule<DependencyConfiguration>();
+            _container = builder.Build();
+
+
+            _appConfiguration = _container.Resolve<IAppConfiguration>();
+
+            var maxThreadCount = _appConfiguration.MsmqThreadCount;
+            ThreadPool.SetMaxThreads(maxThreadCount, 0);
+            GlobalUpdateTimeStamps = new Hashtable();
+            ActiveTaskDatabaseIDs = new Hashtable();
+
+            var periodSetting = _appConfiguration.Interval;
+		    _logger.DebugFormat("Service is configured to run each {0} ms", periodSetting);
+
+            var period = TimeSpan.FromMilliseconds(periodSetting);
+            _isStarted = true;
+            _timer = new System.Threading.Timer(ServiceTask, null, TimeSpan.Zero, period);
+
+        }
+
+        private void ServiceTask(object state)
+        {
+            _logger.Info("Processing is started");
+
+            try
+            {
+                var listener = _container.Resolve<IListener>();
+                listener.ExecuteAsync().Wait();
+            }
+            catch (AggregateException e)
+            {
+                _logger.Error(e.GetBaseException());
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
+            _logger.Info("Processing is finished");
+        }
+
+
+        /// <summary>
+        /// Stop this service.
+        /// </summary>
+        protected override void OnStop()
 		{
 			_isStarted = false;
-
-			// TODO: Add code here to perform any tear-down necessary to stop your service.
-		}
+            _logger.Info("Service is stopped.");
+        }
 
 	    protected override void OnContinue()
 	    {
