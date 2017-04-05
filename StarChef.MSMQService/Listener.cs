@@ -3,14 +3,10 @@ using System.Messaging;
 using System.Data;
 using System.Data.SqlClient;
 using StarChef.Data;
-using System.Diagnostics;
-using System.Threading;
 using System.Configuration;
 using System.Net.Mail;
 using StarChef.Orchestrate;
-using Autofac;
 using log4net;
-using log4net.Config;
 using StarChef.Common;
 using StarChef.MSMQService.Configuration;
 using System.Threading.Tasks;
@@ -35,19 +31,19 @@ namespace StarChef.MSMQService
         public Task ExecuteAsync()
         {
             Message msg = null;
-            MSMQManager mqm = new MSMQManager {MQName = _appConfiguration .QueuePath};
+            var mqm = new MSMQManager {MQName = _appConfiguration .QueuePath};
             UpdateMessage updmsg = null;
-            UpdateMessage u = new UpdateMessage();
-            XmlMessageFormatter format = new XmlMessageFormatter(new Type[] { u.GetType() });
+            var u = new UpdateMessage();
+            var format = new XmlMessageFormatter(new [] { u.GetType() });
             try
             {
-                using (Cursor cursor = mqm.mqCreateCursor())
+                using (var cursor = mqm.mqCreateCursor())
                 {
                     msg = mqm.mqPeek(cursor, PeekAction.Current);
                     if (msg != null)
                     {
                         msg.Formatter = format;
-                        string messageId = msg.Id;
+                        var messageId = msg.Id;
                         updmsg = (UpdateMessage) msg.Body;
 
                         if (updmsg != null)

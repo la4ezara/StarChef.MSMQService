@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Autofac.Core;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Messaging.Azure;
 using Fourth.Orchestration.Storage;
@@ -8,13 +7,10 @@ using log4net;
 using StarChef.Common;
 using StarChef.Orchestrate;
 using StarChef.Orchestrate.EventSetters.Impl;
-using Events = Fourth.Orchestration.Model.Menus.Events;
-
-using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
-using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
-using System;
 using StarChef.MSMQService.Configuration;
 using StarChef.MSMQService.Configuration.Impl;
+using Events = Fourth.Orchestration.Model.Menus.Events;
+using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
 
 namespace StarChef.MSMQService
 {
