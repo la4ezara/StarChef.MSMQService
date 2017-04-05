@@ -60,7 +60,10 @@ namespace StarChef.Listener.Handlers
                         // run subscribed post-events
                         var evt = OnProcessed;
                         if (evt != null)
+                        {
+                            _logger.Info("Post-processing the event");
                             await evt(this, user);
+                        }
                     }
                     catch (ListenerException ex)
                     {
