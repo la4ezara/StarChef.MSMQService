@@ -101,6 +101,7 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@lastname", user.LastName);
                 p.AddWithValue("@ugroup_id", values["ugroup_id"]);
                 p.AddWithValue("@language_id", values["language_id"]);
+                p.AddWithValue("@set_default", true); // required to add default group
             });
 
             var userId = Convert.ToInt32(dbUserId.Value);
