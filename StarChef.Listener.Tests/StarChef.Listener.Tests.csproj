@@ -167,11 +167,10 @@
     <Compile Include="Helpers\PayloadHelpers.cs" />
     <Compile Include="MessagingHandlersFactoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Types\AccountUpdateFailedValidatorTests.cs" />
-    <Compile Include="Types\AccountUpdatedValidatorTests.cs" />
-    <Compile Include="Types\AccountCreateFailedValidatorTests.cs" />
-    <Compile Include="Types\AccountCreatedValidatorTests.cs" />
-    <Compile Include="Types\EventValidatorTests.cs" />
+    <Compile Include="Types\MessagingLoggerTests.cs" />
+    <Compile Include="Validators\AccountUpdateFailedValidatorTests.cs" />
+    <Compile Include="Validators\AccountUpdatedValidatorTests.cs" />
+    <Compile Include="Validators\EventValidatorTests.cs" />
     <Compile Include="Validators\AccountCreatedValidatorTests.cs" />
     <Compile Include="Validators\AccountCreateFailedValidatorTests.cs" />
   </ItemGroup>

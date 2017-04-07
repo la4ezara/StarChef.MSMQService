@@ -29,5 +29,90 @@ namespace StarChef.Listener.Tests.Validators
             Assert.False(result);
             Assert.Equal("InternalId is not Int32: "+ MORE_THAN_INT, validator.GetErrors());
         }
+        [Fact]
+        public void Should_return_true_for_valid_model()
+        {
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetFirstName("1")
+                .SetLastName("1")
+                .SetEmailAddress("1")
+                .SetExternalId("1");
+            var accountCreated = builder.Build();
+
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
+
+            Assert.True(actual);
+        }
+
+        [Fact]
+        public void Should_return_false_when_InternalId_missing()
+        {
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetFirstName("1")
+                .SetLastName("1")
+                .SetEmailAddress("1")
+                .SetExternalId("1");
+            var accountCreated = builder.Build();
+
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
+
+            Assert.False(actual);
+        }
+
+        [Fact]
+        public void Should_return_false_when_FirstName_missing()
+        {
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetLastName("1")
+                .SetEmailAddress("1")
+                .SetExternalId("1");
+            var accountCreated = builder.Build();
+
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
+
+            Assert.False(actual);
+        }
+
+        [Fact]
+        public void Should_return_false_when_LastName_missing()
+        {
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetFirstName("1")
+                .SetEmailAddress("1")
+                .SetExternalId("1");
+            var accountCreated = builder.Build();
+
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
+
+            Assert.False(actual);
+        }
+
+        [Fact]
+        public void Should_return_false_when_EmailAddress_missing()
+        {
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetFirstName("1")
+                .SetLastName("1")
+                .SetExternalId("1");
+            var accountCreated = builder.Build();
+
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
+
+            Assert.False(actual);
+        }
     }
 }
