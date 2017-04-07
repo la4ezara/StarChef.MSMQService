@@ -1,12 +1,26 @@
 ﻿using System;
+using StarChef.Listener.Commands;
 using StarChef.Listener.Types;
 using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 
 namespace StarChef.Listener.Validators
 {
-    class AccountUpdatedValidator : EventValidator, IEventValidator
+    class AccountUpdatedValidator : AccountEventValidator, IEventValidator
     {
-        public bool IsValid(object payload)
+        public AccountUpdatedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
+        {
+        }
+
+        public override bool IsEnabled(object payload)
+        {
+            var e = payload as AccountUpdated;
+            if (e == null)
+                throw new ArgumentException("The type of the payload is not supported");
+
+            return GetFromDbConfiguration(e.ExternalId, typeof(AccountUpdated).Name);
+        }
+
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(AccountUpdated)) return false;

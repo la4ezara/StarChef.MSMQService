@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Xml;
 using log4net;
+using Newtonsoft.Json;
 using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
@@ -17,10 +20,12 @@ namespace StarChef.Listener.Commands.Impl
     {
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly IConnectionStringProvider _csProvider;
+        private readonly IConfiguration _configuration;
 
-        public DatabaseCommands(IConnectionStringProvider csProvider)
+        public DatabaseCommands(IConnectionStringProvider csProvider, IConfiguration configuration)
         {
             _csProvider = csProvider;
+            _configuration = configuration;
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
@@ -64,14 +69,56 @@ namespace StarChef.Listener.Commands.Impl
         public async Task UpdateExternalId(AccountCreatedTransferObject user)
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
-                if (string.IsNullOrEmpty(loginDbConnectionString))
-                    throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
 
-                await Exec(loginDbConnectionString, "sc_orchestration_update_login_external_id", p =>
-                {
-                    p.AddWithValue("@login_id", user.LoginId);
-                    p.AddWithValue("@external_login_id", user.ExternalLoginId);
-                });
+            await Exec(loginDbConnectionString, "sc_orchestration_update_login_external_id", p =>
+            {
+                p.AddWithValue("@login_id", user.LoginId);
+                p.AddWithValue("@external_login_id", user.ExternalLoginId);
+            });
+        }
+
+        public async Task AddUser(AccountCreatedTransferObject user)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var values = _configuration.UserDefaults;
+
+            await Exec(loginDbConnectionString, "sc_admin_save_preferences", p =>
+            {
+                p.AddWithValue("@email", user.EmailAddress);
+                p.AddWithValue("@login_name", user.Username);
+                p.AddWithValue("@forename", user.FirstName);
+                p.AddWithValue("@lastname", user.LastName);
+                p.AddWithValue("@ugroup_id", values["ugroup_id"]);
+                p.AddWithValue("@language_id", values["language_id"]);
+            });
+
+            var ids = await GetUserId(loginDbConnectionString, user.LoginId);
+            if (ids == null)
+                throw new ListenerException("Cannot map external account to the StarChef account");
+                var userId = ids.Item1;
+                var userConfig = ids.Item2;
+                var isEnabled = ids.Item3;
+                var isDeleted = ids.Item4;
+
+            await Exec(loginDbConnectionString, "sc_admin_update_login", p =>
+            {
+                p.AddWithValue("@login_id", user.LoginId);
+                p.AddWithValue("@login_name", user.Username);
+                p.AddWithValue("@db_application_id", values["db_application_id"]);
+                p.AddWithValue("@db_database_id", values["db_database_id"]);
+                p.AddWithValue("@user_id", userId);
+                p.AddWithValue("@db_role_id", values["db_role_id"]);
+                p.AddWithValue("@login_password", values["login_password"]);
+                p.AddWithValue("@login_config", userConfig);
+                p.AddWithValue("@is_enabled", isEnabled);
+                p.AddWithValue("@is_deleted", isDeleted);
+                p.AddWithValue("@external_login_id", user.ExternalLoginId);
+            });
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
@@ -93,7 +140,7 @@ namespace StarChef.Listener.Commands.Impl
             var connectionString = await _csProvider.GetCustomerDb(loginId, loginDbConnectionString);
             if (string.IsNullOrEmpty(connectionString))
                 throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
-            
+
             await Exec(loginDbConnectionString, "sc_orchestration_update_user", p =>
             {
                 p.AddWithValue("@login_id", loginId);
@@ -106,7 +153,7 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@login_name", username);
                 p.AddWithValue("@forename", firstName);
                 p.AddWithValue("@lastname", lastName);
-            });            
+            });
         }
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>
@@ -133,6 +180,25 @@ namespace StarChef.Listener.Commands.Impl
             await Exec(connectionString, "sc_orchestration_disable_user", p => p.AddWithValue("@user_id", existingUserId));
         }
 
+        public async Task EnableLogin(int? loginId = default(int?), string externalLoginId = null)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var ids = await GetLoginUserId(loginDbConnectionString, loginId, externalLoginId);
+            if (ids == null)
+                throw new ListenerException("Cannot map external account to the StarChef account");
+            var existingLoginId = ids.Item1;
+            var existingUserId = ids.Item2;
+
+            var connectionString = await _csProvider.GetCustomerDb(existingLoginId, loginDbConnectionString);
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
+
+            await Exec(loginDbConnectionString, "sc_orchestration_enable_user", p => p.AddWithValue("@login_id", existingLoginId));
+            await Exec(connectionString, "sc_orchestration_enable_user", p => p.AddWithValue("@user_id", existingUserId));
+        }
         /// <exception cref="DatabaseException">Database operation is failed</exception>
         public async Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId)
         {
@@ -154,6 +220,73 @@ namespace StarChef.Listener.Commands.Impl
             return result;
         }
 
+        public async Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+
+            var ids = await GetLoginUserId(loginDbConnectionString, loginId, externalLoginId);
+            return ids != null;
+        }
+
+        public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, Guid organizationId)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var connectionString = await _csProvider.GetCustomerDb(organizationId, loginDbConnectionString);
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ConnectionStringNotFoundException("Customer DB connections string is not found");
+
+            var result = await UseReader(connectionString, "sc_orchestration_get_event_type_enabled",
+                parametres => {
+                    parametres.AddWithValue("@event_type_short_name", eventTypeShortName);
+                },
+                async reader =>
+                {
+                    await reader.ReadAsync();
+                    return reader.GetBoolean(0);
+                });
+            return result;
+        }
+
+        public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, int loginId)
+        {
+            var info = await GetLoginUserIdAndCustomerDb(loginId);
+            var connectionString = info.Item3;
+            var result = await UseReader(connectionString, "sc_orchestration_get_event_type_enabled",
+                parametres => {
+                    parametres.AddWithValue("@event_type_short_name", eventTypeShortName);
+                },
+                async reader =>
+                {
+                    await reader.ReadAsync();
+                    return reader.GetBoolean(0);
+                });
+            return result;
+        }
+
+        public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, string externalId)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login DB connection string is not found");
+
+            var info = await GetLoginUserId(loginDbConnectionString, externalLoginId: externalId);
+            var connectionString = await _csProvider.GetCustomerDb(info.Item1, loginDbConnectionString);
+
+            var result = await UseReader(connectionString, "sc_orchestration_get_event_type_enabled",
+                parametres => {
+                    parametres.AddWithValue("@event_type_short_name", eventTypeShortName);
+                },
+                async reader =>
+                {
+                    await reader.ReadAsync();
+                    return reader.GetBoolean(0);
+                });
+            return result;
+        }
+
         #region private methods
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>
@@ -168,12 +301,37 @@ namespace StarChef.Listener.Commands.Impl
             };
             Func<SqlDataReader, Task<Tuple<int, int>>> processReader = async reader =>
             {
-                await reader.ReadAsync();
-                var dbLoginId = reader.GetInt32(0);
-                var dbUserId = reader.GetInt32(1);
-                return new Tuple<int, int>(dbLoginId, dbUserId);
+                if (reader.HasRows)
+                {
+                    await reader.ReadAsync();
+                    var dbLoginId = reader.GetInt32(0);
+                    var dbUserId = reader.GetInt32(1);
+                    return new Tuple<int, int>(dbLoginId, dbUserId);
+                }
+                return null;
             };
             var result = await UseReader(loginDbConnectionString, "sc_orchestration_get_loginuser_id", addParametersAction, processReader);
+            return result;
+        }
+
+        private async Task<Tuple<int, int, int, int, int>> GetUserId(string loginDbConnectionString, int? userId = default(int?))
+        {
+            Action<SqlParameterCollection> addParametersAction = parameters =>
+            {
+                if (userId.HasValue)
+                    parameters.AddWithValue("@user_id", userId.Value);
+            };
+            Func<SqlDataReader, Task<Tuple<int, int, int, int, int>>> processReader = async reader =>
+            {
+                await reader.ReadAsync();
+                var dbUserId = reader.GetInt32(0);
+                var dbUserConfig = reader.GetInt32(2);
+                var isEnabled = reader.GetInt32(3);
+                var isDeleted = reader.GetInt32(4);
+                var modifiedBy = reader.GetInt32(5);
+                return new Tuple<int, int, int, int, int>(dbUserId, dbUserConfig, isEnabled, isDeleted, modifiedBy);
+            };
+            var result = await UseReader(loginDbConnectionString, "get_user_data", addParametersAction, processReader);
             return result;
         }
 
@@ -194,7 +352,8 @@ namespace StarChef.Listener.Commands.Impl
                     }
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.DatabaseError(ex);
                 throw new DatabaseException(ex);
             }
@@ -203,7 +362,7 @@ namespace StarChef.Listener.Commands.Impl
         /// <exception cref="DatabaseException">Database operation is failed</exception>
         private async Task<T> UseReader<T>(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null, Func<SqlDataReader, Task<T>> processReader = null)
         {
-            T result = default (T);
+            T result = default(T);
             try
             {
                 using (var sqlConn = new SqlConnection(connectionString))
@@ -216,9 +375,7 @@ namespace StarChef.Listener.Commands.Impl
                         addParametersAction?.Invoke(sqlCmd.Parameters);
                         using (var reader = await sqlCmd.ExecuteReaderAsync())
                         {
-                            if (reader.HasRows && processReader != null) {
-                                result = await processReader(reader);
-                            }
+                            if (reader.HasRows && processReader != null) { result = await processReader(reader); }
                             if (!reader.IsClosed)
                                 reader.Close();
                         }
@@ -226,11 +383,13 @@ namespace StarChef.Listener.Commands.Impl
                 }
                 return result;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.DatabaseError(ex);
                 throw new DatabaseException(ex);
             }
         }
+
         #endregion
     }
 }

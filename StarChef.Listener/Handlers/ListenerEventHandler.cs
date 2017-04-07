@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using StarChef.Listener.Commands;
-using StarChef.Listener.Commands.Impl;
+﻿using StarChef.Listener.Commands;
 
 namespace StarChef.Listener.Handlers
 {
     public abstract class ListenerEventHandler
     {
+        public const string EXTERNAL_ID = "ExternalId";
+        public const string INTERNAL_ID = "InternalId";
+        public const string DATABASE_GUID = "DatabaseGuid";
         public IDatabaseCommands DbCommands { get; private set; }
         public IEventValidator Validator { get; private set; }
         public IMessagingLogger MessagingLogger { get; private set; }

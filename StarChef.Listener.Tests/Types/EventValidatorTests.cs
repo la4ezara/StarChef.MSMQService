@@ -1,4 +1,6 @@
-﻿using StarChef.Listener.Types;
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using StarChef.Listener.Types;
 using Xunit;
 using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
@@ -11,224 +13,120 @@ using AccountCreateFailedReason = Fourth.Orchestration.Model.People.Events.Accou
 using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.AccountUpdateFailedReason;
 using AccountStatus = Fourth.Orchestration.Model.People.Events.AccountStatus;
 using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using StarChef.Listener.Commands;
+using Moq;
+using StarChef.Listener.Validators;
 
 namespace StarChef.Listener.Tests.Types
 {
     public class EventValidatorTests
     {
-        class TestEventValidator : EventValidator
+        [Theory(DisplayName = "Account validator should return True for StarChef source")]
+        [MemberData("AccountEventsWithStarChefSourceSystem")]
+        public void Should_return_True_for_event_with_StartChef_source(object payload, object validator)
         {
-            
-        }
-
-        #region StartChef events
-
-        [Fact]
-        public void Should_return_true_for_AccountCreated_event_with_StartChef_source()
-        {
-            var builder = AccountCreated.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetSource(SourceSystem.STARCHEF);
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
+            var actual = ((EventValidator)validator).IsAllowedEvent(payload);
 
             Assert.True(actual);
         }
 
-        [Fact]
-        public void Should_return_true_for_AccountUpdated_event_with_StartChef_source()
+        [Theory(DisplayName = "Account validator should return False for non StarChef source")]
+        [MemberData("AccountEventsWithNonStarChefSourceSystem")]
+        public void Should_return_False_for_event_with_nonStartChef_source(object payload, object validator)
         {
-            var builder = AccountUpdated.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetSource(SourceSystem.STARCHEF);
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
-
-            Assert.True(actual);
-        }
-
-        [Fact]
-        public void Should_return_true_for_AccountStatusChanged_event_with_StartChef_source()
-        {
-            var builder = AccountStatusChanged.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetStatus(AccountStatus.ACTIVE)
-                .SetSource(SourceSystem.STARCHEF);
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
-
-            Assert.True(actual);
-        }
-
-        [Fact]
-        public void Should_return_true_for_AccountCreateFailed_event_with_StartChef_source()
-        {
-            var builder = AccountCreateFailed.CreateBuilder();
-            builder
-                .SetInternalId("1")
-                .SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA)
-                .SetSource(SourceSystem.STARCHEF);
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
-
-            Assert.True(actual);
-        }
-
-        [Fact]
-        public void Should_return_true_for_AccountUpdateFailed_event_with_StartChef_source()
-        {
-            var builder = AccountUpdateFailed.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetCommandId("1")
-                .SetReason(AccountUpdateFailedReason.INVALID_UPDATE_DATA)
-                .SetSource(SourceSystem.STARCHEF);
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
-
-            Assert.True(actual);
-        }
-
-        [Fact]
-        public void Should_return_true_for_AccountStatusChangeFailed_event_with_StartChef_source()
-        {
-            var builder = AccountStatusChangeFailed.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetSource(SourceSystem.STARCHEF);
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
-
-            Assert.True(actual);
-        }
-
-        #endregion
-
-        #region Non StarChef events
-
-        [Fact]
-        public void Should_return_False_for_AccountCreated_event_with_nonStartChef_source()
-        {
-            var builder = AccountCreated.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetSource(SourceSystem.ADACO);
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
+            var actual = ((EventValidator)validator).IsAllowedEvent(payload);
 
             Assert.False(actual);
         }
 
-        [Fact]
-        public void Should_return_False_for_AccountUpdated_event_with_nonStartChef_source()
+        [Theory(DisplayName = "Account validator should return False if source is not set")]
+        [MemberData("AccountEventsWithoutSourceSystem")]
+        public void Should_return_False_if_source_is_not_set_for_event(object payload, object validator)
         {
-            var builder = AccountUpdated.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetSource(SourceSystem.ADACO);
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
+            var actual = ((EventValidator)validator).IsAllowedEvent(payload);
 
             Assert.False(actual);
         }
 
-        [Fact]
-        public void Should_return_False_for_AccountStatusChanged_event_with_nonStartChef_source()
+        public static IEnumerable<object[]> AccountEventsWithStarChefSourceSystem()
         {
-            var builder = AccountStatusChanged.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetStatus(AccountStatus.ACTIVE)
-                .SetSource(SourceSystem.ADACO);
-            var accountCreated = builder.Build();
+            var acb = AccountCreated.CreateBuilder();
+            acb.SetExternalId("1").SetSource(SourceSystem.STARCHEF);
+            yield return new object[] { acb.Build(), new AccountCreatedValidator(Mock.Of<IDatabaseCommands>()) };
 
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
+            var aub = AccountUpdated.CreateBuilder();
+            aub.SetExternalId("1").SetSource(SourceSystem.STARCHEF);
+            yield return new object[] { aub.Build(), new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>()) };
 
-            Assert.False(actual);
+            var ascb = AccountStatusChanged.CreateBuilder();
+            ascb.SetExternalId("1").SetStatus(AccountStatus.ACTIVE).SetSource(SourceSystem.STARCHEF);
+            yield return new object[] { ascb.Build(), new AccountStatusChangedValidator(Mock.Of<IDatabaseCommands>()) };
+
+            var acfb = AccountCreateFailed.CreateBuilder();
+            acfb.SetInternalId("1").SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA).SetSource(SourceSystem.STARCHEF);
+            yield return new object[] { acfb.Build(), new AccountCreateFailedValidator(Mock.Of<IDatabaseCommands>()) };
+
+            var aufb = AccountUpdateFailed.CreateBuilder();
+            aufb.SetExternalId("1").SetCommandId("1").SetReason(AccountUpdateFailedReason.INVALID_UPDATE_DATA).SetSource(SourceSystem.STARCHEF);
+            yield return new object[] { aufb.Build(), new AccountUpdateFailedValidator(Mock.Of<IDatabaseCommands>()) };
+
+            var ascfb = AccountStatusChangeFailed.CreateBuilder();
+            ascfb.SetExternalId("1").SetSource(SourceSystem.STARCHEF);
+            yield return new object[] { ascfb.Build(), new AccountStatusChangeFailedValidator(Mock.Of<IDatabaseCommands>()) };
         }
 
-        [Fact]
-        public void Should_return_False_for_AccountCreateFailed_event_with_nonStartChef_source()
+        public static IEnumerable<object[]> AccountEventsWithNonStarChefSourceSystem()
         {
-            var builder = AccountCreateFailed.CreateBuilder();
-            builder
-                .SetInternalId("1")
-                .SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA)
-                .SetSource(SourceSystem.ADACO);
-            var accountCreated = builder.Build();
+            var acb = AccountCreated.CreateBuilder();
+            acb.SetExternalId("1").SetSource(SourceSystem.ADACO);
+            yield return new object[] { acb.Build(), new AccountCreatedValidator(Mock.Of<IDatabaseCommands>())};
 
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
+            var aub = AccountUpdated.CreateBuilder();
+            aub.SetExternalId("1").SetSource(SourceSystem.ADACO);
+            yield return new object[] { aub.Build(), new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>()) };
 
-            Assert.False(actual);
+            var ascb = AccountStatusChanged.CreateBuilder();
+            ascb.SetExternalId("1").SetStatus(AccountStatus.ACTIVE).SetSource(SourceSystem.ADACO);
+            yield return new object[] { ascb.Build(), new AccountStatusChangedValidator(Mock.Of<IDatabaseCommands>()) };
+
+            var acfb = AccountCreateFailed.CreateBuilder();
+            acfb.SetInternalId("1").SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA).SetSource(SourceSystem.ADACO);
+            yield return new object[] { acfb.Build(), new AccountCreateFailedValidator(Mock.Of<IDatabaseCommands>()) };
+
+            var aufb = AccountUpdateFailed.CreateBuilder();
+            aufb.SetExternalId("1").SetCommandId("1").SetReason(AccountUpdateFailedReason.INVALID_UPDATE_DATA).SetSource(SourceSystem.ADACO);
+            yield return new object[] { aufb.Build(), new AccountUpdateFailedValidator(Mock.Of<IDatabaseCommands>()) };
+
+            var ascfb = AccountStatusChangeFailed.CreateBuilder();
+            ascfb.SetExternalId("1").SetSource(SourceSystem.ADACO);
+            yield return new object[] { ascfb.Build(), new AccountStatusChangeFailedValidator(Mock.Of<IDatabaseCommands>()) };
         }
 
-        [Fact]
-        public void Should_return_False_for_AccountUpdateFailed_event_with_nonStartChef_source()
+        public static IEnumerable<object[]> AccountEventsWithoutSourceSystem()
         {
-            var builder = AccountUpdateFailed.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetCommandId("1")
-                .SetReason(AccountUpdateFailedReason.INVALID_UPDATE_DATA)
-                .SetSource(SourceSystem.ADACO);
-            var accountCreated = builder.Build();
+            var acb = AccountCreated.CreateBuilder();
+            acb.SetExternalId("1");
+            yield return new object[] { acb.Build(), new AccountCreatedValidator(Mock.Of<IDatabaseCommands>()) };
 
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
+            var aub = AccountUpdated.CreateBuilder();
+            aub.SetExternalId("1");
+            yield return new object[] { aub.Build(), new AccountUpdatedValidator(Mock.Of<IDatabaseCommands>()) };
 
-            Assert.False(actual);
-        }
+            var ascb = AccountStatusChanged.CreateBuilder();
+            ascb.SetExternalId("1").SetStatus(AccountStatus.ACTIVE);
+            yield return new object[] { ascb.Build(), new AccountStatusChangedValidator(Mock.Of<IDatabaseCommands>()) };
 
-        [Fact]
-        public void Should_return_False_for_AccountStatusChangeFailed_event_with_nonStartChef_source()
-        {
-            var builder = AccountStatusChangeFailed.CreateBuilder();
-            builder
-                .SetExternalId("1")
-                .SetSource(SourceSystem.ADACO);
-            var accountCreated = builder.Build();
+            var acfb = AccountCreateFailed.CreateBuilder();
+            acfb.SetInternalId("1").SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA);
+            yield return new object[] { acfb.Build(), new AccountCreateFailedValidator(Mock.Of<IDatabaseCommands>()) };
 
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
+            var aufb = AccountUpdateFailed.CreateBuilder();
+            aufb.SetExternalId("1").SetCommandId("1").SetReason(AccountUpdateFailedReason.INVALID_UPDATE_DATA);
+            yield return new object[] { aufb.Build(), new AccountUpdateFailedValidator(Mock.Of<IDatabaseCommands>()) };
 
-            Assert.False(actual);
-        }
-
-        #endregion
-
-        [Fact]
-        public void Should_return_false_if_source_is_not_set_for_event()
-        {
-            var builder = AccountCreated.CreateBuilder();
-            builder
-                .SetExternalId("1");
-            var accountCreated = builder.Build();
-
-            var validator = new TestEventValidator();
-            var actual = validator.IsStarChefEvent(accountCreated);
-
-            Assert.False(actual);
+            var ascfb = AccountStatusChangeFailed.CreateBuilder();
+            ascfb.SetExternalId("1");
+            yield return new object[] { ascfb.Build(), new AccountStatusChangeFailedValidator(Mock.Of<IDatabaseCommands>()) };
         }
     }
 }

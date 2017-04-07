@@ -30,24 +30,28 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Fourth.Orchestration, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.dll</HintPath>
+    <Reference Include="Fourth.Orchestration, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Model, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.Model.1.1.53\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Messaging.SharedMemoryStub, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.1.53\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
+    <Reference Include="Fourth.Orchestration.Model, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.Model.1.1.57\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.1.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Google.ProtocolBuffers, Version=2.4.1.555, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
@@ -75,6 +79,10 @@
       <HintPath>..\StarChef.MSMQService\packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SharedMemory, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.Orchestration.1.1.57\lib\net45\SharedMemory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="StarChef.Data">
       <HintPath>..\ThirdPartyReferences\StarChef.Data.dll</HintPath>
     </Reference>
@@ -93,6 +101,7 @@
     <Compile Include="EventFactory.cs" />
     <Compile Include="EventSetters\ICommandSetter.cs" />
     <Compile Include="EventSetters\IEventSetter.cs" />
+    <Compile Include="EventSetters\Impl\BuilderHelpers.cs" />
     <Compile Include="EventSetters\Impl\DeactivateAccountSetter.cs" />
     <Compile Include="EventSetters\Impl\GroupUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\IngredientUpdateSetter.cs" />
@@ -106,9 +115,12 @@
     <Compile Include="IStarChefMessageSender.cs" />
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Customer.cs" />
-    <Compile Include="Models\DataReaderExtension.cs" />
+    <Compile Include="Helpers\DataReaderExtension.cs" />
+    <Compile Include="Models\KitchenArea.cs" />
     <Compile Include="Models\TransferObjects\AccountCreatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountCreateFailedTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\AccountStatusChangedTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\AccountStatusChangeFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountUpdatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountUpdateFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\FailedTransferObject.cs" />
@@ -118,7 +130,9 @@
     <Compile Include="StarChefMessageSender.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>

@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Threading.Tasks;
-using System.Transactions;
 using AutoMapper;
 using Fourth.Orchestration.Messaging;
 using Fourth.Orchestration.Model.People;
@@ -13,22 +12,36 @@ namespace StarChef.Listener.Handlers
 {
     public class AccountCreateFailedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountCreateFailed>
     {
-        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly ILog _logger;
 
         public AccountCreateFailedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
+            _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        public AccountCreateFailedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, ILog errorLogger) : base(dbCommands, validator, messagingLogger)
+        {
+            _logger = errorLogger;
         }
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountCreateFailed payload, string trackingId)
         {
-            if (Validator.IsStarChefEvent(payload))
+            ThreadContext.Properties[INTERNAL_ID] = payload.InternalId;
+
+            if (Validator.IsAllowedEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
 
-                if (Validator.IsValid(payload))
+                if (Validator.IsValidPayload(payload))
                 {
                     var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
 
+                    var isUserExists = await DbCommands.IsUserExists(operationFailed.LoginId);
+                    if (isUserExists)
+                    {
+                        _logger.DisablingUser(operationFailed);
+                        await DbCommands.DisableLogin(operationFailed.LoginId);
+                    }
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
                     _logger.Processed(trackingId, payload);
                 }
@@ -37,8 +50,12 @@ namespace StarChef.Listener.Handlers
                     var errors = Validator.GetErrors();
                     _logger.InvalidModel(trackingId, payload, errors);
                     await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
+                    ThreadContext.Properties.Remove(INTERNAL_ID);
                     return MessageHandlerResult.Fatal;
-                }}
+                }
+            }
+
+            ThreadContext.Properties.Remove(INTERNAL_ID);
             return MessageHandlerResult.Success;
         }
     }

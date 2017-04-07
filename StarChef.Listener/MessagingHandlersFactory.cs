@@ -30,20 +30,20 @@ namespace StarChef.Listener
         /// <exception cref="NotSupportedMessageException">Raised when message type is not supported</exception>
         public IMessageHandler CreateHandler<T>()
         {
+            var configuration = new AppConfigConfiguration();
             var csProvider = new ConnectionStringProvider();
-            var dbCommands = new DatabaseCommands(csProvider);
+            var dbCommands = new DatabaseCommands(csProvider, configuration);
             var messagingLogger = new MessagingLogger(dbCommands);
 
             if (typeof(T) == typeof(PriceBandUpdated))
             {
-                var validator = new AlwaysTrueEventValidator();
-                var configuration = new AppConfigConfiguration();
+                var validator = new PriceBandUpdatedValidator(dbCommands);
                 return new PriceBandEventHandler(dbCommands, validator, messagingLogger, configuration);
             }
 
             if (typeof(T) == typeof(AccountCreated))
             {
-                var validator = new AccountCreatedValidator();
+                var validator = new AccountCreatedValidator(dbCommands);
                 var handler = new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
                 handler.OnProcessed += SendMsmqMessage;
                 return handler;
@@ -51,29 +51,29 @@ namespace StarChef.Listener
 
             if (typeof(T) == typeof(AccountCreateFailed))
             {
-                var validator = new AccountCreateFailedValidator();
+                var validator = new AccountCreateFailedValidator(dbCommands);
                 return new AccountCreateFailedEventHandler(dbCommands, validator, messagingLogger);
             }
 
             if (typeof(T) == typeof(AccountUpdated))
             {
-                var validator = new AccountUpdatedValidator();
+                var validator = new AccountUpdatedValidator(dbCommands);
                 return new AccountUpdatedEventHandler(dbCommands, validator, messagingLogger);
             }
 
             if (typeof(T) == typeof(AccountUpdateFailed))
             {
-                var validator = new AccountUpdateFailedValidator();
+                var validator = new AccountUpdateFailedValidator(dbCommands);
                 return new AccountUpdateFailedEventHandler(dbCommands, validator, messagingLogger);
             }
             if (typeof (T) == typeof (AccountStatusChanged))
             {
-                var validator = new AccountStatusChangedValidator();
+                var validator = new AccountStatusChangedValidator(dbCommands);
                 return new AccountStatusChangedEventHandler(dbCommands, validator, messagingLogger);
             }
             if (typeof(T) == typeof(AccountStatusChangeFailed))
             {
-                var validator = new AccountStatusChangeFailedValidator();
+                var validator = new AccountStatusChangeFailedValidator(dbCommands);
                 return new AccountStatusChangeFailedEventHandler(dbCommands, validator, messagingLogger);
             }
 
@@ -88,6 +88,8 @@ namespace StarChef.Listener
             {
                 var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.LoginId);
 
+                ThreadContext.Properties["OrganisationId"] = userDetail.Item2;
+
                 var msg = new UpdateMessage(productId: userDetail.Item1,
                                             entityTypeId: (int)Constants.EntityType.User,
                                             action: (int)Constants.MessageActionType.SalesForceUserCreated,
@@ -100,6 +102,10 @@ namespace StarChef.Listener
             {
                 _logger.Error(ex);
                 throw;
+            }
+            finally
+            {
+                ThreadContext.Properties.Remove("OrganisationId");
             }
         }
     }

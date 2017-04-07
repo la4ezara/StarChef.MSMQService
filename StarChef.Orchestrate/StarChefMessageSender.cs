@@ -1,4 +1,5 @@
-﻿using Fourth.Orchestration.Messaging;
+﻿using System.Linq;
+using Fourth.Orchestration.Messaging;
 using log4net;
 using StarChef.Common;
 using System;
@@ -70,11 +71,24 @@ namespace StarChef.Orchestrate
             _commandFactory = commandFactory;
         }
 
+        private bool Send(
+            EnumHelper.EntityTypeWrapper entityTypeWrapper,
+            string dbConnectionString,
+            int entityTypeId,
+            int entityId,
+            int databaseId,
+            DateTime messageArrivedTime
+            )
+        {
+            return Send(entityTypeWrapper, dbConnectionString, entityTypeId, entityTypeId, string.Empty, databaseId, messageArrivedTime);
+        }
+
         public bool Send(
             EnumHelper.EntityTypeWrapper entityTypeWrapper,
             string dbConnectionString,
             int entityTypeId,
             int entityId,
+            string entityExternalId,
             int databaseId,
             DateTime messageArrivedTime
             )
@@ -85,87 +99,118 @@ namespace StarChef.Orchestrate
 
             try
             {
-                using (IMessageBus bus = _messagingFactory.CreateMessageBus())
+                var isSsoEnabled = _databaseManager.IsSsoEnabled(dbConnectionString);
+
+                if (_databaseManager.IsPublishEnabled(dbConnectionString, entityTypeId))
                 {
-                    // Create an event payload
-                    switch (entityTypeWrapper)
+                    using (IMessageBus bus = _messagingFactory.CreateMessageBus())
                     {
-                        case EnumHelper.EntityTypeWrapper.Recipe:
-                            {
-                                var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                result = Publish(bus, payload);
-                            }
-                            break;
-                        case EnumHelper.EntityTypeWrapper.MealPeriod:
-                            {
-                                var payload = _eventFactory.CreateUpdateEvent<MealPeriodUpdated, MealPeriodUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                result = Publish(bus, payload);
-                            }
-                            break;
-                        case EnumHelper.EntityTypeWrapper.Group:
-                            {
-                                var payload = _eventFactory.CreateUpdateEvent<GroupUpdated, GroupUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                result = Publish(bus, payload);
-                            }
-                            break;
-                        case EnumHelper.EntityTypeWrapper.User:
-                            var userCommandCreateAccount = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
-                            result = Send(bus, userCommandCreateAccount);
-                            break;
-                        case EnumHelper.EntityTypeWrapper.UserActivated:
-                            var userCommandAccountActivated = CommandFactory.ActivateAccountCommand(entityId, databaseId);
-                            result = Send(bus, userCommandAccountActivated);
-                            break;
-                        case EnumHelper.EntityTypeWrapper.SendUserUpdatedEvent:
-                            {
-                                var payload = _eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                result = Publish(bus, payload);
-                            }
-                            break;
-                        case EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand:
-                            {
-                                var userCreatedEventPayload = _eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                var userCreatedCommandPayload = CommandFactory.UpdateAccountCommand(dbConnectionString, entityId, databaseId);
-                                result = Publish(bus, userCreatedEventPayload)
-                                         && Send(bus, userCreatedCommandPayload);
-                                break;
-                            }
-                        case EnumHelper.EntityTypeWrapper.UserGroup:
-                            {
-                                var userIds = _databaseManager.GetUsersInGroup(dbConnectionString, entityId);
-                                foreach (var userId in userIds)
+                        // Create an event payload
+                        switch (entityTypeWrapper)
+                        {
+                            case EnumHelper.EntityTypeWrapper.Recipe:
                                 {
-                                    var payload = _eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>(dbConnectionString, userId, databaseId);
+                                    var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
                                     result = Publish(bus, payload);
-                                    LogDatabase(dbConnectionString, entityTypeId, entityId, messageArrivedTime, result);
-                                    logged = true;
                                 }
-                            }
-                            break;
-                        case EnumHelper.EntityTypeWrapper.Menu:
-                            {
-                                var payload = _eventFactory.CreateUpdateEvent<MenuUpdated, MenuUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                result = Publish(bus, payload);
-                            }
-                            break;
-                        case EnumHelper.EntityTypeWrapper.Ingredient:
-                            {
-                                var payload = _eventFactory.CreateUpdateEvent<IngredientUpdated, IngredientUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                result = Publish(bus, payload);
-                            }
-                            break;
-                        case EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent:
-                            {
-                                var payload = _eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                result = Publish(bus, payload);
-                            }
-                            break;
-                        default:
-                            throw new NotSupportedException();
+                                break;
+                            case EnumHelper.EntityTypeWrapper.MealPeriod:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<MealPeriodUpdated, MealPeriodUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.Group:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<GroupUpdated, GroupUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.User:
+                                {
+                                    if (isSsoEnabled)
+                                    {
+                                        IMessage messagePayload;
+
+                                        if (string.IsNullOrEmpty(entityExternalId))
+                                            messagePayload = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
+                                        else
+                                            messagePayload = CommandFactory.UpdateAccountCommand(dbConnectionString, entityId, databaseId);
+
+                                        return Send(bus, messagePayload);
+                                    }
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.UserActivated:
+                                {
+                                    if (isSsoEnabled)
+                                    {
+                                        var userCommandAccountActivated = CommandFactory.ActivateAccountCommand(entityId, databaseId);
+                                        result = Send(bus, userCommandAccountActivated);
+                                    }
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.SendUserUpdatedEvent:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand:
+                                {
+                                    var userCreatedEventPayload = _eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+
+                                    result = Publish(bus, userCreatedEventPayload);
+                                    if (isSsoEnabled)
+                                    {
+                                        IMessage messagePayload;
+
+                                        if (string.IsNullOrEmpty(entityExternalId))
+                                            messagePayload = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
+                                        else
+                                            messagePayload = CommandFactory.UpdateAccountCommand(dbConnectionString, entityId, databaseId);
+
+                                        result = result && Send(bus, messagePayload);
+                                    }
+                                    break;
+                                }
+                            case EnumHelper.EntityTypeWrapper.UserGroup:
+                                {
+                                    var userIds = _databaseManager.GetUsersInGroup(dbConnectionString, entityId);
+                                    foreach (var userId in userIds)
+                                    {
+                                        var payload = _eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>(dbConnectionString, userId, databaseId);
+                                        result = Publish(bus, payload);
+                                        LogDatabase(dbConnectionString, entityTypeId, entityId, messageArrivedTime, result);
+                                        logged = true;
+                                    }
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.Menu:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<MenuUpdated, MenuUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.Ingredient:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<IngredientUpdated, IngredientUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
+                            default:
+                                throw new NotSupportedException();
+                        }
                     }
                 }
 
-                if(!logged)
+                if (!logged)
                 {
                     LogDatabase(dbConnectionString,
                                         entityTypeId,
@@ -174,7 +219,7 @@ namespace StarChef.Orchestrate
                                         result);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Fatal("StarChef MSMQService Orchestrate failed to send to Orchestration in Send.", ex);
             }
@@ -239,15 +284,21 @@ namespace StarChef.Orchestrate
         public bool PublishUpdateEvent(UpdateMessage message)
         {
             var result = false;
+            var connectionString = message.DSN;
+            var entityTypeId = message.EntityTypeId;
+
             try
             {
-                using (var bus = _messagingFactory.CreateMessageBus())
+                if (_databaseManager.IsPublishEnabled(connectionString, entityTypeId))
                 {
-                    var payload = CreateUpdateEvent(message);
-                    if (payload != null)
+                    using (var bus = _messagingFactory.CreateMessageBus())
                     {
-                        result = Publish(bus, payload);
-                        LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
+                        var payload = CreateUpdateEvent(message);
+                        if (payload != null)
+                        {
+                            result = Publish(bus, payload);
+                            LogDatabase(connectionString, entityTypeId, message.ProductID, message.ArrivedTime, result);
+                        }
                     }
                 }
             }
@@ -336,13 +387,16 @@ namespace StarChef.Orchestrate
             var result = false;
             try
             {
-                using (var bus = _messagingFactory.CreateMessageBus())
+                if (IsShouldBeSend(message))
                 {
-                    var payload = CreateCommandPayload(message);
-                    if (payload != null)
+                    using (var bus = _messagingFactory.CreateMessageBus())
                     {
-                        result = Send(bus, payload);
-                        LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
+                        var payload = CreateCommandPayload(message);
+                        if (payload != null)
+                        {
+                            result = Send(bus, payload);
+                            LogDatabase(message.DSN, message.EntityTypeId, message.ProductID, message.ArrivedTime, result);
+                        }
                     }
                 }
             }
@@ -351,6 +405,25 @@ namespace StarChef.Orchestrate
                 _logger.Fatal("Failed to publish delete event.", ex);
             }
             return result;
+        }
+
+        internal virtual bool IsShouldBeSend(UpdateMessage message)
+        {
+            var messageActionType = (Constants.MessageActionType)message.Action;
+            return _databaseManager.IsPublishEnabled(message.DSN, message.EntityTypeId)
+                    && (!IsSsoRelatedAction(messageActionType) || _databaseManager.IsSsoEnabled(message.DSN));
+        }
+
+        internal virtual bool IsSsoRelatedAction(Constants.MessageActionType messageActionType)
+        {
+            Constants.MessageActionType[] ssoRelatedActionTypes = new[]
+            {
+                Constants.MessageActionType.UserCreated,
+                Constants.MessageActionType.UserUpdated,
+                Constants.MessageActionType.UserActivated,
+                Constants.MessageActionType.UserDeActivated
+            };
+            return ssoRelatedActionTypes.Contains(messageActionType);
         }
 
         private IMessage CreateCommandPayload(UpdateMessage message)

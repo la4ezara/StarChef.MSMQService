@@ -1,4 +1,6 @@
-﻿using AccountCreateFailedReason = Fourth.Orchestration.Model.People.Events.AccountCreateFailedReason;
+﻿using Moq;
+using StarChef.Listener.Commands;
+using AccountCreateFailedReason = Fourth.Orchestration.Model.People.Events.AccountCreateFailedReason;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
@@ -17,8 +19,8 @@ namespace StarChef.Listener.Tests.Types
                 .SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA);
             var accountCreated = builder.Build();
 
-            var validator = new AccountCreateFailedValidator();
-            var actual = validator.IsValid(accountCreated);
+            var validator = new AccountCreateFailedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.True(actual);
         }

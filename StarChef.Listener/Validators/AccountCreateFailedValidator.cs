@@ -1,11 +1,27 @@
-﻿using StarChef.Listener.Types;
+﻿using System;
+using StarChef.Listener.Commands;
+using StarChef.Listener.Types;
 using AccountCreateFailed = Fourth.Orchestration.Model.People.Events.AccountCreateFailed;
 
 namespace StarChef.Listener.Validators
 {
-    class AccountCreateFailedValidator : EventValidator, IEventValidator
+    class AccountCreateFailedValidator : AccountEventValidator, IEventValidator
     {
-        public bool IsValid(object payload)
+        public AccountCreateFailedValidator(IDatabaseCommands databaseCommands) : base(databaseCommands)
+        {
+        }
+
+        public override bool IsEnabled(object payload)
+        {
+            var e = payload as AccountCreateFailed;
+            if (e == null)
+                throw new ArgumentException("The type of the payload is not supported");
+
+            var loginId = int.Parse(e.InternalId);
+            return GetFromDbConfiguration(loginId, typeof(AccountCreateFailed).Name);
+        }
+
+        public bool IsValidPayload(object payload)
         {
             if (payload == null) return false;
             if (payload.GetType() != typeof(AccountCreateFailed)) return false;

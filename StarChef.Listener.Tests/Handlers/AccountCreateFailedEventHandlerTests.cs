@@ -11,6 +11,9 @@ using StarChef.Listener.Tests.Fixtures;
 using StarChef.Listener.Tests.Handlers.Fakes;
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
+using log4net;
+using StarChef.Listener.Tests.Helpers;
+using log4net.Core;
 
 namespace StarChef.Listener.Tests.Handlers
 {
@@ -26,8 +29,8 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetSource(SourceSystem.STARCHEF);
             var payload = builder.Build();
 
-            var validator = new AccountCreateFailedValidator();
             var dbCommands = new TestDatabaseCommands();
+            var validator = new AccountCreateFailedValidator(dbCommands);
             var messagingLogger = new TestMessagingLogger();
             var handler = new AccountCreateFailedEventHandler(dbCommands, validator, messagingLogger);
 
@@ -48,8 +51,8 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetSource(SourceSystem.ADACO);
             var payload = builder.Build();
 
-            var validator = new AccountCreateFailedValidator();
             var dbCommands = new TestDatabaseCommands();
+            var validator = new AccountCreateFailedValidator(dbCommands);
             var messagingLogger = new TestMessagingLogger();
             var handler = new AccountCreateFailedEventHandler(dbCommands, validator, messagingLogger);
 
@@ -59,6 +62,108 @@ namespace StarChef.Listener.Tests.Handlers
             Assert.Equal(MessageHandlerResult.Success, result);
             Assert.False(dbCommands.IsCalledAnyMethod);
             Assert.False(messagingLogger.IsCalledAnyMethod);
+        }
+        
+        [Fact]
+        public void Should_not_have_log_for_non_starchef_events()
+        {
+            // arrange
+            var builder = AccountCreateFailed.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA)
+                .SetSource(SourceSystem.ADACO);
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(false);
+
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var logChecker = new LogChecker(typeof(AccountCreateFailedEventHandler), Level.All);
+            var handler = new AccountCreateFailedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            var messageList = logChecker.LoggingEvents;
+            logChecker.Dispose();
+
+            // assert
+            Assert.Equal(messageList.Count, 0);
+
+            Assert.Null(ThreadContext.Properties[AccountCreateFailedEventHandler.INTERNAL_ID]);
+        }
+
+        [Fact]
+        public void All_logs_should_have_correct_internal_id()
+        {
+            // arrange
+            var builder = AccountCreateFailed.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA)
+                .SetSource(SourceSystem.STARCHEF);
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
+
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var logChecker = new LogChecker(typeof(AccountCreateFailedEventHandler), Level.All);
+            var handler = new AccountCreateFailedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            var messageList = logChecker.LoggingEvents;
+            logChecker.Dispose();
+
+            // assert
+            Assert.All(messageList, item =>
+            {
+                Assert.Equal(item.Properties[AccountCreateFailedEventHandler.INTERNAL_ID], "1");
+            });
+
+            Assert.Null(ThreadContext.Properties[AccountCreateFailedEventHandler.INTERNAL_ID]);
+        }
+
+        [Fact]
+        public void All_logs_should_have_correct_internal_id_invalid_payload()
+        {
+            // arrange
+            var builder = AccountCreateFailed.CreateBuilder();
+            builder
+                .SetInternalId("1")
+                .SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA)
+                .SetSource(SourceSystem.STARCHEF);
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new Mock<IEventValidator>(MockBehavior.Strict);
+            validator.Setup(m => m.IsAllowedEvent(payload)).Returns(true);
+
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(false);
+            validator.Setup(m => m.GetErrors()).Returns(string.Empty);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var logChecker = new LogChecker(typeof(AccountCreateFailedEventHandler), Level.All);
+            var handler = new AccountCreateFailedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            var messageList = logChecker.LoggingEvents;
+            logChecker.Dispose();
+
+            // assert
+            Assert.All(messageList, item =>
+            {
+                Assert.Equal(item.Properties[AccountCreateFailedEventHandler.INTERNAL_ID], "1");
+            });
+
+            Assert.Null(ThreadContext.Properties[AccountCreateFailedEventHandler.INTERNAL_ID]);
         }
     }
 }

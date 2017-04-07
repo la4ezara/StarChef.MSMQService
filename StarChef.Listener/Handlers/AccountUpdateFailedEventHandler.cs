@@ -13,19 +13,27 @@ namespace StarChef.Listener.Handlers
 {
     public class AccountUpdateFailedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountUpdateFailed>
     {
-        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly ILog _logger;
 
         public AccountUpdateFailedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
+            _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        public AccountUpdateFailedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, ILog errorLogger) : base(dbCommands, validator, messagingLogger)
+        {
+            _logger = errorLogger;
         }
 
         public async Task<MessageHandlerResult> HandleAsync(Events.AccountUpdateFailed payload, string trackingId)
         {
-            if (Validator.IsStarChefEvent(payload))
+            ThreadContext.Properties[EXTERNAL_ID] = payload.ExternalId;
+
+            if (Validator.IsAllowedEvent(payload))
             {
                 _logger.EventReceived(trackingId, payload);
 
-                if (Validator.IsValid(payload))
+                if (Validator.IsValidPayload(payload))
                 {
                     var operationFailed = Mapper.Map<AccountUpdateFailedTransferObject>(payload);
                     await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
@@ -36,8 +44,12 @@ namespace StarChef.Listener.Handlers
                     var errors = Validator.GetErrors();
                     _logger.InvalidModel(trackingId, payload, errors);
                     await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
+                    ThreadContext.Properties.Remove(EXTERNAL_ID);
                     return MessageHandlerResult.Fatal;
-                }}
+                }
+            }
+
+            ThreadContext.Properties.Remove(EXTERNAL_ID);
             return MessageHandlerResult.Success;
         }
     }

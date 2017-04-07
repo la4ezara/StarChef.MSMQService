@@ -1,4 +1,6 @@
-﻿using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
+﻿using Moq;
+using StarChef.Listener.Commands;
+using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
 using Xunit;
@@ -19,8 +21,8 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountCreatedValidator();
-            var actual = validator.IsValid(accountCreated);
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.True(actual);
         }
@@ -36,8 +38,8 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountCreatedValidator();
-            var actual = validator.IsValid(accountCreated);
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.False(actual);
         }
@@ -53,8 +55,8 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountCreatedValidator();
-            var actual = validator.IsValid(accountCreated);
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.False(actual);
         }
@@ -70,8 +72,8 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountCreatedValidator();
-            var actual = validator.IsValid(accountCreated);
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.False(actual);
         }
@@ -87,8 +89,8 @@ namespace StarChef.Listener.Tests.Types
                 .SetExternalId("1");
             var accountCreated = builder.Build();
 
-            var validator = new AccountCreatedValidator();
-            var actual = validator.IsValid(accountCreated);
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
 
             Assert.False(actual);
         }

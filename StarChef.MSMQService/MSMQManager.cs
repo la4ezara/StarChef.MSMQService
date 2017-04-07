@@ -1,8 +1,7 @@
+using log4net;
 using System;
 using System.Configuration;
 using System.Messaging;
-using Microsoft.ApplicationBlocks.ExceptionManagement;
-using StarChef.Data;
 
 namespace StarChef.MSMQService
 {
@@ -11,8 +10,11 @@ namespace StarChef.MSMQService
 	/// </summary>
 	public class MSMQManager
 	{
-		//private string _mqName = @"\\\\10.10.10.195\\StarChef_Calc";
-		private const string _configKeyMQ = "StarChef.MSMQ.Queue";		
+        private static readonly ILog Logger =
+            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        //private string _mqName = @"\\\\10.10.10.195\\StarChef_Calc";
+        private const string _configKeyMQ = "StarChef.MSMQ.Queue";		
 		
 		private string _mqName = string.Empty;
 		private MessageQueue mq = null;
@@ -168,12 +170,12 @@ namespace StarChef.MSMQService
                 }
                 else
                 {
-                    ExceptionManager.Publish(new Exception("StarChef Message Queue: " + _configkeyPoisonMQ + " does not exist. Please check MSMQ Setup"));
+                    Logger.Error(new Exception("StarChef Message Queue: " + _configkeyPoisonMQ + " does not exist. Please check MSMQ Setup"));
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                 ExceptionManager.Publish(new Exception("StarChef: MSMQ Errored while adding a message to the Poison Queue."));
+                Logger.Error("StarChef: MSMQ Errored while adding a message to the Poison Queue.", ex);
             }
         }
 

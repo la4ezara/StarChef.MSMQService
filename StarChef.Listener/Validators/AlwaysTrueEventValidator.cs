@@ -1,4 +1,6 @@
-﻿namespace StarChef.Listener.Types
+﻿using System;
+
+namespace StarChef.Listener.Types
 {
     internal class AlwaysTrueEventValidator : IEventValidator
 
@@ -8,12 +10,17 @@
             return string.Empty;
         }
 
-        public bool IsStarChefEvent(object payload)
+        public bool IsEnabled(object payload)
         {
             return true;
         }
 
-        public bool IsValid(object payload)
+        public bool IsAllowedEvent(object payload)
+        {
+            return true;
+        }
+
+        public bool IsValidPayload(object payload)
         {
             return true;
         }

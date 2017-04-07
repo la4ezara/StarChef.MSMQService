@@ -5,20 +5,27 @@ using System.Data.SqlClient;
 using System.Linq;
 using Fourth.Orchestration.Model.Menus;
 using StarChef.Common;
+using StarChef.Orchestrate.EventSetters.Impl;
+using StarChef.Orchestrate.Helpers;
 using StarChef.Orchestrate.Models;
 
 namespace StarChef.Orchestrate
 {
     public class RecipeUpdatedSetter : IEventSetter<Events.RecipeUpdated.Builder>
     {
+        internal virtual IDataReader ExecuteDbCommand(string connectionString, int entityId)
+        {
+            var dbManager = new DatabaseManager();
+            return dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_recipe", new SqlParameter("@entity_id", entityId));
+        }
+
         public bool SetForUpdate(Events.RecipeUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
             if (builder == null) return false;
 
             var cust = new Customer(databaseId);
-            var dbManager = new DatabaseManager();
+            var reader = ExecuteDbCommand(connectionString, entityId);
 
-            var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_recipe", new SqlParameter("@entity_id", entityId));
             if (reader.Read())
             {
                 builder.SetCustomerId(cust.ExternalId)
@@ -52,14 +59,17 @@ namespace StarChef.Orchestrate
             var ingredientList = new List<RecipeIngredient>();
             if (reader.NextResult())
             {
-                ingredientList = GetIngredients(reader, entityId);
+                ingredientList = ReadIngredients(reader, entityId);
             }
 
             //Kitchenarea
             var kitchenAreaLookup = new Dictionary<int, List<KitchenArea>>();
             if (reader.NextResult())
             {
-                kitchenAreaLookup = KitchenAreaLookup(reader);
+                List<KitchenArea> kitchenAreas;
+                reader.ReadKitchenAreas(out kitchenAreas);
+
+                kitchenAreaLookup = BuildKitchenAreas(kitchenAreas);
             }
 
             //Build Ingredients and KitchenArea
@@ -79,104 +89,58 @@ namespace StarChef.Orchestrate
 
             var categoryTypes = new List<CategoryType>();
             var categories = new List<Category>();
-
-            //Category Type
+            
+            //read category types and categories
             if (reader.NextResult())
-            {
-                while (reader.Read())
-                {
-
-                    var categoryType = new CategoryType
-                    {
-                        ExternalId = reader[0].ToString(),
-                        Name = reader[1].ToString(),
-                        CategoryExportType = OrchestrateHelper.MapCategoryExportType(reader[2].ToString()),
-                        IsFood = reader.GetValueOrDefault<bool>(3)
-                    };
-                    categoryTypes.Add(categoryType);
-                }
-            }
-           
-            if (reader.NextResult())
-            {
-                while (reader.Read())
-                {
-                   var category = new Category
-                    {
-                        ExternalId = reader[0].ToString(),
-                        Name = reader[1].ToString(),
-                        ParentExternalId = reader[2].ToString(),
-                        Sequence = reader.GetValueOrDefault<int>(3)
-                    };
-                    categories.Add(category);
-                }
-            }
-
-            //CategoryType exists
+                reader.ReadCategories(out categoryTypes, out categories);
             if (categoryTypes.Count > 0)
-                BuildCategoryTypes(builder, categoryTypes, categories);
+            {
+                Func<dynamic> createCategoryType = () => Events.RecipeUpdated.Types.CategoryType.CreateBuilder();
+                Func<dynamic> createCategory = () => Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
+                BuilderHelpers.BuildCategoryTypes(builder, createCategoryType, createCategory, categoryTypes);
+            }
+
+            //read intolerances
+            if(reader.NextResult())
+            {
+                if (reader.Read())
+                {
+                    if (!reader.IsDBNull(1)) builder.SetContainsMilkOrMilkProducts(reader.GetBoolean(1));
+                    if (!reader.IsDBNull(2)) builder.SetContainsEggOrEggDerivatives(reader.GetBoolean(2));
+                    if (!reader.IsDBNull(3)) builder.SetContainsCerealsThatContainGluten(reader.GetBoolean(3));
+                    if (!reader.IsDBNull(4)) builder.SetContainsPeanuts(reader.GetBoolean(4));
+                    if (!reader.IsDBNull(5)) builder.SetContainsNutsOrNutTrace(reader.GetBoolean(5));
+                    if (!reader.IsDBNull(6)) builder.SetContainsSesameSeedOrSesameSeedProducts(reader.GetBoolean(6));
+                    if (!reader.IsDBNull(7)) builder.SetContainsSoya(reader.GetBoolean(7));
+                    if (!reader.IsDBNull(8)) builder.SetContainsFishOrFishProducts(reader.GetBoolean(8));
+                    if (!reader.IsDBNull(9)) builder.SetContainsCrustaceans(reader.GetBoolean(9));
+                    if (!reader.IsDBNull(10)) builder.SetContainsMolluscs(reader.GetBoolean(10));
+                    if (!reader.IsDBNull(11)) builder.SetContainsMustardOrMustardProducts(reader.GetBoolean(11));
+                    if (!reader.IsDBNull(12)) builder.SetContainsCeleryOrCeleriacProducts(reader.GetBoolean(12));
+                    if (!reader.IsDBNull(13)) builder.SetContainsSulphurDioxideOrSulphites(reader.GetBoolean(13));
+                    if (!reader.IsDBNull(14)) builder.SetContainsLupinFlourOrLupinProducts(reader.GetBoolean(14));
+                    if (!reader.IsDBNull(15)) builder.SetContainsGlutenOrGlutenProducts(reader.GetBoolean(15));
+                }
+            }
+
+            //read nutritions
+            if (reader.NextResult())
+            {
+                if (reader.Read())
+                {
+                    if (!reader.IsDBNull(1)) builder.SetEnergyKJperServing(reader.GetDouble(1));
+                    if (!reader.IsDBNull(2)) builder.SetEnergyKCalPerServing(reader.GetDouble(2));
+                    if (!reader.IsDBNull(3)) builder.SetFatPerServing(reader.GetDouble(3));
+                    if (!reader.IsDBNull(4)) builder.SetSaturatedFatPerServing(reader.GetDouble(4));
+                    if (!reader.IsDBNull(5)) builder.SetSugarPerServing(reader.GetDouble(5));
+                    if (!reader.IsDBNull(6)) builder.SetSaltPerServing(reader.GetDouble(6));
+                }
+            }
 
             return true;
         }
-  
-        private static void BuildCategoryTypes(Events.RecipeUpdated.Builder builder, List<CategoryType> categoryTypes, List<Category> categoryList)
-        {
-            foreach (var catType in categoryTypes)
-            {
-                var categoryTypeBuilder = Events.RecipeUpdated.Types.CategoryType.CreateBuilder();
 
-
-                categoryTypeBuilder.SetExternalId(catType.ExternalId)
-                    .SetCategoryTypeName(catType.Name)
-                    .SetExportType(OrchestrateHelper.MapCategoryExportType(catType.CategoryExportType.ToString()))
-                    .SetIsFoodType(catType.IsFood);
-
-
-
-                var currentCategoryList = categoryList.Where(t => t.ProductTagId == catType.ProductTagId).ToList();
-
-                //CategoryType exists
-                if (currentCategoryList.Count > 0 && !string.IsNullOrEmpty(catType.ExternalId))
-                {
-                    foreach (var category in currentCategoryList.Where(t => t.ParentExternalId == catType.ExternalId && t.Sequence == catType.Sequence - 1))
-                    {
-                        var mainCategoryBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
-                        mainCategoryBuilder.SetExternalId(category.ExternalId)
-                            .SetCategoryName(category.Name)
-                            .SetParentExternalId(category.ParentExternalId);
-                        if (category.Sequence > 1)
-                        {
-                            BuildRcursive(category, mainCategoryBuilder, currentCategoryList);
-                        }
-                        categoryTypeBuilder.AddMainCategories(mainCategoryBuilder);
-                    }
-                }
-                builder.AddCategoryTypes(categoryTypeBuilder);
-            }
-        }
-
-        private static void BuildRcursive(Category cat, Events.RecipeUpdated.Types.CategoryType.Types.Category.Builder categoryBuilder, List<Category> categoryList)
-        {
-            foreach (var category in categoryList.Where(t => t.ParentExternalId == cat.ExternalId && t.Sequence == cat.Sequence - 1))
-            {
-                var catBuilder = Events.RecipeUpdated.Types.CategoryType.Types.Category.CreateBuilder();
-                catBuilder.SetExternalId(category.ExternalId)
-                    .SetCategoryName(category.Name)
-                    .SetParentExternalId(category.ParentExternalId);
-
-                if (category.Sequence > 1)
-                {
-                    BuildRcursive(category, catBuilder, categoryList);
-                }
-                categoryBuilder.AddSubCategories(catBuilder);
-            }
-        }
-
-        private static void BuildIngredients(
-            Events.RecipeUpdated.Builder builder,
-            List<RecipeIngredient> ingredientList,
-            Dictionary<int, List<KitchenArea>> kitchenAreaLookup
-            )
+        internal static void BuildIngredients(Events.RecipeUpdated.Builder builder, List<RecipeIngredient> ingredientList, Dictionary<int, List<KitchenArea>> kitchenAreaLookup)
         {
             if (ingredientList.Count > 0)
             {
@@ -208,33 +172,21 @@ namespace StarChef.Orchestrate
             }
         }
 
-        private static Dictionary<int, List<KitchenArea>> KitchenAreaLookup(IDataReader reader)
+        internal static Dictionary<int, List<KitchenArea>> BuildKitchenAreas(List<KitchenArea> kitchenAreas)
         {
             var kitchenAreaLookup = new Dictionary<int, List<KitchenArea>>();
-            var kitchenAreasList = new List<KitchenArea>();
-            while (reader.Read())
+            foreach (var kitchen in kitchenAreas)
             {
-                var productPartId = reader.GetValueOrDefault<int>(0);
-                if (!kitchenAreaLookup.ContainsKey(productPartId))
-                    kitchenAreaLookup[productPartId] = new List<KitchenArea>();
-                else
-                    kitchenAreasList = kitchenAreaLookup[productPartId];
+                var kitchenAreasList = !kitchenAreaLookup.ContainsKey(kitchen.ProductPartId) ? new List<KitchenArea>() : kitchenAreaLookup[kitchen.ProductPartId];
 
-                var kitchenArea = new KitchenArea
-                {
-                    ExternalId = reader[1].ToString(),
-                    Name = reader[2].ToString(),
-                    DisplayOrder = int.Parse(reader[3].ToString())
-                };
-
-                kitchenAreasList.Add(kitchenArea);
-                kitchenAreaLookup[productPartId] = kitchenAreasList;
+                kitchenAreasList.Add(kitchen);
+                kitchenAreaLookup[kitchen.ProductPartId] = kitchenAreasList;
             }
 
             return kitchenAreaLookup;
         }
 
-        private List<RecipeIngredient> GetIngredients(IDataReader reader, int entityId)
+        internal List<RecipeIngredient> ReadIngredients(IDataReader reader, int entityId)
         {
             var ingredientList = new List<RecipeIngredient>();
 
@@ -254,30 +206,6 @@ namespace StarChef.Orchestrate
 
             return ingredientList;
         }
-
-        private static void BuildCategoryTree(LinkedList<Category> list, Category p)
-        {
-            if (list.Count > 0)
-            {
-                var c = list.Last();
-                p.SubCategories = new List<Category> { c };
-                list.RemoveLast();
-                BuildCategoryTree(list, c);
-            }
-        }
-
-        private static void BuildCategoryObject(
-            List<Category> categoryList,
-            string childCategoryId,
-            LinkedList<Category> categoryLinkedList
-            )
-        {
-            var d = categoryList.Where(x => x.ParentExternalId == childCategoryId).FirstOrDefault();
-            categoryLinkedList.AddLast(d);
-            if (childCategoryId != d.ParentExternalId)
-                BuildCategoryObject(categoryList, d.ParentExternalId, categoryLinkedList);
-        }
-
         public bool SetForDelete(Events.RecipeUpdated.Builder builder, string entityExternalId, int databaseId)
         {
             if (builder == null) return false;
@@ -291,14 +219,6 @@ namespace StarChef.Orchestrate
             return true;
         }
 
-        public class KitchenArea
-        {
-            public int ProductPartId { get; set; }
-            public string ExternalId { get; set; }
-            public string Name { get; set; }
-            public int DisplayOrder { get; set; }
-        }
-
         public class RecipeIngredient
         {
             public int RecipeId { get; set; }
@@ -307,13 +227,6 @@ namespace StarChef.Orchestrate
             public double ProductMeasure { get; set; }
             public string ProductUom { get; set; }
             public int ProductPartId { get; set; }
-        }
-
-        public class CategoryType : Category
-        {
-            public Events.CategoryExportType CategoryExportType { get; set; }
-            public bool IsFood { get; set; }
-            public List<Category> MainCategories { get; set; }
         }
     }
 }
