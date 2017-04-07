@@ -93,7 +93,7 @@ namespace StarChef.Listener.Tests.Handlers.Fakes
             return Task.FromResult(true);
         }
 
-        public Task<bool> IsUserExists(int? loginId = default(int?), string externalLoginId = null)
+        public Task<bool> IsUserExists(int? loginId = default(int?), string externalLoginId = null, string username = null)
         {
             IsCalledAnyMethod = true;
             return Task.FromResult(true);

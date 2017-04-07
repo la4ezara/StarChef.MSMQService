@@ -64,6 +64,16 @@ namespace StarChef.Listener.Validators
                 SetLastError("EmailAddress is missing");
                 return false;
             }
+            if (!e.HasUsername)
+            {
+                SetLastError("Username is missing");
+                return false;
+            }
+            if (e.Username.Length > 50)
+            {
+                SetLastError("Username exceeds the maximum length of 50 characters.");
+                return false;
+            }
 
             _logger.Info("Payload is valid");
             return true;

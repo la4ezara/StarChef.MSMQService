@@ -236,12 +236,18 @@ namespace StarChef.Listener.Commands.Impl
             return result;
         }
 
-        public async Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null)
+        public async Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null, string username = null)
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
 
-            var ids = await GetLoginUserId(loginDbConnectionString, loginId, externalLoginId);
-            return ids != null;
+            var result = await ExecWithResult<bool>(loginDbConnectionString, "sc_orchestration_check_user",
+                parametres =>
+                {
+                    parametres.AddWithValue("@login_id", loginId);
+                    parametres.AddWithValue("@external_login_id", externalLoginId);
+                    parametres.AddWithValue("@login_name", username);
+                });
+            return result;
         }
 
         public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, Guid organizationId)
@@ -366,6 +372,32 @@ namespace StarChef.Listener.Commands.Impl
                         addParametersAction?.Invoke(sqlCmd.Parameters);
 
                         await sqlCmd.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.DatabaseError(ex);
+                throw new DatabaseException(ex);
+            }
+        }
+
+        private async Task<T> ExecWithResult<T>(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null)
+        {
+            try
+            {
+                using (var sqlConn = new SqlConnection(connectionString))
+                {
+                    await sqlConn.OpenAsync();
+
+                    using (var sqlCmd = new SqlCommand(spName, sqlConn))
+                    {
+                        sqlCmd.CommandType = CommandType.StoredProcedure;
+                        addParametersAction?.Invoke(sqlCmd.Parameters);
+
+                        var result = await sqlCmd.ExecuteScalarAsync();
+                        if (Convert.IsDBNull(result)) return default(T);
+                        return (T) Convert.ChangeType(result, typeof(T));
                     }
                 }
             }

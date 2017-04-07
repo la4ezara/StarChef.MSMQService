@@ -114,5 +114,27 @@ namespace StarChef.Listener.Tests.Validators
 
             Assert.False(actual);
         }
+
+        [Fact]
+        public void Should_return_false_when_Username_too_long()
+        {
+            var builder = AccountCreated.CreateBuilder();
+            const int MAX_LENGTH = 50;
+            var value = Enumerable.Repeat("a", MAX_LENGTH + 1).Aggregate((a, b) => a + b);
+            builder
+                .SetUsername(value)
+                .SetInternalId("1")
+                .SetFirstName("any")
+                .SetLastName("any")
+                .SetEmailAddress("any")
+                .SetExternalId("any");
+            var accountCreated = builder.Build();
+
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var actual = validator.IsValidPayload(accountCreated);
+
+            Assert.False(actual);
+            Assert.Equal("Username exceeds the maximum length of 50 characters.", validator.GetErrors());
+        }
     }
 }
