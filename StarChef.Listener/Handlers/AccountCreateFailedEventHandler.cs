@@ -39,6 +39,7 @@ namespace StarChef.Listener.Handlers
                     {
                         var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
 
+                        // only StarChef account can be found by loginId, so this filters messages and only StarChef related will make effect
                         var isUserExists = await DbCommands.IsUserExists(operationFailed.LoginId);
                         if (isUserExists)
                         {

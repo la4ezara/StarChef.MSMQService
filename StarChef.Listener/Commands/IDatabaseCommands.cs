@@ -40,7 +40,7 @@ namespace StarChef.Listener.Commands
         /// <param name="loginId"></param>
         /// <param name="externalLoginId">It will be skipped if <paramref name="loginId"></paramref> is specified</param>
         /// <returns></returns>
-        Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null);
+        Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null, string username = null);
 
         /// <summary>
         /// Returns True if the listener should catch event of the type

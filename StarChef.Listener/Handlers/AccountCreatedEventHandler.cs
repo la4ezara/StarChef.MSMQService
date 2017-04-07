@@ -45,7 +45,7 @@ namespace StarChef.Listener.Handlers
                         try
                         {
                             user = Mapper.Map<AccountCreatedTransferObject>(payload);
-                            var isUserExists = await DbCommands.IsUserExists(user.LoginId);
+                            var isUserExists = await DbCommands.IsUserExists(username: user.Username);
                             if (isUserExists)
                             {
                                 _logger.UpdatingUserExternalId(user);
