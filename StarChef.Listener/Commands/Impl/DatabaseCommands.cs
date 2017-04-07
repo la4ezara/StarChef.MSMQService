@@ -240,14 +240,14 @@ namespace StarChef.Listener.Commands.Impl
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
 
-            var result = await ExecWithResult<bool>(loginDbConnectionString, "sc_orchestration_check_user",
+            var result = await ExecWithScalar<bool>(loginDbConnectionString, "sc_orchestration_check_user",
                 parametres =>
                 {
                     parametres.AddWithValue("@login_id", loginId);
                     parametres.AddWithValue("@external_login_id", externalLoginId);
                     parametres.AddWithValue("@login_name", username);
                 });
-            return result;
+            return result == 1;
         }
 
         public async Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, Guid organizationId)
@@ -382,7 +382,7 @@ namespace StarChef.Listener.Commands.Impl
             }
         }
 
-        private async Task<T> ExecWithResult<T>(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null)
+        private async Task<int> ExecWithScalar<T>(string connectionString, string spName, Action<SqlParameterCollection> addParametersAction = null)
         {
             try
             {
@@ -394,10 +394,11 @@ namespace StarChef.Listener.Commands.Impl
                     {
                         sqlCmd.CommandType = CommandType.StoredProcedure;
                         addParametersAction?.Invoke(sqlCmd.Parameters);
+                        var sqlParameter = new SqlParameter("@ReturnValue", SqlDbType.Int) {Direction = ParameterDirection.ReturnValue};
+                        sqlCmd.Parameters.Add(sqlParameter);
 
-                        var result = await sqlCmd.ExecuteScalarAsync();
-                        if (Convert.IsDBNull(result)) return default(T);
-                        return (T) Convert.ChangeType(result, typeof(T));
+                        await sqlCmd.ExecuteNonQueryAsync();
+                        return Convert.ToInt32(sqlParameter.Value);
                     }
                 }
             }
