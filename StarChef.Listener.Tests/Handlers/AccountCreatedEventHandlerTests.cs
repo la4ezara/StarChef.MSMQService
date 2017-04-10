@@ -26,6 +26,7 @@ namespace StarChef.Listener.Tests.Handlers
             var builder = AccountCreated.CreateBuilder();
             builder
                 .SetInternalId("1")
+                .SetUsername("1")
                 .SetFirstName("1")
                 .SetLastName("1")
                 .SetEmailAddress("1")
