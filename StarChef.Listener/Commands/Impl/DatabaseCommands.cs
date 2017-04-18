@@ -309,6 +309,22 @@ namespace StarChef.Listener.Commands.Impl
             return result;
         }
 
+        public async Task<int> OriginateLoginId(int loginId, string username)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login connection string is not found");
+
+            var originatedLoginId = new SqlParameter("@originated_login_id", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            await Exec(loginDbConnectionString, "sc_orchestration_originate_login_id", p =>
+            {
+                p.Add(originatedLoginId);
+                p.AddWithValue("@login_id", loginId);
+                p.AddWithValue("@login_name", username);
+            });
+            return Convert.ToInt32(originatedLoginId.Value);
+        }
+
         #region private methods
 
         /// <exception cref="DatabaseException">Database operation is failed</exception>

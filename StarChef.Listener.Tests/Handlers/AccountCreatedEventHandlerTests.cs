@@ -37,11 +37,13 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetLastName(LAST_NAME)
                 .SetEmailAddress(EMAIL_ADDRESS)
                 .SetSource(SourceSystem.STARCHEF)
-                .SetExternalId(Guid.Empty.ToString());
+                .SetExternalId(externalId);
             var payload = builder.Build();
 
             var dbCommands = new Mock<IDatabaseCommands>();
             dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
+            dbCommands.Setup(m => m.OriginateLoginId(It.IsAny<int>(), It.IsAny<string>())).Returns(Task.FromResult(LOGIN_ID));
+
             var validator = new AccountCreatedValidator(dbCommands.Object);
             var messagingLogger = new Mock<IMessagingLogger>();
             var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);

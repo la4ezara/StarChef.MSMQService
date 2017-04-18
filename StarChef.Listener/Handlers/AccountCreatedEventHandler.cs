@@ -49,14 +49,14 @@ namespace StarChef.Listener.Handlers
                             var isUserExists = await DbCommands.IsUserExists(user.LoginId, username: user.Username);
                             if (isUserExists)
                             {
-                                //if (!payload.IsStarChefEvent())
-                                //{
-                                //    /* NOTE
-                                //     * If the event is not issued by StarChef then user's internal Id might be missing in the system.
-                                //     * Here I lookup database for the internal ID. The previous check with showed that the user is here.
-                                //     */
-                                //    user.LoginId = await DbCommands.OriginateLoginId(user.LoginId, user.Username);
-                                //}
+                                /* NOTE
+                                 * LoginId is missing in the system when the event is issued 
+                                 * #1 by another system OR
+                                 * #2 be user management API (as of 18/Apr/17).
+                                 * The operation to originate loginId will lookup database for the actual value.
+                                 * NB: it should be originated always because User Management send event with StarChef source system.
+                                 */
+                                user.LoginId = await DbCommands.OriginateLoginId(user.LoginId, user.Username);
                                 _logger.UpdatingUserExternalId(user);
                                 await DbCommands.UpdateExternalId(user);
                             }
