@@ -8,13 +8,13 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Tests.Fixtures;
-using StarChef.Listener.Tests.Handlers.Fakes;
 using StarChef.Listener.Validators;
 using StarChef.Listener.Tests.Helpers;
 using log4net.Core;
 using StarChef.Listener.Exceptions;
 using System.Linq;
 using log4net;
+using System.Threading.Tasks;
 
 namespace StarChef.Listener.Tests.Handlers
 {
@@ -35,6 +35,7 @@ namespace StarChef.Listener.Tests.Handlers
             var payload = builder.Build();
 
             var dbCommands = new Mock<IDatabaseCommands>();
+            dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
             var validator = new AccountCreatedValidator(dbCommands.Object);
             var messagingLogger = new Mock<IMessagingLogger>();
             var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
