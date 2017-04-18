@@ -2,18 +2,19 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using Fourth.Orchestration.Messaging;
-using Fourth.Orchestration.Model.People;
 using log4net;
 using StarChef.Listener.Commands;
 using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
+using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 
 namespace StarChef.Listener.Handlers
 {
     public delegate Task AccountCreatedProcessedDelegate(AccountCreatedEventHandler sender, AccountCreatedTransferObject user);
 
-    public class AccountCreatedEventHandler : ListenerEventHandler, IMessageHandler<Events.AccountCreated>
+    public class AccountCreatedEventHandler : ListenerEventHandler, IMessageHandler<AccountCreated>
     {
         private readonly ILog _logger;
 
@@ -29,7 +30,7 @@ namespace StarChef.Listener.Handlers
 
         public event AccountCreatedProcessedDelegate OnProcessed;
 
-        public async Task<MessageHandlerResult> HandleAsync(Events.AccountCreated payload, string trackingId)
+        public async Task<MessageHandlerResult> HandleAsync(AccountCreated payload, string trackingId)
         {
             ThreadContext.Properties[INTERNAL_ID] = payload.InternalId;
 
@@ -45,9 +46,17 @@ namespace StarChef.Listener.Handlers
                         try
                         {
                             user = Mapper.Map<AccountCreatedTransferObject>(payload);
-                            var isUserExists = await DbCommands.IsUserExists(username: user.Username);
+                            var isUserExists = await DbCommands.IsUserExists(user.LoginId, username: user.Username);
                             if (isUserExists)
                             {
+                                //if (!payload.IsStarChefEvent())
+                                //{
+                                //    /* NOTE
+                                //     * If the event is not issued by StarChef then user's internal Id might be missing in the system.
+                                //     * Here I lookup database for the internal ID. The previous check with showed that the user is here.
+                                //     */
+                                //    user.LoginId = await DbCommands.OriginateLoginId(user.LoginId, user.Username);
+                                //}
                                 _logger.UpdatingUserExternalId(user);
                                 await DbCommands.UpdateExternalId(user);
                             }

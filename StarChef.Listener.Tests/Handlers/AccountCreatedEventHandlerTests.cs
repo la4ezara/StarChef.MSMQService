@@ -23,13 +23,19 @@ namespace StarChef.Listener.Tests.Handlers
         [Fact]
         public void Should_updated_valid_data_and_log_to_messaging_events()
         {
+            const int LOGIN_ID = 123;
+            const string USERNAME = "username";
+            const string FIRST_NAME = "first_name";
+            const string LAST_NAME = "last_name";
+            const string EMAIL_ADDRESS = "email";
+            var externalId = Guid.NewGuid().ToString();
             var builder = AccountCreated.CreateBuilder();
             builder
-                .SetInternalId("1")
-                .SetUsername("1")
-                .SetFirstName("1")
-                .SetLastName("1")
-                .SetEmailAddress("1")
+                .SetInternalId(LOGIN_ID.ToString())
+                .SetUsername(USERNAME)
+                .SetFirstName(FIRST_NAME)
+                .SetLastName(LAST_NAME)
+                .SetEmailAddress(EMAIL_ADDRESS)
                 .SetSource(SourceSystem.STARCHEF)
                 .SetExternalId(Guid.Empty.ToString());
             var payload = builder.Build();
@@ -44,8 +50,11 @@ namespace StarChef.Listener.Tests.Handlers
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            dbCommands.Verify(m => m.UpdateExternalId(It.IsAny<AccountCreatedTransferObject>()), Times.Once);
-            messagingLogger.Verify(m => m.MessageProcessedSuccessfully(It.IsAny<object>(), It.IsAny<string>()), Times.Once);
+            dbCommands.Verify(m => m.UpdateExternalId(It.Is<AccountCreatedTransferObject>(p =>
+                p.LoginId == LOGIN_ID
+                && p.ExternalLoginId == externalId
+                )), Times.Once);
+            messagingLogger.Verify(m => m.MessageProcessedSuccessfully(It.Is<object>(p => ReferenceEquals(p, payload)), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -252,14 +261,15 @@ namespace StarChef.Listener.Tests.Handlers
         [Fact]
         public void Should_create_a_new_user()
         {
+            const int LOGIN_ID = 123;
             const string USERNAME = "username";
-            var externalId = Guid.NewGuid().ToString();
-            var builder = AccountCreated.CreateBuilder();
             const string FIRST_NAME = "first_name";
             const string LAST_NAME = "last_name";
             const string EMAIL_ADDRESS = "email";
+            var externalId = Guid.NewGuid().ToString();
+            var builder = AccountCreated.CreateBuilder();
             builder
-                .SetInternalId("1")
+                .SetInternalId(LOGIN_ID.ToString())
                 .SetUsername(USERNAME)
                 .SetFirstName(FIRST_NAME)
                 .SetLastName(LAST_NAME)
@@ -275,7 +285,7 @@ namespace StarChef.Listener.Tests.Handlers
             var messagingLogger = new Mock<IMessagingLogger>();
             
             var dbCommands = new Mock<IDatabaseCommands>();
-            dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false)); // use is not exists
+            dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false)); // user is not exists
 
             var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
 
@@ -284,7 +294,8 @@ namespace StarChef.Listener.Tests.Handlers
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            dbCommands.Verify(m => m.IsUserExists(It.Is<int?>(p => !p.HasValue), It.Is<string>(p => p == null), It.Is<string>(p => p == USERNAME)), Times.Once);
+            // while check loginId AND loginName are used
+            dbCommands.Verify(m => m.IsUserExists(It.Is<int?>(p => p.Value == LOGIN_ID), It.Is<string>(p => p == null), It.Is<string>(p => p == USERNAME)), Times.Once);
             dbCommands.Verify(m => m.AddUser(It.Is<AccountCreatedTransferObject>(p =>
                 p.EmailAddress == EMAIL_ADDRESS
                 && p.Username == USERNAME

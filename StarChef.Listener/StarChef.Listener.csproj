@@ -234,7 +234,6 @@
     <Content Include="Install\uninstall.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="Exceptions\ExceptionsHierarchy.cd" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
