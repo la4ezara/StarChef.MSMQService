@@ -160,8 +160,6 @@
     <Compile Include="Handlers\AccountCreateFailedEventHandlerTests.cs" />
     <Compile Include="Handlers\AccountUpdatedEventHandlerTests.cs" />
     <Compile Include="Handlers\AccountCreatedEventHandlerTests.cs" />
-    <Compile Include="Handlers\Fakes\TestDatabaseCommands.cs" />
-    <Compile Include="Handlers\Fakes\TestMessagingLogger.cs" />
     <Compile Include="Handlers\PriceBandEventHandlerTests.cs" />
     <Compile Include="Helpers\LogChecker.cs" />
     <Compile Include="Helpers\PayloadHelpers.cs" />

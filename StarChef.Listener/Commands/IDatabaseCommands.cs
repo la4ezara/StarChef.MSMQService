@@ -51,6 +51,14 @@ namespace StarChef.Listener.Commands
         Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, string externalId);
 
         /// <summary>
+        /// Lookup database for actual user login Id
+        /// </summary>
+        /// <param name="loginId"></param>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        Task<int> OriginateLoginId(int loginId, string username);
+
+        /// <summary>
         /// Disable login
         /// </summary>
         /// <param name="loginId"></param>

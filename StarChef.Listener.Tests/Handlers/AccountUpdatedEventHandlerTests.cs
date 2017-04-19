@@ -8,7 +8,6 @@ using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Tests.Fixtures;
-using StarChef.Listener.Tests.Handlers.Fakes;
 using StarChef.Listener.Tests.Helpers;
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
@@ -34,18 +33,16 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetExternalId(Guid.Empty.ToString());
             var payload = builder.Build();
 
-            var dbCommands = new TestDatabaseCommands();
-            var validator = new AccountUpdatedValidator(dbCommands);
-            var messagingLogger = new TestMessagingLogger();
+            var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict);
+            var validator = new AccountUpdatedValidator(dbCommands.Object);
+            var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
 
-            var handler = new AccountUpdatedEventHandler(dbCommands, validator, messagingLogger);
+            var handler = new AccountUpdatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
 
             var result = handler.HandleAsync(payload, "1").Result;
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            Assert.False(dbCommands.IsCalledAnyMethod);
-            Assert.False(messagingLogger.IsCalledAnyMethod);
         }
 
         [Fact]

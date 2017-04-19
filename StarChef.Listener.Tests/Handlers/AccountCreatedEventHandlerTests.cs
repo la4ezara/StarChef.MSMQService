@@ -8,13 +8,13 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Tests.Fixtures;
-using StarChef.Listener.Tests.Handlers.Fakes;
 using StarChef.Listener.Validators;
 using StarChef.Listener.Tests.Helpers;
 using log4net.Core;
 using StarChef.Listener.Exceptions;
 using System.Linq;
 using log4net;
+using System.Threading.Tasks;
 
 namespace StarChef.Listener.Tests.Handlers
 {
@@ -23,28 +23,40 @@ namespace StarChef.Listener.Tests.Handlers
         [Fact]
         public void Should_updated_valid_data_and_log_to_messaging_events()
         {
+            const int LOGIN_ID = 123;
+            const string USERNAME = "username";
+            const string FIRST_NAME = "first_name";
+            const string LAST_NAME = "last_name";
+            const string EMAIL_ADDRESS = "email";
+            var externalId = Guid.NewGuid().ToString();
             var builder = AccountCreated.CreateBuilder();
             builder
-                .SetInternalId("1")
-                .SetUsername("1")
-                .SetFirstName("1")
-                .SetLastName("1")
-                .SetEmailAddress("1")
+                .SetInternalId(LOGIN_ID.ToString())
+                .SetUsername(USERNAME)
+                .SetFirstName(FIRST_NAME)
+                .SetLastName(LAST_NAME)
+                .SetEmailAddress(EMAIL_ADDRESS)
                 .SetSource(SourceSystem.STARCHEF)
-                .SetExternalId(Guid.Empty.ToString());
+                .SetExternalId(externalId);
             var payload = builder.Build();
 
-            var dbCommands = new TestDatabaseCommands();
-            var validator = new AccountCreatedValidator(dbCommands);
-            var messagingLogger = new TestMessagingLogger();
-            var handler = new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
+            var dbCommands = new Mock<IDatabaseCommands>();
+            dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));
+            dbCommands.Setup(m => m.OriginateLoginId(It.IsAny<int>(), It.IsAny<string>())).Returns(Task.FromResult(LOGIN_ID));
+
+            var validator = new AccountCreatedValidator(dbCommands.Object);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
 
             var result = handler.HandleAsync(payload, "1").Result;
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            Assert.True(dbCommands.IsExternalIdUpdated);
-            Assert.True(messagingLogger.IsSuccessfulOperationRegistered);
+            dbCommands.Verify(m => m.UpdateExternalId(It.Is<AccountCreatedTransferObject>(p =>
+                p.LoginId == LOGIN_ID
+                && p.ExternalLoginId == externalId
+                )), Times.Once);
+            messagingLogger.Verify(m => m.MessageProcessedSuccessfully(It.Is<object>(p => ReferenceEquals(p, payload)), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -60,17 +72,15 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetExternalId(Guid.Empty.ToString());
             var payload = builder.Build();
 
-            var dbCommands = new TestDatabaseCommands();
-            var validator = new AccountCreatedValidator(dbCommands);
-            var messagingLogger = new TestMessagingLogger();
-            var handler = new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
+            var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict); // ensure there is no setup, this  object should not been called
+            var validator = new AccountCreatedValidator(dbCommands.Object);
+            var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
 
             var result = handler.HandleAsync(payload, "1").Result;
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            Assert.False(dbCommands.IsCalledAnyMethod);
-            Assert.False(messagingLogger.IsCalledAnyMethod);
         }
 
         [Fact]
@@ -248,6 +258,53 @@ namespace StarChef.Listener.Tests.Handlers
                 );
 
             Assert.Null(ThreadContext.Properties[AccountCreatedEventHandler.INTERNAL_ID]);
+        }
+
+        [Fact]
+        public void Should_create_a_new_user()
+        {
+            const int LOGIN_ID = 123;
+            const string USERNAME = "username";
+            const string FIRST_NAME = "first_name";
+            const string LAST_NAME = "last_name";
+            const string EMAIL_ADDRESS = "email";
+            var externalId = Guid.NewGuid().ToString();
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId(LOGIN_ID.ToString())
+                .SetUsername(USERNAME)
+                .SetFirstName(FIRST_NAME)
+                .SetLastName(LAST_NAME)
+                .SetEmailAddress(EMAIL_ADDRESS)
+                .SetSource(SourceSystem.STARCHEF)
+                .SetExternalId(externalId);
+            var payload = builder.Build();
+
+            var validator = new Mock<IEventValidator>();
+            validator.Setup(m => m.IsAllowedEvent(It.IsAny<object>())).Returns(true);
+            validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
+
+            var messagingLogger = new Mock<IMessagingLogger>();
+            
+            var dbCommands = new Mock<IDatabaseCommands>();
+            dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false)); // user is not exists
+
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
+
+            // act
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            // assertions
+            Assert.Equal(MessageHandlerResult.Success, result);
+            // while check loginId AND loginName are used
+            dbCommands.Verify(m => m.IsUserExists(It.Is<int?>(p => p.Value == LOGIN_ID), It.Is<string>(p => p == null), It.Is<string>(p => p == USERNAME)), Times.Once);
+            dbCommands.Verify(m => m.AddUser(It.Is<AccountCreatedTransferObject>(p =>
+                p.EmailAddress == EMAIL_ADDRESS
+                && p.Username == USERNAME
+                && p.FirstName == FIRST_NAME
+                && p.LastName == LAST_NAME
+                && p.ExternalLoginId == externalId
+                )), Times.Once);
         }
     }
 }

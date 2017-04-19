@@ -3,6 +3,13 @@ using System.Reflection;
 
 namespace StarChef.Listener.Tests.Helpers
 {
+    /// <summary>
+    /// This class helps to bypass event validation when their are build with regular builder
+    /// </summary>
+    /// <remarks>
+    /// In general you should set all mandatory fields to pass the standard builder validation. In some tests you don't need all those fields to be set.
+    /// With this helper you can construct object bypassing the validation and setting only required fields regardless if it's mandatory or not.
+    /// </remarks>
     internal class PayloadHelpers
     {
         public static T Construct<T>()
