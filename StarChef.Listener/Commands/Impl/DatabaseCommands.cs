@@ -82,14 +82,19 @@ namespace StarChef.Listener.Commands.Impl
 
         public async Task<int> AddUser(AccountCreatedTransferObject user)
         {
+            if (string.IsNullOrEmpty(user.ExternalCustomerId))
+                throw new ConnectionStringNotFoundException("Cannot identify customer to which user should be created");
+
             var loginDbConnectionString = await _csProvider.GetLoginDb();
             if (string.IsNullOrEmpty(loginDbConnectionString))
                 throw new ConnectionStringNotFoundException("Login DB connection string is not found");
 
             var values = _configuration.UserDefaults;
-            var orgGuid = Guid.Parse(values["db_database_guid"]);
-            var orgId = await _csProvider.GetCustomerDbId(orgGuid, loginDbConnectionString);
-            var connectionString = await _csProvider.GetCustomerDb(orgGuid, loginDbConnectionString);
+            // if we're here then no account is associated with loginId or externalLoginId
+            // only externalCustomerId can be used to lookup DB details
+            var dbDetails = await _csProvider.GetCustomerDbDetails(user.ExternalCustomerId, loginDbConnectionString);
+            var orgId = dbDetails.Item1;
+            var connectionString = dbDetails.Item2;
 
             var dbUserId = new SqlParameter("@user_id", SqlDbType.Int) {Direction = ParameterDirection.Output};
             await Exec(connectionString, "sc_admin_save_preferences", p =>

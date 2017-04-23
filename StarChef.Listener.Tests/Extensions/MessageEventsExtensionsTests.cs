@@ -101,11 +101,12 @@ namespace StarChef.Listener.Tests.Extensions
                 LastName = "1",
                 EmailAddress = "1",
                 ExternalLoginId = "1",
-                Username = null
+                Username = "1",
+                ExternalCustomerId = "1"
             };
 
             var actual = obj.ToJson();
-            const string expected = @"{""LoginId"":1,""ExternalLoginId"":""1"",""Username"":null,""FirstName"":""1"",""LastName"":""1"",""EmailAddress"":""1""}";
+            const string expected = @"{""LoginId"":1,""ExternalLoginId"":""1"",""Username"":""1"",""FirstName"":""1"",""LastName"":""1"",""EmailAddress"":""1"",""ExternalCustomerId"":""1""}";
             Assert.Equal(expected, actual);
         }
 
