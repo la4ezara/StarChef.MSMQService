@@ -90,7 +90,7 @@ namespace StarChef.Orchestrate
             }
 
             var categoryTypes = new List<CategoryType>();
-            var categories = new List<Category>();
+            List<Category> categories;
             
             //read category types and categories
             if (reader.NextResult())
