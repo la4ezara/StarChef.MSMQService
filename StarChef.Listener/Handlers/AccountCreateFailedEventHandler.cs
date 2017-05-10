@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
 using Fourth.Orchestration.Messaging;
@@ -28,34 +29,45 @@ namespace StarChef.Listener.Handlers
         {
             ThreadContext.Properties[INTERNAL_ID] = payload.InternalId;
 
-            if (Validator.IsAllowedEvent(payload))
+            try
             {
-                _logger.EventReceived(trackingId, payload);
-
-                if (Validator.IsValidPayload(payload))
+                if (Validator.IsAllowedEvent(payload))
                 {
-                    var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
+                    _logger.EventReceived(trackingId, payload);
 
-                    var isUserExists = await DbCommands.IsUserExists(operationFailed.LoginId);
-                    if (isUserExists)
+                    if (Validator.IsValidPayload(payload))
                     {
-                        _logger.DisablingUser(operationFailed);
-                        await DbCommands.DisableLogin(operationFailed.LoginId);
+                        var operationFailed = Mapper.Map<AccountCreateFailedTransferObject>(payload);
+
+                        // only StarChef account can be found by loginId, so this filters messages and only StarChef related will make effect
+                        var isUserExists = await DbCommands.IsUserExists(operationFailed.LoginId);
+                        if (isUserExists)
+                        {
+                            _logger.DisablingUser(operationFailed);
+                            await DbCommands.DisableLogin(operationFailed.LoginId);
+                        }
+                        await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
+                        _logger.Processed(trackingId, payload);
                     }
-                    await MessagingLogger.ReceivedFailedMessage(operationFailed, trackingId);
-                    _logger.Processed(trackingId, payload);
-                }
-                else
-                {
-                    var errors = Validator.GetErrors();
-                    _logger.InvalidModel(trackingId, payload, errors);
-                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
-                    ThreadContext.Properties.Remove(INTERNAL_ID);
-                    return MessageHandlerResult.Fatal;
+                    else
+                    {
+                        var errors = Validator.GetErrors();
+                        _logger.InvalidModel(trackingId, payload, errors);
+                        await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
+                        return MessageHandlerResult.Fatal;
+                    }
                 }
             }
-
-            ThreadContext.Properties.Remove(INTERNAL_ID);
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                return MessageHandlerResult.Fatal;
+            }
+            finally
+            {
+                ThreadContext.Properties.Remove(INTERNAL_ID);
+            }
+            
             return MessageHandlerResult.Success;
         }
     }

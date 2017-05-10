@@ -8,12 +8,12 @@ using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.Accou
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
 using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 using StarChef.Listener.Tests.Fixtures;
-using StarChef.Listener.Tests.Handlers.Fakes;
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;
 using log4net;
 using log4net.Core;
 using StarChef.Listener.Tests.Helpers;
+using StarChef.Orchestrate.Models.TransferObjects;
 
 namespace StarChef.Listener.Tests.Handlers
 {
@@ -30,16 +30,16 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetSource(SourceSystem.STARCHEF);
             var payload = builder.Build();
 
-            var dbCommands = new TestDatabaseCommands();
-            var validator = new AccountUpdateFailedValidator(dbCommands);
-            var messagingLogger = new TestMessagingLogger();
-            var handler = new AccountUpdateFailedEventHandler(dbCommands, validator, messagingLogger);
+            var dbCommands = new Mock<IDatabaseCommands>();
+            var validator = new AccountUpdateFailedValidator(dbCommands.Object);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var handler = new AccountUpdateFailedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
 
             var result = handler.HandleAsync(payload, "1").Result;
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            Assert.True(messagingLogger.IsFailedMessageRegistered);
+            messagingLogger.Verify(m => m.ReceivedFailedMessage(It.IsAny<FailedTransferObject>(), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -53,17 +53,15 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetSource(SourceSystem.ADACO);
             var payload = builder.Build();
 
-            var dbCommands = new TestDatabaseCommands();
-            var validator = new AccountUpdateFailedValidator(dbCommands);
-            var messagingLogger = new TestMessagingLogger();
-            var handler = new AccountUpdateFailedEventHandler(dbCommands, validator, messagingLogger);
+            var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict);
+            var validator = new AccountUpdateFailedValidator(dbCommands.Object);
+            var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
+            var handler = new AccountUpdateFailedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
 
             var result = handler.HandleAsync(payload, "1").Result;
 
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
-            Assert.False(dbCommands.IsCalledAnyMethod);
-            Assert.False(messagingLogger.IsCalledAnyMethod);
         }
         
         [Fact]

@@ -52,7 +52,9 @@ namespace StarChef.Orchestrate
                     .SetModifiedUserFirstName(reader[20].ToString())
                     .SetModifiedUserLastName(reader[21].ToString())
                     .SetCaptureDate(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>(22)))
-                    .SetModifiedDate(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>(23)));
+                    .SetModifiedDate(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>(23)))
+                    .SetPortionSizeQuantity(reader.GetValueOrDefault<double>("PortionSizeQuantity"))
+                    .SetPortionSizeUom(reader.GetValueOrDefault<string>("PortionSizeUom") ?? string.Empty);
             }
 
             //Ingredients
@@ -88,7 +90,7 @@ namespace StarChef.Orchestrate
             }
 
             var categoryTypes = new List<CategoryType>();
-            var categories = new List<Category>();
+            List<Category> categories;
             
             //read category types and categories
             if (reader.NextResult())

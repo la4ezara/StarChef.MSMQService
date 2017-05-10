@@ -66,7 +66,7 @@ namespace StarChef.Listener.Extensions
 
         public static void UpdatingUser(this ILog logger, AccountUpdatedTransferObject user)
         {
-            logger.InfoFormat("Updateting the user ({0})", user.ToJson());
+            logger.InfoFormat("Updating the user ({0})", user.ToJson());
         }
         
 

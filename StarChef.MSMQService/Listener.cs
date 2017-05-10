@@ -3,68 +3,47 @@ using System.Messaging;
 using System.Data;
 using System.Data.SqlClient;
 using StarChef.Data;
-using System.Diagnostics;
-using System.Threading;
 using System.Configuration;
 using System.Net.Mail;
 using StarChef.Orchestrate;
-using Autofac;
 using log4net;
-using log4net.Config;
 using StarChef.Common;
+using StarChef.MSMQService.Configuration;
+using System.Threading.Tasks;
 
 namespace StarChef.MSMQService
 {
     /// <summary>
     /// Summary description for Listener.
     /// </summary>
-    public class Listener
+    public class Listener : IListener
     {
-        /// <summary> The log4net Logger instance. </summary>
-        private static readonly ILog Logger =
-            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly IAppConfiguration _appConfiguration;
+        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly IStarChefMessageSender _messageSender;
 
-        private string _QueuePath;
-
-        /// <summary> The IOC scope used to resolve dependencies. </summary>
-        private static ILifetimeScope _scope;
-
-        private IStarChefMessageSender _messageSender;
-
-        //private string _AccessDBPath;
-        private EventLog log = new EventLog();
-
-        public Listener(string sQueuePath)
+        public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender)
         {
-            _QueuePath = sQueuePath;
-            log.Source = "StarChef-Listner";
-
-            // Start log4net up
-            XmlConfigurator.Configure();
-            log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
+            _appConfiguration = appConfiguration;
+            _messageSender = messageSender;
         }
 
-        public void Listen(object resetEvent)
+        public Task ExecuteAsync()
         {
             Message msg = null;
-            MSMQManager mqm = new MSMQManager {MQName = _QueuePath};
+            var mqm = new MSMQManager {MQName = _appConfiguration .QueuePath};
             UpdateMessage updmsg = null;
-            UpdateMessage u = new UpdateMessage();
-            XmlMessageFormatter format = new XmlMessageFormatter(new Type[] { u.GetType() });
+            var u = new UpdateMessage();
+            var format = new XmlMessageFormatter(new [] { u.GetType() });
             try
             {
-                using (Cursor cursor = mqm.mqCreateCursor())
+                using (var cursor = mqm.mqCreateCursor())
                 {
                     msg = mqm.mqPeek(cursor, PeekAction.Current);
                     if (msg != null)
                     {
-                        // create sender only when there is a message
-                        var container = ContainerConfig.Configure();
-                        _scope = container.BeginLifetimeScope();
-                        _messageSender = _scope.Resolve<IStarChefMessageSender>();
-
                         msg.Formatter = format;
-                        string messageId = msg.Id;
+                        var messageId = msg.Id;
                         updmsg = (UpdateMessage) msg.Body;
 
                         if (updmsg != null)
@@ -73,14 +52,14 @@ namespace StarChef.MSMQService
                         }
 
                         step1:
-                        if (!ListenerSVC.ActiveTaskDatabaseIDs.Contains(updmsg.DatabaseID))
+                        if (!ListenerService.ActiveTaskDatabaseIDs.Contains(updmsg.DatabaseID))
                         {
-                            if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate && ListenerSVC.GlobalUpdateTimeStamps.Contains(updmsg.DatabaseID))
+                            if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate && ListenerService.GlobalUpdateTimeStamps.Contains(updmsg.DatabaseID))
                             {
-                                if (TimeSpan.FromMinutes(DateTime.Now.Subtract((DateTime) ListenerSVC.GlobalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(Double.Parse(ConfigurationSettings.AppSettings.Get("GlobalUpdateWaitTime"))))
+                                if (TimeSpan.FromMinutes(DateTime.Now.Subtract((DateTime) ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(Double.Parse(ConfigurationSettings.AppSettings.Get("GlobalUpdateWaitTime"))))
                                 {
-                                    ListenerSVC.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
-                                    ListenerSVC.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
+                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
+                                    ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
                                     msg = mqm.mqReceive(messageId);
                                 }
                                 else
@@ -100,9 +79,9 @@ namespace StarChef.MSMQService
                             {
                                 if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate)
                                 {
-                                    ListenerSVC.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
+                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
                                 }
-                                ListenerSVC.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
+                                ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
                                 msg = mqm.mqReceive(messageId);
                             }
 
@@ -128,7 +107,7 @@ namespace StarChef.MSMQService
                                     updmsg = (UpdateMessage) msg.Body;
                                     updmsg.ArrivedTime = msg.ArrivedTime;
                                     ProcessMessage(updmsg);
-                                    ListenerSVC.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
+                                    ListenerService.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
                                 }
                             }
                         }
@@ -149,45 +128,45 @@ namespace StarChef.MSMQService
             }
             catch (Exception ex)
             {
-                Logger.Error(ex.Message, ex);
+                _logger.Error(ex.Message, ex);
                     
                 if (msg != null)
                 {
                     msg.Formatter = format;
                     updmsg = (UpdateMessage)msg.Body;
                     SendMail(updmsg);
-                    Logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
+                    _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
                     mqm.mqSendToPoisonQueue(updmsg, msg.Priority);
-                    ListenerSVC.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
+                    ListenerService.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
                 }
             }
             finally
             {
                 mqm.mqDisconnect();
-                if(resetEvent != null)
-                    ((ManualResetEvent)resetEvent).Set();
                 ThreadContext.Properties.Remove("OrganisationId");
             }
+            return Task.CompletedTask;
         }
 
         private void SendMail(UpdateMessage message)
         {
             try
             {
-                MailMessage mail = new MailMessage
+                var mail = new MailMessage
                 {
-                    From = new MailAddress(ConfigurationManager.AppSettings["FromAddress"].ToString(), ConfigurationManager.AppSettings["Alias"].ToString())
+                    From = new MailAddress(_appConfiguration.FromAddress, _appConfiguration.Alias)
                 };
-                mail.To.Add(ConfigurationManager.AppSettings["ToAddress"].ToString());
+                mail.To.Add(_appConfiguration.ToAddress);
                 mail.IsBodyHtml = true;
-                mail.Subject = ConfigurationManager.AppSettings["Subject"].ToString();
+                mail.Subject = _appConfiguration.Subject;
                 mail.Body = message.ToString();
                 mail.Priority = MailPriority.High;
-                SmtpClient smtp = new SmtpClient();
+                var smtp = new SmtpClient();
                 smtp.Send(mail);
             }
-            catch (System.Exception)
+            catch (Exception e)
             {
+                _logger.Error(e);
                 throw;
             }
         }
@@ -199,7 +178,7 @@ namespace StarChef.MSMQService
                 switch (msg.Action)
                 {
                     case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
-                        ProcessUDUUpdate(msg);
+                        ProcessUduUpdate(msg);
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductSet:
                         ProcessProductSetUpdate(msg);
@@ -257,7 +236,7 @@ namespace StarChef.MSMQService
             }
         }
 
-        private void ProcessUDUUpdate(UpdateMessage msg)
+        private void ProcessUduUpdate(UpdateMessage msg)
         {
             ExecuteStoredProc(msg.DSN,
                 "sc_calculate_dish_pricing",
@@ -445,31 +424,29 @@ namespace StarChef.MSMQService
             }
         }
 
-        private int ExecuteStoredProc(string connectionString, string spName)
-        {
-            return ExecuteStoredProc(connectionString, spName, null);
-        }
-
         private int ExecuteStoredProc(string connectionString, string spName, params SqlParameter[] parameterValues)
         {
             //create & open a SqlConnection, and dispose of it after we are done.
-            using (SqlConnection cn = new SqlConnection(connectionString))
+            using (var cn = new SqlConnection(connectionString))
             {
                 cn.Open();
 
                 // need a command with sensible timeout value (10 minutes), as some 
                 // of these procs may take several minutes to complete
-                SqlCommand cmd = new SqlCommand(spName, cn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC; //600
+                var cmd = new SqlCommand(spName, cn)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
+                };
+                //600
 
                 // add params
                 if (parameterValues != null)
-                    foreach (SqlParameter param in parameterValues)
+                    foreach (var param in parameterValues)
                         cmd.Parameters.Add(param);
 
                 // run proc
-                int retval = cmd.ExecuteNonQuery();
+                var retval = cmd.ExecuteNonQuery();
                 return retval;
             }
         }

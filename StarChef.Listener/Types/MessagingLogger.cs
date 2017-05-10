@@ -21,7 +21,10 @@ namespace StarChef.Listener.Types
         public async Task ReceivedFailedMessage(FailedTransferObject operationFailed, string trackingId)
         {
             var json = string.Format("[{0}] {1}", operationFailed.GetType().Name, operationFailed.ToJson());
-            await _dbCommands.RecordMessagingEvent(trackingId, true, operationFailed.ErrorCode, operationFailed.Description, json);
+            var errorCode = operationFailed.ErrorCode;
+            if (string.IsNullOrEmpty(errorCode))
+                errorCode = Codes.FailedMessage;
+            await _dbCommands.RecordMessagingEvent(trackingId, true, errorCode, operationFailed.Description, json);
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
@@ -42,6 +45,7 @@ namespace StarChef.Listener.Types
 
         private static class Codes
         {
+            public const string FailedMessage = "FAILED_MESSAGE";
             public const string InvalidModel = "INVALID_MODEL";
             public const string MessageProcessed = "PROCESSED";
         }
