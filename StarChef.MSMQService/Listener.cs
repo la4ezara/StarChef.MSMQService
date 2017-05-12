@@ -56,9 +56,9 @@ namespace StarChef.MSMQService
                         {
                             if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate && ListenerService.GlobalUpdateTimeStamps.Contains(updmsg.DatabaseID))
                             {
-                                if (TimeSpan.FromMinutes(DateTime.Now.Subtract((DateTime) ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(Double.Parse(ConfigurationSettings.AppSettings.Get("GlobalUpdateWaitTime"))))
+                                if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime) ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(Double.Parse(ConfigurationSettings.AppSettings.Get("GlobalUpdateWaitTime"))))
                                 {
-                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
+                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
                                     ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
                                     msg = mqm.mqReceive(messageId);
                                 }
@@ -79,7 +79,7 @@ namespace StarChef.MSMQService
                             {
                                 if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate)
                                 {
-                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.Now;
+                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
                                 }
                                 ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
                                 msg = mqm.mqReceive(messageId);
