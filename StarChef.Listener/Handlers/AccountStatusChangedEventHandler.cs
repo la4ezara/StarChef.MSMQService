@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -30,50 +31,59 @@ namespace StarChef.Listener.Handlers
         {
             ThreadContext.Properties[EXTERNAL_ID] = payload.ExternalId;
 
-            if (Validator.IsAllowedEvent(payload))
+            try
             {
-                _logger.EventReceived(trackingId, payload);
-
-                if (Validator.IsValidPayload(payload))
+                if (Validator.IsAllowedEvent(payload))
                 {
-                    try
+                    _logger.EventReceived(trackingId, payload);
+
+                    if (Validator.IsValidPayload(payload))
                     {
-                        var statusChanged = Mapper.Map<AccountStatusChangedTransferObject>(payload);
-                        var isUserExists = await DbCommands.IsUserExists(externalLoginId: statusChanged.ExternalLoginId);
-                        if (isUserExists)
+                        try
                         {
-                            if (statusChanged.IsActive)
+                            var statusChanged = Mapper.Map<AccountStatusChangedTransferObject>(payload);
+                            var isUserExists = await DbCommands.IsUserExists(externalLoginId: statusChanged.ExternalLoginId);
+                            if (isUserExists)
                             {
-                                _logger.EnablingUser(statusChanged);
-                                await DbCommands.EnableLogin(externalLoginId: statusChanged.ExternalLoginId);
+                                if (statusChanged.IsActive)
+                                {
+                                    _logger.EnablingUser(statusChanged);
+                                    await DbCommands.EnableLogin(externalLoginId: statusChanged.ExternalLoginId);
+                                }
+                                else
+                                {
+                                    _logger.DisablingUser(statusChanged);
+                                    await DbCommands.DisableLogin(externalLoginId: statusChanged.ExternalLoginId);
+                                }
                             }
-                            else
-                            {
-                                _logger.DisablingUser(statusChanged);
-                                await DbCommands.DisableLogin(externalLoginId: statusChanged.ExternalLoginId);
-                            }
+                            await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
+                            _logger.Processed(trackingId, payload);
                         }
-                        await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
-                        _logger.Processed(trackingId, payload);
+                        catch (ListenerException ex)
+                        {
+                            _logger.ListenerException(ex, trackingId, payload);
+                            return MessageHandlerResult.Fatal;
+                        }
                     }
-                    catch (ListenerException ex)
+                    else
                     {
-                        _logger.ListenerException(ex, trackingId, payload);
-                        ThreadContext.Properties.Remove(EXTERNAL_ID);
+
+                        var errors = Validator.GetErrors();
+                        _logger.InvalidModel(trackingId, payload, errors);
+                        await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
                         return MessageHandlerResult.Fatal;
                     }
                 }
-                else
-                {
-
-                    var errors = Validator.GetErrors();
-                    _logger.InvalidModel(trackingId, payload, errors);
-                    await MessagingLogger.ReceivedInvalidModel(trackingId, payload, errors);
-                    ThreadContext.Properties.Remove(EXTERNAL_ID);
-                    return MessageHandlerResult.Fatal;
-                }
             }
-            ThreadContext.Properties.Remove(EXTERNAL_ID);
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                return MessageHandlerResult.Fatal;
+            }
+            finally
+            {
+                ThreadContext.Properties.Remove(EXTERNAL_ID);
+            }
             return MessageHandlerResult.Success;
         }
     }

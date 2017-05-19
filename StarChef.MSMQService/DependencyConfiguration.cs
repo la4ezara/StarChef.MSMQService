@@ -7,32 +7,25 @@ using log4net;
 using StarChef.Common;
 using StarChef.Orchestrate;
 using StarChef.Orchestrate.EventSetters.Impl;
+using StarChef.MSMQService.Configuration;
+using StarChef.MSMQService.Configuration.Impl;
 using Events = Fourth.Orchestration.Model.Menus.Events;
-
-using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
 using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
-
 
 namespace StarChef.MSMQService
 {
     /// <summary>
     /// Responsible for setting up and configuring the dependencies.
     /// </summary>
-    public class ContainerConfig
+    public class DependencyConfiguration : Module
     {
-        /// <summary> The log4net Logger instance. </summary>
-        private static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
 
-        /// <summary>
-        /// Sets up the IoC container with the correct dependencies.
-        /// </summary>
-        /// <param name="config">The configuration section that describes the dependencies to set up. </param>
-        /// <returns>A container with the correct dependencies configured.</returns>
-        public static IContainer Configure()
+        protected override void Load(ContainerBuilder builder)
         {
-            Logger.DebugFormat("Resolving dependencies.");
-
-            var builder = new ContainerBuilder();
+            builder.RegisterType<Listener>().As<IListener>().InstancePerLifetimeScope();
+            builder.RegisterType<AppConfiguration>().As<IAppConfiguration>().InstancePerLifetimeScope();
 
             // Set the messaging implementation
             builder.RegisterType<AzureMessageStore>().As<IMessageStore>().InstancePerLifetimeScope();
@@ -53,10 +46,10 @@ namespace StarChef.MSMQService
             builder.RegisterType<GroupUpdatedSetter>().As<IEventSetter<Events.GroupUpdated.Builder>>().InstancePerLifetimeScope();
             builder.RegisterType<MealPeriodUpdatedSetter>().As<IEventSetter<Events.MealPeriodUpdated.Builder>>().InstancePerLifetimeScope();
             builder.RegisterType<SupplierUpdatedSetter>().As<IEventSetter<Events.SupplierUpdated.Builder>>().InstancePerLifetimeScope();
-            builder.RegisterType<UserUpdatedSetter>().As<IEventSetter<Events.UserUpdated.Builder>>().InstancePerLifetimeScope(); 
+            builder.RegisterType<UserUpdatedSetter>().As<IEventSetter<Events.UserUpdated.Builder>>().InstancePerLifetimeScope();
             #endregion
 
-            return builder.Build();
+            _logger.Info("Dependencies are configured.");
         }
     }
 }

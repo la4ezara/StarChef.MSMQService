@@ -7,12 +7,51 @@ using System.Reflection;
 using System.Threading.Tasks;
 using log4net;
 using StarChef.Listener.Exceptions;
+using StarChef.Common;
 
 namespace StarChef.Listener.Commands.Impl
 {
     internal class ConnectionStringProvider : IConnectionStringProvider
     {
-        private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public async Task<Tuple<int, string>> GetCustomerDbDetails(string externalDatabaseId, string connectionStringLoginDb)
+        {
+            using (var sqlConnection = new SqlConnection(connectionStringLoginDb))
+            {
+                Exception exception = null;
+                await sqlConnection.OpenAsync();
+                try
+                {
+                    using (var sqlCmd = new SqlCommand("sc_database_GetByExternalId", sqlConnection))
+                    {
+                        sqlCmd.CommandType = CommandType.StoredProcedure;
+                        sqlCmd.Parameters.AddWithValue("@externalId", externalDatabaseId);
+                        var reader = await sqlCmd.ExecuteReaderAsync();
+                        if (await reader.ReadAsync())
+                        {
+                            var dbId = reader.GetValue<int>("db_database_id");
+                            var connStr = reader.GetValue<string>("database_connection_string");
+                            return new Tuple<int, string>(dbId, connStr);
+                        }
+                        throw new ConnectionStringLookupException("Connection string not found for DB with external ID = " + externalDatabaseId);
+                    }
+                }
+                catch (InvalidCastException ex)
+                {
+                    exception = ex;
+                }
+                catch (SqlException ex)
+                {
+                    exception = ex;
+                }
+                catch (IOException ex)
+                {
+                    exception = ex;
+                }
+                throw new ConnectionStringLookupException("Error is occurred while getting a customer DB", exception);
+            }
+        }
 
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         public async Task<string> GetCustomerDb(int loginId, string connectionStringLoginDb)
@@ -63,7 +102,7 @@ namespace StarChef.Listener.Commands.Impl
                         var rtnVal = sqlCmd.ExecuteScalar();
                         if (rtnVal == null || rtnVal == DBNull.Value)
                         {
-                            Logger.Error(string.Format("There is no organization with the given organization Guid: {0}", organizationId));
+                            _logger.Error(string.Format("There is no organization with the given organization Guid: {0}", organizationId));
                             return null;
                         }
                         return rtnVal.ToString();

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using Fourth.Orchestration.Model.Recipes;
 using Google.ProtocolBuffers;
 using Newtonsoft.Json;
+using StarChef.Listener.Exceptions;
+using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 
 namespace StarChef.Listener.Extensions
 {
@@ -85,6 +88,24 @@ namespace StarChef.Listener.Extensions
                 return Google.ProtocolBuffers.Extensions.ToJson(messageLite);
 
             return JsonConvert.SerializeObject(obj);
+        }
+
+        public static bool IsStarChefEvent(this IMessage message)
+        {
+            if (message == null) return false;
+            dynamic obj = message;
+
+            try
+            {
+                var sourceValue = obj.Source;
+                var source = (SourceSystem)sourceValue;
+
+                return source == SourceSystem.STARCHEF;
+            }
+            catch (Exception e)
+            {
+                throw new ListenerException("Cannot identify event's source.", e);
+            }
         }
     }
 }

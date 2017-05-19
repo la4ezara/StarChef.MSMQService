@@ -4,33 +4,12 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using StarChef.Orchestrate.Models;
+using StarChef.Common;
 
 namespace StarChef.Orchestrate.Helpers
 {
     public static class DataReaderExtension
     {
-        public static T GetValueOrDefault<T>(this IDataReader reader, int colIndex)
-        {
-            if (reader.IsDBNull(colIndex)) return default(T);
-
-            object item = reader[colIndex];
-
-            return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
-        }
-
-        public static T GetValue<T>(this IDataReader reader, string colName)
-        {
-            var colIndex = reader.GetOrdinal(colName);
-            var item = reader[colIndex];
-            return item is T ? (T)item : (T)Convert.ChangeType(item, typeof(T));
-        }
-
-        public static bool IsDBNull(this IDataReader reader, string colName)
-        {
-            var colIndex = reader.GetOrdinal(colName);
-            return reader.IsDBNull(colIndex);
-        }
-
         internal static void ReadCategories(this IDataReader reader, out List<CategoryType> categoryTypes, out List<Category> categories)
         {
             #region load data from reader

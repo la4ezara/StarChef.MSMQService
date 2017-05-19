@@ -40,7 +40,7 @@ namespace StarChef.Listener.Commands
         /// <param name="loginId"></param>
         /// <param name="externalLoginId">It will be skipped if <paramref name="loginId"></paramref> is specified</param>
         /// <returns></returns>
-        Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null);
+        Task<bool> IsUserExists(int? loginId = null, string externalLoginId = null, string username = null);
 
         /// <summary>
         /// Returns True if the listener should catch event of the type
@@ -49,6 +49,14 @@ namespace StarChef.Listener.Commands
         /// <param name="externalId"></param>
         /// <returns></returns>
         Task<bool> IsEventEnabledForOrganization(string eventTypeShortName, string externalId);
+
+        /// <summary>
+        /// Lookup database for actual user login Id
+        /// </summary>
+        /// <param name="loginId"></param>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        Task<int> OriginateLoginId(int loginId, string username);
 
         /// <summary>
         /// Disable login
@@ -101,16 +109,11 @@ namespace StarChef.Listener.Commands
         /// <summary>
         ///     Record information about messaging
         /// </summary>
-        /// <param name="trackingId">Caught event ID</param>
-        /// <param name="isSuccessful">Set True if the message was successfully processed</param>
-        /// <param name="code">Short unique name of the operation. The code may come from external system as well as from the SC itself</param>
-        /// <param name="details">Additional details about the event, for examples errors description</param>
-        /// <param name="payloadJson">(Optional) JSON representation of event's payload </param>
         /// <param name="user"></param>
         /// <exception cref="ConnectionStringNotFoundException">Login connection string is not found</exception>
         /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         /// <returns></returns>
-        Task AddUser(AccountCreatedTransferObject user);
+        Task<int> AddUser(AccountCreatedTransferObject user);
 
         Task RecordMessagingEvent(string trackingId, bool isSuccessful, string code, string details = null, string payloadJson = null);
 

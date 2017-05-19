@@ -152,7 +152,7 @@ namespace StarChef.Common
         public bool IsSsoEnabled(string connectionString)
         {
             var value = GetSetting(connectionString, Constants.CONFIG_ALLOW_SINGLE_SIGN_ON);
-            return value == "1" || value.ToUpper() == "TRUE";
+            return value == "1" || value.ToUpperInvariant() == "TRUE";
         }
     }
 }
