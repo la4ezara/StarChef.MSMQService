@@ -17,6 +17,8 @@ namespace StarChef.MSMQService
         private int _subMessageType;
         private Guid _uniqueIdent = Guid.Empty;
 
+        public string ExtendedProperties { get; set; } = string.Empty;
+
         public UpdateMessage()
         {
         }

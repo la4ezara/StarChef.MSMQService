@@ -1,15 +1,21 @@
 using System;
+using System.Collections.Generic;
 using System.Messaging;
 using System.Data;
 using System.Data.SqlClient;
 using StarChef.Data;
 using System.Configuration;
+using System.Data.Common;
+using System.Linq;
 using System.Net.Mail;
 using StarChef.Orchestrate;
 using log4net;
 using StarChef.Common;
 using StarChef.MSMQService.Configuration;
 using System.Threading.Tasks;
+using StarChef.Common.Extensions;
+using StarChef.Common.Types;
+using StarChef.Data.Extensions;
 
 namespace StarChef.MSMQService
 {
@@ -21,11 +27,13 @@ namespace StarChef.MSMQService
         private readonly IAppConfiguration _appConfiguration;
         private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private readonly IStarChefMessageSender _messageSender;
+        private readonly IDatabaseManager _databaseManager;
 
-        public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender)
+        public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender, IDatabaseManager databaseManager)
         {
             _appConfiguration = appConfiguration;
             _messageSender = messageSender;
+            _databaseManager = databaseManager;
         }
 
         public Task ExecuteAsync()
@@ -175,64 +183,232 @@ namespace StarChef.MSMQService
         {
             if (msg != null)
             {
+                _logger.InfoFormat("Received MSMQ message: {0}", msg.ToJson());
+
                 switch (msg.Action)
                 {
-                    case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
+                    case (int) Constants.MessageActionType.UpdatedUserDefinedUnit:
                         ProcessUduUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductSet:
+                    case (int) Constants.MessageActionType.UpdatedProductSet:
                         ProcessProductSetUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedPriceBand:
+                    case (int) Constants.MessageActionType.UpdatedPriceBand:
                         ProcessPriceBandUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedGroup:
+                    case (int) Constants.MessageActionType.UpdatedGroup:
                         ProcessGroupUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductCost:
+                    case (int) Constants.MessageActionType.UpdatedProductCost:
                         ProcessProductCostUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.GlobalUpdate:
+                    case (int) Constants.MessageActionType.GlobalUpdate:
                         ProcessGlobalUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductNutrient:
+                    case (int) Constants.MessageActionType.UpdatedProductNutrient:
                         ProcessProductNutrientUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductIntolerance:
+                    case (int) Constants.MessageActionType.UpdatedProductIntolerance:
                         ProcessProductIntoleranceUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductNutrientInclusive:
+                    case (int) Constants.MessageActionType.UpdatedProductNutrientInclusive:
                         ProcessProductNutrientInclusiveUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.GlobalUpdateBudgeted:
+                    case (int) Constants.MessageActionType.GlobalUpdateBudgeted:
                         ProcessGlobalUpdateBudgeted(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdateAlternateIngredients:
+                    case (int) Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
                     // All Events are populating under StarChefEventsUpdated Action - Additional action added for 
                     // User because of multiple different actions
-                    case (int)Constants.MessageActionType.StarChefEventsUpdated:
+                    case (int) Constants.MessageActionType.StarChefEventsUpdated:
                     // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
-                    case (int)Constants.MessageActionType.UserCreated:
-                    case (int)Constants.MessageActionType.UserUpdated:
-                    case (int)Constants.MessageActionType.UserActivated:
+                    case (int) Constants.MessageActionType.UserCreated:
+                    case (int) Constants.MessageActionType.UserUpdated:
+                    case (int) Constants.MessageActionType.UserActivated:
                     // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
-                    case (int)Constants.MessageActionType.SalesForceUserCreated:
+                    case (int) Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
-                    case (int)Constants.MessageActionType.UserDeActivated:
+                    case (int) Constants.MessageActionType.UserDeActivated:
                         _messageSender.PublishCommand(msg);
                         break;
-                    case (int)Constants.MessageActionType.EntityDeleted:
-                        // Construct event and notify subscribers about deletion of an entity
+                    case (int) Constants.MessageActionType.EntityDeleted:
                         _messageSender.PublishDeleteEvent(msg);
                         break;
-                    case (int)Constants.MessageActionType.EntityUpdated:
-                        // Construct event and notify subscribers about deletion of an entity
+                    case (int) Constants.MessageActionType.EntityUpdated:
                         _messageSender.PublishUpdateEvent(msg);
                         break;
+                    case (int) Constants.MessageActionType.EntityImported:
+                        PostProcessingPerSubAction(msg);
+                        break;
                 }
+            }
+        }
+
+        private void PostProcessingPerSubAction(UpdateMessage msg)
+        {
+            var importSettings = _databaseManager.GetImportSettings(msg.DSN, msg.DatabaseID);
+            switch (msg.SubAction)
+            {
+                case (int) Constants.MessageSubActionType.ImportedIngredient:
+
+                    #region Ingredient
+
+                {
+                    var importTypeSettings = importSettings.Ingredient();
+                    if (importTypeSettings.AutoCalculateCost)
+                            _databaseManager.Execute(msg.DSN, "sc_calculate_dish_pricing", new SqlParameter("@product_id", msg.ProductID));
+                }
+
+                    #endregion
+
+                    break;
+                case (int) Constants.MessageSubActionType.ImportedIngredientIntolerance:
+
+                    #region IngredientIntolerance
+
+                {
+                    var importTypeSettings = importSettings.IngredientIntolerance();
+                    if (importTypeSettings.AutoCalculateIntolerance)
+                    {
+                        _databaseManager.Execute(msg.DSN, "sc_audit_log_nutrition_intolerance",
+                            new SqlParameter("@product_id", msg.ProductID),
+                            new SqlParameter("@db_entity_id", 20), // hardcoded
+                            new SqlParameter("@user_id", 1), // hardcoded
+                            new SqlParameter("@audit_type_id", 6) // hardcoded
+                            );
+
+                        _databaseManager.Execute(msg.DSN, "utils_recalc_parent_intol_by_product",
+                            new SqlParameter("@ProductID", msg.ProductID));
+
+                        _databaseManager.Execute(msg.DSN, "sc_batch_product_labelling_update",
+                            new SqlParameter("@product_id", msg.ProductID),
+                            new SqlParameter("@disable_msmq_log", 1) // hardcoded
+                            );
+                    }
+                }
+
+                    #endregion
+
+                    break;
+                case (int) Constants.MessageSubActionType.ImportedIngredientNutrient:
+
+                    #region IngredientNutrient
+
+                {
+                    var importTypeSettings = importSettings.IngredientNutrient();
+                    if (importTypeSettings.AutoCalculateIntolerance)
+                    {
+
+                        _databaseManager.Execute(msg.DSN, "sc_audit_log_nutrition_intolerance",
+                            new SqlParameter("@product_id", msg.ProductID),
+                            new SqlParameter("@db_entity_id", 20), // hardcoded
+                            new SqlParameter("@user_id", 1), // hardcoded
+                            new SqlParameter("@audit_type_id", 6) // hardcoded
+                            );
+
+                        // first try to recalculate fibre if need
+                        string fiberFlag;
+                        var properties = msg.ExtendedProperties.Pairs();
+                        if (properties.TryGetValue("FIBER_RECALC_REQUIRED", out fiberFlag))
+                        {
+                            if (Convert.ToBoolean(fiberFlag))
+                            {
+                                _databaseManager.Execute(msg.DSN, "_sc_recalculate_nutrient_fibre",
+                                    new SqlParameter("@product_id", msg.ProductID));
+                            }
+                        }
+
+                        //calculate summary for ingredient
+                        _databaseManager.Execute(msg.DSN, "_sc_update_calorie_details",
+                            new SqlParameter("@product_id", msg.ProductID));
+
+                        //calculate nutrition data for related recipes
+                        _databaseManager.Execute(msg.DSN, "_sc_update_dish_yield",
+                            new SqlParameter("@product_id", msg.ProductID),
+                            new SqlParameter("@include_self", 0) // hardcoded
+                            );
+                    }
+                }
+
+                    #endregion
+
+                    break;
+                case (int) Constants.MessageSubActionType.ImportedIngredientPriceBand:
+
+                    #region IngredientPriceBand
+
+                {
+                    var importTypeSettings = importSettings.IngredientPriceBand();
+                    if (importTypeSettings.AutoCalculateCost)
+                    {
+                        string priceBands;
+                        var properties = msg.ExtendedProperties.Pairs();
+                        if (properties.TryGetValue("PRICE_BANDS", out priceBands))
+                        {
+                            var priceBandsArray = priceBands.Split(',').Cast<int>().ToArray();
+                            for (var i = 0; i < priceBandsArray.Count(); i++)
+                            {
+                                _databaseManager.Execute(msg.DSN, "_sc_recalculate_nutrient_fibre",
+                                    new SqlParameter("@product_id", msg.ProductID),
+                                    new SqlParameter("@pband_id", priceBandsArray[i])
+                                    );
+                            }
+                        }
+                    }
+                }
+
+                    #endregion
+
+                    break;
+                case (int) Constants.MessageSubActionType.ImportedIngredientConversion:
+
+                    #region IngredientConversion
+
+                {
+                    _databaseManager.Execute(msg.DSN, "sc_audit_history_single_log",
+                        new SqlParameter("@entity_id", msg.ProductID),
+                        new SqlParameter("@modified_columns", "Pack Size"),
+                        new SqlParameter("@db_entity_id", 20)); // hardcoded
+                }
+
+                    #endregion
+
+                    break;
+                case (int) Constants.MessageSubActionType.ImportedUsers:
+                case (int) Constants.MessageSubActionType.ImportedIngredientCategory:
+                default:
+                    // do nothing
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Resend message to use another processing algorithm
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="sendUpdateMessageFor">Array of message types which should be forwarded</param>
+        private static void ForwardUpdateMessage(UpdateMessage msg, int[] sendUpdateMessageFor = null)
+        {
+            sendUpdateMessageFor = sendUpdateMessageFor ?? new[]
+            {
+                (int) Constants.MessageSubActionType.ImportedIngredient,
+                (int) Constants.MessageSubActionType.ImportedIngredientCategory,
+                (int) Constants.MessageSubActionType.ImportedIngredientIntolerance,
+                (int) Constants.MessageSubActionType.ImportedIngredientNutrient,
+            };
+            if (sendUpdateMessageFor.Contains(msg.SubAction))
+            {
+                var forwardedMessage = new UpdateMessage(
+                    msg.ProductID,
+                    entityTypeId: msg.EntityTypeId,
+                    action: (int) Constants.MessageActionType.SalesForceUserCreated,
+                    dbDsn: msg.DSN,
+                    databaseId: msg.DatabaseID);
+
+                MSMQHelper.Send(forwardedMessage);
             }
         }
 

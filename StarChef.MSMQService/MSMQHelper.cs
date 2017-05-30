@@ -40,27 +40,5 @@ namespace StarChef.MSMQService
 			}
 			
 		}
-
-		public static void Send(string productId, string groupId, int action, string dbDSN, int databaseId)
-		{
-			Send(Convert.ToInt32(productId), Convert.ToInt32(groupId), action, dbDSN, databaseId);
-		}
-
-		public static void Send(string productId, int action, string dbDSN, int databaseId)
-		{			
-			Send(Convert.ToInt32(productId), action, dbDSN, databaseId);
-		}
-
-        public static void Send(int productId, int groupId, int action, string dbDSN, int databaseId)
-		{
-			UpdateMessage msg = new UpdateMessage(productId, groupId, dbDSN, action, databaseId);
-			Send(msg);
-		}
-
-		public static void Send(int productId, int action, string dbDSN, int databaseId)
-		{
-			UpdateMessage msg = new UpdateMessage(productId, dbDSN, action, databaseId);
-			Send(msg);
-		}
 	}
 }
