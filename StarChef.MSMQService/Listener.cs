@@ -328,7 +328,7 @@ namespace StarChef.MSMQService
                         //calculate nutrition data for related recipes
                         _databaseManager.Execute(msg.DSN, "_sc_update_dish_yield",
                             new SqlParameter("@product_id", msg.ProductID),
-                            new SqlParameter("@include_self", 0) // hardcoded
+                            new SqlParameter("@include_self", false) // hardcoded
                             );
                     }
                 }
