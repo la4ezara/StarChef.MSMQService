@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using StarChef.Common.Types;
 
 namespace StarChef.Common
@@ -32,5 +34,7 @@ namespace StarChef.Common
         bool IsSsoEnabled(string connectionString);
 
         IDictionary<string, ImportTypeSettings> GetImportSettings(string connectionString, int organizationId);
+        Task<List<int>> GetProductsForPriceUpdate(string connectionString, int productId);
+        Task RecalculatePriceForProduct(string connectionString, int productId, DateTime arriveTime);
     }
 }
