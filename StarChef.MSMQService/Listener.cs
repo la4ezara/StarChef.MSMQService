@@ -460,7 +460,7 @@ namespace StarChef.MSMQService
                 new SqlParameter("@message_arrived_time", msg.ArrivedTime));
         }
 
-        private async Task ProcessProductCostUpdate(UpdateMessage msg)
+        internal async Task ProcessProductCostUpdate(UpdateMessage msg)
         {
             var connectionString = msg.DSN;
             var arriveTime = msg.ArrivedTime;
