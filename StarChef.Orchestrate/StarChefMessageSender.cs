@@ -97,6 +97,8 @@ namespace StarChef.Orchestrate
 
             var logged = false;
 
+            messageArrivedTime = TimeZoneInfo.ConvertTimeToUtc(messageArrivedTime);
+
             try
             {
                 var isSsoEnabled = _databaseManager.IsSsoEnabled(dbConnectionString);

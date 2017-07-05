@@ -3,11 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using StarChef.Common.Types;
+using System.Threading.Tasks;
+using log4net;
 
 namespace StarChef.Common
 {
     public class DatabaseManager : IDatabaseManager
     {
+        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public int Execute(
             string connectionString, 
             string spName, 
@@ -37,6 +42,21 @@ namespace StarChef.Common
                 retval = cmd.ExecuteNonQuery();
             }
 
+            return retval;
+        }
+
+        private async Task<int> ExecuteAsync(string connectionString, string spName, params SqlParameter[] parameterValues)
+        {
+            var retval = 0;
+            using (var cn = new SqlConnection(connectionString))
+            {
+                await cn.OpenAsync();
+                var cmd = new SqlCommand(spName, cn){CommandType = CommandType.StoredProcedure};
+                if (parameterValues != null)
+                    cmd.Parameters.AddRange(parameterValues);
+
+                retval = await cmd.ExecuteNonQueryAsync();
+            }
             return retval;
         }
 
@@ -153,6 +173,53 @@ namespace StarChef.Common
         {
             var value = GetSetting(connectionString, Constants.CONFIG_ALLOW_SINGLE_SIGN_ON);
             return value == "1" || value.ToUpperInvariant() == "TRUE";
+        }
+
+        public IDictionary<string, ImportTypeSettings> GetImportSettings(string connectionString, int organizationId)
+        {
+            var result = new Dictionary<string, ImportTypeSettings>();
+            var reader = ExecuteReader(connectionString, "sc_supplier_import_get_settings", new SqlParameter("@organisation_id", organizationId));
+            while (reader.Read())
+            {
+                var settings = new ImportTypeSettings
+                {
+                    Id = reader.GetValue<int>("import_type_id"),
+                    Name = reader.GetValue<string>("import_type_name"),
+                    AutoCalculateCost = reader.GetValue<bool>("auto_calc_cost_real_time"),
+                    AutoCalculateIntolerance = reader.GetValue<bool>("autp_calc_intol_real_time")
+                };
+                result.Add(settings.Name, settings);
+            }
+            return result;
+        }
+
+        public async Task<List<int>> GetProductsForPriceUpdate(string connectionString, int productId)
+        {
+            var result = new List<int>();
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var reader = ExecuteReader(connectionString, "sc_get_product_with_alternates", new SqlParameter("@product_id", productId));
+                    while (reader.Read())
+                        result.Add(reader.GetValue<int>("product_id"));
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e);
+                    throw;
+                }
+            });
+
+            return result;
+        }
+
+        public async Task RecalculatePriceForProduct(string connectionString, int productId, DateTime arriveTime)
+        {
+            await ExecuteAsync(connectionString, "sc_calculate_dish_pricing",
+                new SqlParameter("@product_id", productId),
+                new SqlParameter("@message_arrived_time", arriveTime));
         }
     }
 }
