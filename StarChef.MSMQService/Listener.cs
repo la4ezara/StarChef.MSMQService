@@ -187,57 +187,57 @@ namespace StarChef.MSMQService
 
                 switch (msg.Action)
                 {
-                    case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
+                    case (int) Constants.MessageActionType.UpdatedUserDefinedUnit:
                         ProcessUduUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductSet:
+                    case (int) Constants.MessageActionType.UpdatedProductSet:
                         ProcessProductSetUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedPriceBand:
+                    case (int) Constants.MessageActionType.UpdatedPriceBand:
                         ProcessPriceBandUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedGroup:
+                    case (int) Constants.MessageActionType.UpdatedGroup:
                         ProcessGroupUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductCost:
-                        ProcessProductCostUpdate(msg).Wait();
+                    case (int) Constants.MessageActionType.UpdatedProductCost:
+                        ProcessProductCostUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.GlobalUpdate:
+                    case (int) Constants.MessageActionType.GlobalUpdate:
                         ProcessGlobalUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductNutrient:
+                    case (int) Constants.MessageActionType.UpdatedProductNutrient:
                         ProcessProductNutrientUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductIntolerance:
+                    case (int) Constants.MessageActionType.UpdatedProductIntolerance:
                         ProcessProductIntoleranceUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdatedProductNutrientInclusive:
+                    case (int) Constants.MessageActionType.UpdatedProductNutrientInclusive:
                         ProcessProductNutrientInclusiveUpdate(msg);
                         break;
-                    case (int)Constants.MessageActionType.GlobalUpdateBudgeted:
+                    case (int) Constants.MessageActionType.GlobalUpdateBudgeted:
                         ProcessGlobalUpdateBudgeted(msg);
                         break;
-                    case (int)Constants.MessageActionType.UpdateAlternateIngredients:
+                    case (int) Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
                     // All Events are populating under StarChefEventsUpdated Action - Additional action added for 
                     // User because of multiple different actions
-                    case (int)Constants.MessageActionType.StarChefEventsUpdated:
+                    case (int) Constants.MessageActionType.StarChefEventsUpdated:
                     // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
-                    case (int)Constants.MessageActionType.UserCreated:
-                    case (int)Constants.MessageActionType.UserUpdated:
-                    case (int)Constants.MessageActionType.UserActivated:
+                    case (int) Constants.MessageActionType.UserCreated:
+                    case (int) Constants.MessageActionType.UserUpdated:
+                    case (int) Constants.MessageActionType.UserActivated:
                     // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
-                    case (int)Constants.MessageActionType.SalesForceUserCreated:
+                    case (int) Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
-                    case (int)Constants.MessageActionType.UserDeActivated:
+                    case (int) Constants.MessageActionType.UserDeActivated:
                         _messageSender.PublishCommand(msg);
                         break;
-                    case (int)Constants.MessageActionType.EntityDeleted:
+                    case (int) Constants.MessageActionType.EntityDeleted:
                         _messageSender.PublishDeleteEvent(msg);
                         break;
-                    case (int)Constants.MessageActionType.EntityUpdated:
+                    case (int) Constants.MessageActionType.EntityUpdated:
                         _messageSender.PublishUpdateEvent(msg);
                         break;
                     case (int) Constants.MessageActionType.EntityImported:
@@ -383,7 +383,7 @@ namespace StarChef.MSMQService
                     // do nothing
                     break;
             }
-                }
+        }
 
         /// <summary>
         /// Resend message to use another processing algorithm
@@ -460,12 +460,16 @@ namespace StarChef.MSMQService
                 new SqlParameter("@message_arrived_time", msg.ArrivedTime));
         }
 
-        internal async Task ProcessProductCostUpdate(UpdateMessage msg)
+        private void ProcessProductCostUpdate(UpdateMessage msg)
         {
-            var connectionString = msg.DSN;
-            var arriveTime = msg.ArrivedTime;
-            var allProductsForPriceUpdate = await _databaseManager.GetProductsForPriceUpdate(connectionString, msg.ProductID);
-            Parallel.ForEach(allProductsForPriceUpdate, async productId => await _databaseManager.RecalculatePriceForProduct(connectionString, productId, arriveTime));
+            ExecuteStoredProc(msg.DSN,
+                "sc_calculate_dish_pricing",
+                new SqlParameter("@group_id", 0),
+                new SqlParameter("@product_id", msg.ProductID),
+                new SqlParameter("@pset_id", 0),
+                new SqlParameter("@pband_id", 0),
+                new SqlParameter("@unit_id", 0),
+                new SqlParameter("@message_arrived_time", msg.ArrivedTime));
         }
 
         private void ProcessProductNutrientUpdate(UpdateMessage msg)

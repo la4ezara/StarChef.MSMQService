@@ -28,6 +28,7 @@ namespace StarChef.MSMQService
 	    private IAppConfiguration _appConfiguration;
 	    private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private Timer _timer;
+		private bool _isStarted;
         private IContainer _container;
 
         /// <summary> 
@@ -38,16 +39,13 @@ namespace StarChef.MSMQService
 	    public static Hashtable GlobalUpdateTimeStamps;
         public static Hashtable ActiveTaskDatabaseIDs;
 
-	    static ListenerService()
-	    {
+		public ListenerService()
+		{
+            InitializeComponent();
+
             // Start log4net up
             XmlConfigurator.Configure();
             log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
-        }
-
-        public ListenerService()
-		{
-            InitializeComponent();
 		}
 
 	    /// <summary> 
@@ -62,13 +60,9 @@ namespace StarChef.MSMQService
 
 	    static void Main()
 	    {
-            _logger.Info("Initializing...");
+	        var servicesToRun = new ServiceBase[] { new ListenerService() };
 
-            var servicesToRun = new ServiceBase[] { new ListenerService() };
-
-            _logger.Info("Running...");
-
-            Run(servicesToRun);
+	        Run(servicesToRun);
 	    }
 
 	    private void ServiceTask(object state)
@@ -110,7 +104,7 @@ namespace StarChef.MSMQService
 
 	        var periodSetting = _appConfiguration.Interval;
 	        var period = TimeSpan.FromMilliseconds(periodSetting);
-
+	        _isStarted = true;
             _logger.DebugFormat("Service is configured to run each {0} ms", periodSetting);
             _timer = new Timer(ServiceTask, null, TimeSpan.Zero, period);
 	    }
@@ -120,7 +114,8 @@ namespace StarChef.MSMQService
         /// </summary>
         protected override void OnStop()
 		{
-			_logger.Info("Service is stopped.");
+			_isStarted = false;
+            _logger.Info("Service is stopped.");
         }
 
 	    protected override void OnContinue()
@@ -151,7 +146,10 @@ namespace StarChef.MSMQService
 	    {
 	        if( disposing )
 	        {
-	            _components?.Dispose();
+	            if (_components != null) 
+	            {
+	                _components.Dispose();
+	            }
 	        }
 	        base.Dispose( disposing );
 	    }
