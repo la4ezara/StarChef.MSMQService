@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using StarChef.Common.Types;
 
 namespace StarChef.Common
 {
@@ -153,6 +154,24 @@ namespace StarChef.Common
         {
             var value = GetSetting(connectionString, Constants.CONFIG_ALLOW_SINGLE_SIGN_ON);
             return value == "1" || value.ToUpperInvariant() == "TRUE";
+        }
+
+        public IDictionary<string, ImportTypeSettings> GetImportSettings(string connectionString, int organizationId)
+        {
+            var result = new Dictionary<string, ImportTypeSettings>();
+            var reader = ExecuteReader(connectionString, "sc_supplier_import_get_settings", new SqlParameter("@organisation_id", organizationId));
+            while (reader.Read())
+            {
+                var settings = new ImportTypeSettings
+                {
+                    Id = reader.GetValue<int>("import_type_id"),
+                    Name = reader.GetValue<string>("import_type_name"),
+                    AutoCalculateCost = reader.GetValue<bool>("auto_calc_cost_real_time"),
+                    AutoCalculateIntolerance = reader.GetValue<bool>("autp_calc_intol_real_time")
+                };
+                result.Add(settings.Name, settings);
+            }
+            return result;
         }
     }
 }

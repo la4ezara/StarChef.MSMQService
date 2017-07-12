@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using StarChef.Common.Types;
 
 namespace StarChef.Common
 {
@@ -29,5 +30,7 @@ namespace StarChef.Common
 
         bool IsPublishEnabled(string connectionString, int entityTypeId);
         bool IsSsoEnabled(string connectionString);
+
+        IDictionary<string, ImportTypeSettings> GetImportSettings(string connectionString, int organizationId);
     }
 }
