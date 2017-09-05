@@ -1,8 +1,8 @@
-﻿using StarChef.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Fourth.StarChef.Invariables;
 using StarChef.Common.Types;
 
 namespace StarChef.Common
@@ -138,7 +138,7 @@ namespace StarChef.Common
                 var cmd = new SqlCommand("sc_get_orchestration_lookup", cn)
                 {
                     CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = Data.Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
+                    CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
                 };
                 cmd.Parameters.Add(new SqlParameter("@entity_type_id", entityTypeId));
                 var rdr = cmd.ExecuteReader();

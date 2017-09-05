@@ -1,5 +1,5 @@
 using System;
-using StarChef.Data;
+using Fourth.StarChef.Invariables;
 
 namespace StarChef.MSMQService
 {

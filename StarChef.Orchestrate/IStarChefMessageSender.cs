@@ -1,7 +1,5 @@
 ﻿using System;
-using Google.ProtocolBuffers;
 using StarChef.Common;
-using StarChef.Data;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 
 namespace StarChef.Orchestrate

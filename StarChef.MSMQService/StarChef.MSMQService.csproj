@@ -133,8 +133,8 @@
       <HintPath>..\packages\Fourth.Orchestration.1.1.64\lib\net45\Fourth.Orchestration.Storage.Azure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.29602, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.0\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
+    <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.25514, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.2\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Google.ProtocolBuffers, Version=2.4.1.555, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">

@@ -2,6 +2,7 @@ using log4net;
 using System;
 using System.Configuration;
 using System.Messaging;
+using Fourth.StarChef.Invariables;
 
 namespace StarChef.MSMQService
 {
@@ -302,12 +303,12 @@ namespace StarChef.MSMQService
 		private string _filterXML = string.Empty;
 		private string _outputFilterXML = string.Empty;
 		private string _dbDSN = string.Empty;
-		private Data.Constants.ReportOutputType _format = Data.Constants.ReportOutputType.NotSet;
+		private Constants.ReportOutputType _format = Constants.ReportOutputType.NotSet;
 		private int _groupFilterId = 0;
-		private Data.Constants.GroupFilterType _groupFilterType = Data.Constants.GroupFilterType.NotSet;
+		private Constants.GroupFilterType _groupFilterType = Constants.GroupFilterType.NotSet;
 		private DateTime _startDate;
 		private DateTime _endDate;
-		private Data.Constants.ScopeType _scopeFilterID = Data.Constants.ScopeType.NotSet;
+		private Constants.ScopeType _scopeFilterID = Constants.ScopeType.NotSet;
 		private int _startDay = 0;
 		private int _endDay = 0;
 
@@ -315,7 +316,7 @@ namespace StarChef.MSMQService
 		{
 		}
 
-		public ReportingMessage(string ReportGuid, string ReportName, string parameterXML, string filterXML, string outputFilterXML, string UserDSN, Data.Constants.ReportOutputType Format, int GroupFilterID, Data.Constants.GroupFilterType GroupFilterType, DateTime StartDate, DateTime EndDate, int StartDay, int EndDay, Data.Constants.ScopeType ScopeFilterID)
+		public ReportingMessage(string ReportGuid, string ReportName, string parameterXML, string filterXML, string outputFilterXML, string UserDSN, Constants.ReportOutputType Format, int GroupFilterID, Constants.GroupFilterType GroupFilterType, DateTime StartDate, DateTime EndDate, int StartDay, int EndDay, Constants.ScopeType ScopeFilterID)
 		{
 			_reportGuid = ReportGuid;
 			_reportName = ReportName;
@@ -369,7 +370,7 @@ namespace StarChef.MSMQService
 			set {_dbDSN = value;}
 		}
 
-		public Data.Constants.ReportOutputType Format
+		public Constants.ReportOutputType Format
 		{
 			get {return _format;}
 			set {_format = value;}
@@ -381,7 +382,7 @@ namespace StarChef.MSMQService
 			set {_groupFilterId = value;}
 		}
 
-		public Data.Constants.GroupFilterType GroupFilterType
+		public Constants.GroupFilterType GroupFilterType
 		{
 			get {return _groupFilterType;}
 			set {_groupFilterType = value;}
@@ -399,7 +400,7 @@ namespace StarChef.MSMQService
 			set {_endDate = value;}
 		}
 
-		public Data.Constants.ScopeType ScopeFilterID
+		public Constants.ScopeType ScopeFilterID
 		{
 			get {return _scopeFilterID;}
 			set {_scopeFilterID = value;}
