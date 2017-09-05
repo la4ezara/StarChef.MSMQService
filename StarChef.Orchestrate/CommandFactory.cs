@@ -1,6 +1,5 @@
 ﻿using StarChef.Orchestrate.Models;
 using System;
-using Fourth.Orchestration.Model.Examples;
 using Google.ProtocolBuffers;
 using Commands = Fourth.Orchestration.Model.People.Commands;
 using SourceSystem = Fourth.Orchestration.Model.People.Commands.SourceSystem;
