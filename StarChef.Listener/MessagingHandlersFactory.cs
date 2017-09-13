@@ -13,13 +13,13 @@ using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountSta
 using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.AccountStatusChangeFailed;
 using System.Threading.Tasks;
 using log4net;
-using StarChef.Data;
 using StarChef.Orchestrate.Models.TransferObjects;
 using MSMQHelper = StarChef.MSMQService.MSMQHelper;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 using StarChef.Listener.Extensions;
 using StarChef.Listener.Validators;
 using System;
+using Fourth.StarChef.Invariables;
 
 namespace StarChef.Listener
 {

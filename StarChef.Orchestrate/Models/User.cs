@@ -2,7 +2,6 @@
 using System.Data.SqlClient;
 using System;
 using System.Configuration;
-using Events = Fourth.Orchestration.Model.Menus.Events;
 using Commands = Fourth.Orchestration.Model.People.Commands;
 
 namespace StarChef.Orchestrate.Models
