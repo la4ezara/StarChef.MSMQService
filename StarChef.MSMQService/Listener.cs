@@ -13,6 +13,7 @@ using log4net;
 using StarChef.Common;
 using StarChef.MSMQService.Configuration;
 using System.Threading.Tasks;
+using Fourth.StarChef.Invariables;
 using StarChef.Common.Extensions;
 using StarChef.Common.Types;
 using StarChef.Data.Extensions;

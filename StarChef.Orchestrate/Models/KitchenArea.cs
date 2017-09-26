@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-namespace StarChef.Orchestrate.Models
+﻿namespace StarChef.Orchestrate.Models
 {
     public class KitchenArea
     {
