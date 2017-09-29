@@ -8,6 +8,7 @@ using StarChef.Common;
 using StarChef.Orchestrate.EventSetters.Impl;
 using StarChef.Orchestrate.Helpers;
 using StarChef.Orchestrate.Models;
+using Decimal = Fourth.Orchestration.Model.Common.Decimal;
 
 namespace StarChef.Orchestrate
 {
@@ -22,7 +23,7 @@ namespace StarChef.Orchestrate
             using (var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_ingredient", new SqlParameter("@product_id", entityId)))
             {
                 if (reader.Read())
-                {
+                {                
                     builder
                         .SetExternalId(reader[0].ToString())
                         .SetCustomerId(cust.ExternalId)
@@ -63,7 +64,14 @@ namespace StarChef.Orchestrate
                 if (reader.NextResult())
                     reader.ReadCategories(out categoryTypes, out categories);
 
-                BuildSuppliedPackSizes(builder, suppliedPackList, categoryTypes, categories);
+                //PriceBands
+                var ingredientPriceBands = new List<IngredientPriceBand>();
+                if (reader.NextResult())
+                {
+                    ingredientPriceBands = GetIngredientPriceBands(reader);
+                }
+
+                BuildSuppliedPackSizes(builder, suppliedPackList, categoryTypes, ingredientPriceBands);
 
                 //AlternativeIssuingUnits
                 var alternativeIssuingUnits = new List<AlternativeIssuingUnit>();
@@ -118,6 +126,9 @@ namespace StarChef.Orchestrate
                     RetailBarCodeDetails = reader[21].ToString(),
                     RankOrder = reader.GetValueOrDefault<long>(22),
                     ProductId = reader.GetValueOrDefault<int>(23),
+                    InvoicePrice = reader.GetValueOrDefault<decimal>(25),
+                    InvoiceUnitOfMeasure = reader.GetValueOrDefault<string>(26),
+                    IsVariableWeighted = reader.GetValueOrDefault<bool>(27),
                 };
                 suppliedPackList.Add(suppliedPack);
             }
@@ -162,7 +173,25 @@ namespace StarChef.Orchestrate
             return ingredientGroups;
         }
 
-        private static void BuildSuppliedPackSizes(Events.IngredientUpdated.Builder builder, List<IngredientSuppliedPackSize> suppliedPackList, List<CategoryType> categoryTypes, List<Category> categories)
+        private static List<IngredientPriceBand> GetIngredientPriceBands(IDataReader reader)
+        {
+            var ingredientPriceBands = new List<IngredientPriceBand>();
+
+            while (reader.Read())
+            {
+                var ingredientPriceBand = new IngredientPriceBand
+                {
+                    ProductId = reader.GetValueOrDefault<int>(0),
+                    Name = reader[1].ToString(),
+                    Price = reader.GetValueOrDefault<decimal>(2),
+                    Id = reader.GetValueOrDefault<short>(3)
+                };
+                ingredientPriceBands.Add(ingredientPriceBand);
+            }
+            return ingredientPriceBands;
+        }
+
+        private static void BuildSuppliedPackSizes(Events.IngredientUpdated.Builder builder, List<IngredientSuppliedPackSize> suppliedPackList, List<CategoryType> categoryTypes, List<IngredientPriceBand> priceBands)
         {
             if (suppliedPackList.Count > 0)
             {
@@ -192,13 +221,18 @@ namespace StarChef.Orchestrate
                         .SetModifiedUserLastName(suppliedPack.ModifiedUserLastName)
                         .SetModifiedDate(suppliedPack.ModifiedDate)
                         .SetRetailBarCodeDetails(suppliedPack.RetailBarCodeDetails)
-                        .SetRankOrder(suppliedPack.RankOrder);
-
+                        .SetRankOrder(suppliedPack.RankOrder)
+                        .SetInvoicePrice(Decimal.BuildFromDecimal(suppliedPack.InvoicePrice))
+                        .SetInvoiceUnitOfMeasure(suppliedPack.InvoiceUnitOfMeasure)
+                        .SetIsVariableWeighted(suppliedPack.IsVariableWeighted)
+                        ;
 
                     var productCategoryTypes = categoryTypes.Where(ct => ct.ProductId == suppliedPack.ProductId).ToList();
                     Func<dynamic> createCategoryType = () => Events.IngredientUpdated.Types.CategoryType.CreateBuilder();
                     Func<dynamic> createCategory = () => Events.IngredientUpdated.Types.CategoryType.Types.Category.CreateBuilder();
                     BuilderHelpers.BuildCategoryTypes(suppliedPackSizeBuilder, createCategoryType, createCategory, productCategoryTypes);
+
+                    BuildPriceBands(suppliedPackSizeBuilder, priceBands.Where(p=>p.ProductId == suppliedPack.ProductId).ToList());
 
                     builder.AddSuppliedPackSizes(suppliedPackSizeBuilder);
                 }
@@ -222,11 +256,24 @@ namespace StarChef.Orchestrate
             }
         }
 
-        private static void BuildIngredientGroups(Events.IngredientUpdated.Builder builder, List<IngredientGroup> alternativeIssuingUnits)
+        private static void BuildPriceBands(Events.IngredientUpdated.Types.SuppliedPackSize.Builder builder, List<IngredientPriceBand> priceBands)
         {
-            if (alternativeIssuingUnits.Count > 0)
+            foreach (var priceBand in priceBands)
             {
-                foreach (var ingredient in alternativeIssuingUnits)
+                var priceBandBuilder = Events.IngredientUpdated.Types.SuppliedPackSize.Types.PriceBand.CreateBuilder();
+
+                priceBandBuilder.SetPrice(Decimal.BuildFromDecimal(priceBand.Price))
+                                .SetName(priceBand.Name)
+                                .SetId(priceBand.Id.ToString());
+                builder.AddPriceBands(priceBandBuilder);
+            }
+        }
+
+        private static void BuildIngredientGroups(Events.IngredientUpdated.Builder builder, List<IngredientGroup> ingredientGroups)
+        {
+            if (ingredientGroups.Count > 0)
+            {
+                foreach (var ingredient in ingredientGroups)
                 {
                     var ingredientGroupBuilder = Events.IngredientUpdated.Types.IngredientGroup.CreateBuilder();
 
@@ -277,13 +324,24 @@ namespace StarChef.Orchestrate
             public string RetailBarCodeDetails { get; set; }
             public long RankOrder { get; set; }
             public int ProductId { get; set; }
-            //repeated CategoryType CategoryTypes = 24{ get; set; }
+            public decimal InvoicePrice { get; set; }
+            public string InvoiceUnitOfMeasure { get; set; }
+            public bool IsVariableWeighted { get; set; }
+
         }
 
         public class IngredientGroup
         {
             public string ExternalId { get; set; }
             public string GroupName { get; set; }
+        }
+
+        public class IngredientPriceBand
+        {
+            public int ProductId { get; set; }
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public decimal Price { get; set; }
         }
 
         public class AlternativeIssuingUnit
