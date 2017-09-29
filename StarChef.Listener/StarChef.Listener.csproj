@@ -139,10 +139,6 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SharedMemory, Version=2.0.16.0, Culture=neutral, PublicKeyToken=71afd155bcebae3e, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharedMemory.2.0.16\lib\net40\SharedMemory.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Activities" />
     <Reference Include="System.Configuration" />
