@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel;
 using System.ServiceProcess;
-using System.Threading;
 using System.Collections;
 using log4net;
 using StarChef.MSMQService.Configuration;
@@ -9,6 +8,7 @@ using Autofac;
 using log4net.Config;
 using StarChef.Common;
 using IContainer = Autofac.IContainer;
+using System.Timers;
 
 namespace StarChef.MSMQService
 {
@@ -28,8 +28,10 @@ namespace StarChef.MSMQService
 	    private IAppConfiguration _appConfiguration;
 	    private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private Timer _timer;
-		private bool _isStarted;
+        private bool _isProcessing;
         private IContainer _container;
+        private object _locker = new object();
+        private object _lockerProcessing = new object();
 
         /// <summary> 
         /// Required designer variable.
@@ -65,23 +67,6 @@ namespace StarChef.MSMQService
 	        Run(servicesToRun);
 	    }
 
-	    private void ServiceTask(object state)
-	    {
-	        try
-	        {
-	            var listener = _container.Resolve<IListener>();
-	            listener.ExecuteAsync().Wait();
-	        }
-	        catch (AggregateException e)
-	        {
-	            _logger.Error(e.GetBaseException());
-	        }
-	        catch (Exception e)
-	        {
-	            _logger.Error(e);
-	        }
-	    }
-
 	    // The main entry point for the process
 
 
@@ -98,33 +83,90 @@ namespace StarChef.MSMQService
 
 	        _appConfiguration = _container.Resolve<IAppConfiguration>();
 	        var maxThreadCount = _appConfiguration.MsmqThreadCount;
-	        ThreadPool.SetMaxThreads(maxThreadCount, 0);
+            System.Threading.ThreadPool.SetMaxThreads(maxThreadCount, 0);
 	        GlobalUpdateTimeStamps = new Hashtable();
 	        ActiveTaskDatabaseIDs = new Hashtable();
 
 	        var periodSetting = _appConfiguration.Interval;
 	        var period = TimeSpan.FromMilliseconds(periodSetting);
-	        _isStarted = true;
+	        //_isStarted = true;
             _logger.DebugFormat("Service is configured to run each {0} ms", periodSetting);
-            _timer = new Timer(ServiceTask, null, TimeSpan.Zero, period);
+            _timer = new Timer(period.TotalMilliseconds);
+            _timer.Elapsed += TimerElapsed;
+            this.TimerElapsed(null, null);
+            _timer.Start();
+            //_timer = new Timer(ServiceTask, null, TimeSpan.Zero, period);
 	    }
 
-	    /// <summary>
+        private void TimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                if (!_isProcessing)
+                {
+                    lock (this._locker)
+                    {
+                        _isProcessing = true;
+                        _timer.Stop();
+                    }
+                    var listener = _container.Resolve<IListener>();
+                    listener.ExecuteAsync().Wait();
+                }
+            }
+            catch (AggregateException aEx)
+            {
+                _logger.Error(aEx.GetBaseException());
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex);
+            }
+            finally
+            {
+                lock (this._locker)
+                {
+                    _isProcessing = false;
+                    _timer.Start();
+                }
+            }
+        }
+
+        /// <summary>
         /// Stop this service.
         /// </summary>
         protected override void OnStop()
 		{
-			_isStarted = false;
+            while (_isProcessing) {
+                System.Threading.Thread.Sleep(300);
+            }
+
+            lock (this._locker) {
+                _timer.Stop();
+            }
+            
             _logger.Info("Service is stopped.");
         }
 
 	    protected override void OnContinue()
 	    {
+            lock (this._locker)
+            {
+                _timer.Start();
+            }
             _logger.Info("Service is continued.");
 	    }
 
 	    protected override void OnPause()
 	    {
+            while (_isProcessing)
+            {
+                System.Threading.Thread.Sleep(300);
+            }
+
+            lock (this._locker)
+            {
+                _timer.Stop();
+            }
             _logger.Info("Service is paused.");
         }
 

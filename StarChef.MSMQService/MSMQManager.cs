@@ -14,10 +14,8 @@ namespace StarChef.MSMQService
         private static readonly ILog Logger =
             LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        //private string _mqName = @"\\\\10.10.10.195\\StarChef_Calc";
-        private const string _configKeyMQ = "StarChef.MSMQ.Queue";		
-		
-		private string _mqName = string.Empty;
+        private readonly string _queueName;
+
 		private MessageQueue mq = null;
 		private MessageQueueTransaction mqt = null;
 
@@ -27,59 +25,42 @@ namespace StarChef.MSMQService
 			set {mq = value;}
 		}
 
-		public string MQName
+		public MSMQManager(string queueName)
 		{
-			get {return _mqName;}
-			set {_mqName = value;}
-		}
-
-		public MSMQManager()
-		{			
-			//
-			// TODO: Add constructor logic here
-			//
-		}
+            this._queueName = queueName;
+        }
 
 		private MessageQueue mqConnect()
 		{
-			MessageQueue q = null;
-
-			if (_mqName == string.Empty)
-			{
-				try
-				{					
-					_mqName = ConfigurationSettings.AppSettings[_configKeyMQ].ToString();
-				}
-				catch(Exception)
-				{
-					throw new Exception("StarChef: Cannot find MSMQ configuration. Key " + _configKeyMQ + " is missing from web.config file.");
-				}
-			}
+			MessageQueue queue;
 			
-			if (MessageQueue.Exists(_mqName))
+			if (MessageQueue.Exists(this._queueName))
 			{
-				q = new MessageQueue(_mqName);
-				q.DefaultPropertiesToSend.Recoverable = true;
+				queue = new MessageQueue(this._queueName);
+				queue.DefaultPropertiesToSend.Recoverable = true;
 				
 				// Added to make sure we can read the AppSpecific property of messages on this queue
 				// MTB - 2005-07-28
 				MessagePropertyFilter mf = new MessagePropertyFilter();
 				mf.SetAll();
 				mf.AppSpecific = true;
-				q.MessageReadPropertyFilter = mf;
+				queue.MessageReadPropertyFilter = mf;
 				// MTB - 2005-07-28
 
-				return q;
+				return queue;
 			}
 			else
 			{
-				throw new Exception("StarChef Message Queue: " + _mqName + " does not exist. Please check MSMQ Setup");
+				throw new Exception("StarChef Message Queue: " + this._queueName + " does not exist. Please check MSMQ Setup");
 			}
 		}
 
 		public void mqDisconnect()
 		{
-			if (mq != null) mq.Close();
+            if (mq != null)
+            {
+                mq.Close();
+            }
 			mq = null;
 		}
 
@@ -88,7 +69,7 @@ namespace StarChef.MSMQService
 			if (mq == null) mq = mqConnect();
 			
 			if (!mq.Transactional) 
-				throw new Exception("StarChef Message Queue: " + _mqName + " is not transactional. Please check MSMQ Setup");;
+				throw new Exception("StarChef Message Queue: " + this._queueName + " is not transactional. Please check MSMQ Setup");;
 
 			if (mqt == null)
 			{
@@ -99,7 +80,6 @@ namespace StarChef.MSMQService
 			{
 				mqt.Begin();
 			}
-			
 		}
 
 		public void mqTransactionAbort()
@@ -149,15 +129,13 @@ namespace StarChef.MSMQService
 			}
 		}
 
-        public void mqSendToPoisonQueue(UpdateMessage message, MessagePriority priority)
+        public void mqSendToPoisonQueue(string queueName, UpdateMessage message, MessagePriority priority)
         {
             try
             {
-                string _configkeyPoisonMQ = ConfigurationSettings.AppSettings["StarChef.MSMQ.PoisonQueue"].ToString();
-
-                if (MessageQueue.Exists(_configkeyPoisonMQ))
+                if (MessageQueue.Exists(queueName))
                 {
-                    MessageQueue q = new MessageQueue(_configkeyPoisonMQ);
+                    MessageQueue q = new MessageQueue(queueName);
                     q.DefaultPropertiesToSend.Recoverable = true;
                     MessagePropertyFilter mf = new MessagePropertyFilter();
                     mf.SetAll();
@@ -171,7 +149,7 @@ namespace StarChef.MSMQService
                 }
                 else
                 {
-                    Logger.Error(new Exception("StarChef Message Queue: " + _configkeyPoisonMQ + " does not exist. Please check MSMQ Setup"));
+                    Logger.Error(new Exception("StarChef Message Queue: " + queueName + " does not exist. Please check MSMQ Setup"));
                 }
             }
             catch (Exception ex)
