@@ -20,7 +20,7 @@ namespace StarChef.MSMQService
 		public static void Send(UpdateMessage msg)
 		{
 		    var db = new DatabaseManager();
-			var mqm = new MSMQManager("StarChef.MSMQ.Queue");
+			var mqm = new MSMQManager(".\\private$\\starchef_update");
 			
 			if (msg == null) return;
 

@@ -11,7 +11,6 @@ namespace StarChef.MSMQService.Configuration
         string Alias { get; }
         string FromAddress { get; }
         long Interval { get; }
-        int MsmqThreadCount { get; }
         string QueueName { get; }
         string Subject { get; }
         string ToAddress { get; }

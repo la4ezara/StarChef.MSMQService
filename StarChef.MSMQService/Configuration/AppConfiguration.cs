@@ -11,8 +11,6 @@ namespace StarChef.MSMQService.Configuration.Impl
 
         public long Interval { get; private set; }
 
-        public int MsmqThreadCount { get; private set; }
-
         public string QueueName { get; private set; }
 
         public string Subject { get; private set; }
@@ -30,7 +28,6 @@ namespace StarChef.MSMQService.Configuration.Impl
             this.Interval = long.Parse(ConfigurationManager.AppSettings["interval"]);
             this.Subject = ConfigurationManager.AppSettings["Subject"];
             this.ToAddress = ConfigurationManager.AppSettings["ToAddress"];
-            this.MsmqThreadCount = int.Parse(ConfigurationManager.AppSettings.Get("MSMQThreadCount"));
             this.Alias = ConfigurationManager.AppSettings["Alias"];
             this.FromAddress = ConfigurationManager.AppSettings["FromAddress"];
         }

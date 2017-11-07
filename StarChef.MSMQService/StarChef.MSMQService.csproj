@@ -232,10 +232,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Configuration\AppConfiguration.cs" />
-    <Compile Include="Configuration\IAppConfiguration.cs" />
+    <Compile Include="Interface\IAppConfiguration.cs" />
     <Compile Include="Constant.cs" />
     <Compile Include="DependencyConfiguration.cs" />
-    <Compile Include="IListener.cs" />
+    <Compile Include="Interface\IListener.cs" />
     <Compile Include="Listener.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -251,9 +251,7 @@
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="WebServMsgHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="ServiceTimer.cs" />
     <EmbeddedResource Include="ListenerService.resx">
       <DependentUpon>ListenerService.cs</DependentUpon>
     </EmbeddedResource>

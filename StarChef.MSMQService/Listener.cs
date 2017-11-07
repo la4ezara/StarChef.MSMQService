@@ -17,6 +17,7 @@ using Fourth.StarChef.Invariables;
 using StarChef.Common.Extensions;
 using StarChef.Common.Types;
 using StarChef.Data.Extensions;
+using System.Collections;
 
 namespace StarChef.MSMQService
 {
@@ -30,6 +31,10 @@ namespace StarChef.MSMQService
         private readonly IStarChefMessageSender _messageSender;
         private readonly IDatabaseManager _databaseManager;
 
+        public bool CanProcess { get; set; }
+
+        public bool IsProcessing { get; private set; }
+
         public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender, IDatabaseManager databaseManager)
         {
             _appConfiguration = appConfiguration;
@@ -37,34 +42,37 @@ namespace StarChef.MSMQService
             _databaseManager = databaseManager;
         }
 
-        public Task ExecuteAsync()
-        {
+        public Task ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps) {
+
             Message msg = null;
             var mqm = new MSMQManager(_appConfiguration.QueueName);
             UpdateMessage updmsg = null;
-            var format = new XmlMessageFormatter(new [] { typeof(UpdateMessage) });
+            var format = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
             try
             {
-                using (var cursor = mqm.mqCreateCursor())
+                TimeSpan timeout = TimeSpan.FromSeconds(10);
+                this.IsProcessing = true;
+                while (CanProcess)
                 {
-                    msg = mqm.mqPeek(cursor, PeekAction.Current);
-                    while (msg != null)
+                    msg = mqm.mqPeek(timeout);
+                    IsProcessing = true;
+                    if (msg != null)
                     {
                         msg.Formatter = format;
                         var messageId = msg.Id;
-                        updmsg = (UpdateMessage) msg.Body;
+                        updmsg = (UpdateMessage)msg.Body;
 
-                        if (!ListenerService.ActiveTaskDatabaseIDs.Contains(updmsg.DatabaseID) && updmsg != null)
+                        if (!activeDatabases.Contains(updmsg.DatabaseID) && updmsg != null)
                         {
                             updmsg.ArrivedTime = msg.ArrivedTime;
+                            ThreadContext.Properties["OrganisationId"] = updmsg.DatabaseID;
 
-                            if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate && ListenerService.GlobalUpdateTimeStamps.Contains(updmsg.DatabaseID))
+                            if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate && globalUpdateTimeStamps.Contains(updmsg.DatabaseID))
                             {
-                                if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime) ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(_appConfiguration.GlobalUpdateWaitTime))
+                                if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime)globalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(_appConfiguration.GlobalUpdateWaitTime))
                                 {
-                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
-                                    ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
-                                    msg = mqm.mqReceive(messageId);
+                                    globalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
+                                    activeDatabases[updmsg.DatabaseID] = msg.ArrivedTime;
                                 }
                                 else
                                 {
@@ -73,47 +81,31 @@ namespace StarChef.MSMQService
                             }
                             else
                             {
-                                if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate)
+                                if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate)
                                 {
-                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
+                                    globalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
                                 }
-                                ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
-                                msg = mqm.mqReceive(messageId);
+                                activeDatabases[updmsg.DatabaseID] = msg.ArrivedTime;
                             }
 
                             if (msg != null)
                             {
-                                // Added to handle messages from the Web Service (which have the AppSpecific property set
-                                // MTB - 2005-07-28
-                                if (msg.AppSpecific == 99)
-                                {
-                                    //TODO::DEPRICATED
-                                    WebServMsgHandler.HandleWebServiceQueryMessage(msg);
-                                }
-                                else if (msg.AppSpecific == 98)
-                                {
-                                    //TODO::DEPRICATED
-                                    WebServMsgHandler.HandleWebServiceCostUpdateMessage(msg);
-                                }
-                                //else if (msg.AppSpecific == 89)
-                                //{
-                                //    //ReportingMsgHandler.HandleReportingMessage(msg);
-                                //}
-                                else
-                                {
-                                    ProcessMessage(updmsg);
-                                    ListenerService.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
-                                }
+                                ProcessMessage(updmsg);
+                                activeDatabases.Remove(updmsg.DatabaseID);
                             }
+
+                            ThreadContext.Properties.Remove("OrganisationId");
                         }
-                        msg = mqm.mqPeek(cursor, PeekAction.Next);
+
+                        msg = mqm.mqReceive(msg.Id);
                     }
+                    IsProcessing = false;
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error(ex.Message, ex);
-                    
+
                 if (msg != null)
                 {
                     msg.Formatter = format;
@@ -123,7 +115,7 @@ namespace StarChef.MSMQService
                         SendMail(updmsg);
                         _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
                         mqm.mqSendToPoisonQueue(_appConfiguration.PoisonQueue, updmsg, msg.Priority);
-                        ListenerService.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
+                        activeDatabases.Remove(updmsg.DatabaseID);
                     }
                 }
             }
