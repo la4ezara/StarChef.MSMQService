@@ -35,8 +35,6 @@ namespace StarChef.Orchestrate
                     .SetUnitSizeQuantity(reader.GetValueOrDefault<double>(3))
                     .SetPortionSizeUnitCode(reader[4].ToString())
                     .SetUnitSizePackDescription(reader[5].ToString())
-                    .SetMinimumCost(reader.GetValueOrDefault<double>(6))
-                    .SetMaximumCost(reader.GetValueOrDefault<double>(7))
                     .SetCost(reader.GetValueOrDefault<double>(8))
                     .SetCurrencyIso4217Code(reader[9].ToString())
                     .SetVatType(OrchestrateHelper.MapVatType(reader[10].ToString()))
