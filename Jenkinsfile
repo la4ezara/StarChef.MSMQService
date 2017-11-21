@@ -48,7 +48,7 @@ node {
 	if(isReleaseBranch()){
 	 	stage("Create Package"){
 			echo "Creating packages started"
-			// bat "\"${msbuild}\" \"${solutionLocation}\" /t:Rebuild $commonReleaseBuildParams /p:Platform=\"Any CPU\" /p:RunOctoPack=\"true\" /p:OctoPackNuGetProperties=suffix=release;version=\"${buildVersion}\""
+			bat "\"${msbuild}\" \"${solutionLocation}\" /t:Rebuild $commonReleaseBuildParams /p:Platform=\"Any CPU\" /p:RunOctoPack=\"true\" /p:OctoPackNuGetProperties=suffix=release;version=\"${buildVersion}\""
 	 	}
 	
 	 	stage("Publish Package"){
