@@ -1,11 +1,10 @@
 #!groovy
 
-def releaseTag = "SC"
 def buildVersion = ""
 
 node {
 	echo "$env.WORKSPACE"
-	def commonReleaseBuildParams = "/p:Configuration=Release;Platform=AnyCPU /p:CI_BuildNum=${env.BUILD_ID};CI_BuildId=${releaseTag}"
+	def commonReleaseBuildParams = "/p:Configuration=Release;Platform=AnyCPU /p:CI_BuildNum=${env.BUILD_ID}"
     def solutionLocation = "$env.WORKSPACE/StarChef.MSMQService.sln";
     def buildMode = "Release";
 	def msbuild = tool name:'MSBUILD 15', type:'msbuild'
