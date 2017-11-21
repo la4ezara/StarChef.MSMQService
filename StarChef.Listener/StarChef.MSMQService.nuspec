@@ -1,0 +1,18 @@
+﻿<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>StarChef.Listener</id>
+    <version>$version$</version>
+    <title>Fourth StarChef Listener Service</title>
+    <authors>Fourth</authors>
+    <owners>Fourth</owners>
+    <projectUrl>https://github.com/fourth/StarChef.MSMQService</projectUrl>
+    <iconUrl>https://www.fourth.com/themes/bootstrap_subtheme/images/logo-fourth.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Fourth StarChef Listener Service</description>
+    <releaseNotes>__changelog__</releaseNotes>
+    <summary>Fourth StarChef Listener Service</summary>
+    <copyright>Copyright 2017</copyright>
+    <tags>Fourth</tags>
+  </metadata>
+</package>
