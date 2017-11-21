@@ -8,7 +8,7 @@
     -->
     <CfgVersionScheme>TwoDot</CfgVersionScheme>
     <CfgMajorVersion>1</CfgMajorVersion>
-    <CfgMinorVersion>0</CfgMinorVersion>
+    <CfgMinorVersion>31</CfgMinorVersion>
     <CfgBuildNumber>1</CfgBuildNumber>
     <CfgBuildRevision>$([MSBuild]::ValueOrDefault($(CI_BuildNum), 9999))</CfgBuildRevision>
     <CfgCompany>Fourth</CfgCompany>
