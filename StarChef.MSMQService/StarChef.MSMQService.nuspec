@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0"?>
 <package>
   <metadata>
-    <id>StarChef.MSMQService</id>
+    <id>StarChef.MSMQ.Service</id>
     <version>$version$</version>
     <title>Fourth StarChef MSMQ Service</title>
     <authors>Fourth</authors>

@@ -47,14 +47,22 @@ node {
 	if(isReleaseBranch()){
 	 	stage("Create Package"){
 			echo "Creating packages started"
-			bat "\"${msbuild}\" \"${solutionLocation}\" /t:Rebuild $commonReleaseBuildParams /p:Platform=\"Any CPU\" /p:RunOctoPack=\"true\" /p:OctoPackNuGetProperties=suffix=release;version=\"${buildVersion}\""
+
+ 			withCredentials([string(credentialsId: 'octopus-api-key', variable: 'octopusapikey')]){
+				    	def OctopusApiKey = "${octopusapikey}"
+						    try {
+									bat "\"${msbuild}\" \"${solutionLocation}\" /t:Build $commonReleaseBuildParams /p:Platform=\"Any CPU\" /p:RunOctoPack=\"true\" /p:OctoPackPackageVersion=\"${buildVersion}\" /p:OctoPackPublishPackageToHttp=\"https://prod-deploy.fourth.com/nuget/packages\" /p:OctoPackPublishApiKey=\"${OctopusApiKey}\""								          
+								}
+							finally {
+
+							    }
+			}
+
+
+			
 	 	}
 	
-	 	stage("Publish Package"){
-			echo "Publishing packages to octopus"
-	 		// bat "copy /y \"${env.WORKSPACE}\\Fourth.Starchef.SupplierImport-${buildMode}-${buildVersion}.zip\" \"${publishPath}\""
-	 		// bat "copy /y \"${env.WORKSPACE}\\Fourth.StarChef.ImportData.Service-${buildMode}-${buildVersion}.zip\" \"${publishPath}\""
-	 	}
+	 	
 	 }
 }
 
