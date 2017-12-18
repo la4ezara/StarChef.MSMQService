@@ -72,5 +72,5 @@ def getVersion(fileAndPath) {
 }
 
 def isReleaseBranch() {
-	return env.BRANCH_NAME == "Development" || env.BRANCH_NAME == "Livemirror" || env.BRANCH_NAME == "Live" || env.BRANCH_NAME == "jenkins_pipeline" || env.BRANCH_NAME == "US41484_Octopus"
+	return env.BRANCH_NAME == "Development" || env.BRANCH_NAME == "Livemirror" || env.BRANCH_NAME == "Live" || env.BRANCH_NAME == "jenkins_pipeline"
 }
