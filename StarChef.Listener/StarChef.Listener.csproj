@@ -12,8 +12,7 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <NuGetPackageImportStamp></NuGetPackageImportStamp>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -27,7 +26,7 @@
     <MapFileExtensions>false</MapFileExtensions>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.0</ApplicationVersion>
+    <ApplicationVersion>1.0.9999.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <ExcludeDeploymentUrl>true</ExcludeDeploymentUrl>
     <BootstrapperEnabled>false</BootstrapperEnabled>
@@ -227,11 +226,18 @@
     <Content Include="Install\uninstall.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="App.Debug.config">
+      <DependentUpon>App.config</DependentUpon>
+    </None>
+    <None Include="App.Release.config">
+      <DependentUpon>App.config</DependentUpon>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="StarChef.MSMQService.nuspec" />
     <None Include="WindowsServiceCredentials.config">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -252,10 +258,8 @@
   <ItemGroup>
     <PublishFile Include="StarChef.Listener.exe.manifest">
       <Visible>False</Visible>
-      <Group>
-      </Group>
-      <TargetPath>
-      </TargetPath>
+      <Group></Group>
+      <TargetPath></TargetPath>
       <PublishState>Auto</PublishState>
       <IncludeHash>False</IncludeHash>
       <FileType>ManifestEntryPoint</FileType>
@@ -290,7 +294,13 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
+    <Error Condition="!Exists('..\packages\MSBuild.VersionNumbers.1.5.33\build\MSBuild.VersionNumbers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.VersionNumbers.1.5.33\build\MSBuild.VersionNumbers.targets'))" />
+    <Error Condition="!Exists('..\packages\MSBuild.NugetPackaging.1.0.11\build\MSBuild.NuGetPackaging.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.NugetPackaging.1.0.11\build\MSBuild.NuGetPackaging.targets'))" />
+    <Error Condition="!Exists('..\packages\OctoPack.3.6.3\build\OctoPack.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OctoPack.3.6.3\build\OctoPack.targets'))" />
   </Target>
+  <Import Project="..\packages\MSBuild.VersionNumbers.1.5.33\build\MSBuild.VersionNumbers.targets" Condition="Exists('..\packages\MSBuild.VersionNumbers.1.5.33\build\MSBuild.VersionNumbers.targets')" />
+  <Import Project="..\packages\MSBuild.NugetPackaging.1.0.11\build\MSBuild.NuGetPackaging.targets" Condition="Exists('..\packages\MSBuild.NugetPackaging.1.0.11\build\MSBuild.NuGetPackaging.targets')" />
+  <Import Project="..\packages\OctoPack.3.6.3\build\OctoPack.targets" Condition="Exists('..\packages\OctoPack.3.6.3\build\OctoPack.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -298,4 +308,24 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <UsingTask TaskName="TransformXml" AssemblyFile="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Web\Microsoft.Web.Publishing.Tasks.dll" />
+  <Target Name="AfterCompile" Condition="Exists('App.$(Configuration).config')">
+    <!--Generate transformed app config in the intermediate directory-->
+    <TransformXml Source="App.config" Destination="$(IntermediateOutputPath)$(TargetFileName).config" Transform="App.$(Configuration).config" />
+    <!--Force build process to use the transformed configuration file from now on.-->
+    <ItemGroup>
+      <AppConfigWithTargetPath Remove="App.config" />
+      <AppConfigWithTargetPath Include="$(IntermediateOutputPath)$(TargetFileName).config">
+        <TargetPath>$(TargetFileName).config</TargetPath>
+      </AppConfigWithTargetPath>
+    </ItemGroup>
+  </Target>
+  <!--Override After Publish to support ClickOnce AfterPublish. Target replaces the untransformed config file copied to the deployment directory with the transformed one.-->
+  <Target Name="AfterPublish">
+    <PropertyGroup>
+      <DeployedConfig>$(_DeploymentApplicationDir)$(TargetName)$(TargetExt).config$(_DeploymentFileMappingExtension)</DeployedConfig>
+    </PropertyGroup>
+    <!--Publish copies the untransformed App.config to deployment directory so overwrite it-->
+    <Copy Condition="Exists('$(DeployedConfig)')" SourceFiles="$(IntermediateOutputPath)$(TargetFileName).config" DestinationFiles="$(DeployedConfig)" />
+  </Target>
 </Project>
