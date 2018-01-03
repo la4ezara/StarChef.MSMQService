@@ -41,12 +41,12 @@ namespace StarChef.MSMQService
         public Task ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps) {
 
             Message msg = null;
-            var mqm = new MSMQManager(_appConfiguration.QueueName);
+            var mqm = new MSMQManager(_appConfiguration.NormalQueueName);
             UpdateMessage updmsg = null;
             var format = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
             try
             {
-                TimeSpan timeout = TimeSpan.FromSeconds(10);
+                TimeSpan timeout = TimeSpan.FromSeconds(5);
                 this.IsProcessing = true;
                 while (CanProcess)
                 {
@@ -110,7 +110,7 @@ namespace StarChef.MSMQService
                     {
                         SendMail(updmsg);
                         _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
-                        mqm.mqSendToPoisonQueue(_appConfiguration.PoisonQueue, updmsg, msg.Priority);
+                        mqm.mqSendToPoisonQueue(_appConfiguration.PoisonQueueName, updmsg, msg.Priority);
                         activeDatabases.Remove(updmsg.DatabaseID);
                     }
                 }
