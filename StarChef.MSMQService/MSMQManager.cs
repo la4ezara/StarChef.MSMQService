@@ -1,8 +1,7 @@
 using log4net;
 using System;
-using System.Configuration;
 using System.Messaging;
-using Fourth.StarChef.Invariables;
+//using Fourth.StarChef.Invariables;
 
 namespace StarChef.MSMQService
 {

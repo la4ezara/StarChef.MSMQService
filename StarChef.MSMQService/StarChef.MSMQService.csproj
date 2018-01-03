@@ -251,7 +251,7 @@
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="ServiceTimer.cs" />
+    <Compile Include="ServiceRunner.cs" />
     <EmbeddedResource Include="ListenerService.resx">
       <DependentUpon>ListenerService.cs</DependentUpon>
     </EmbeddedResource>
@@ -292,22 +292,22 @@
   <ItemGroup>
     <PublishFile Include="StarChef.MSMQService.exe.config">
       <Visible>False</Visible>
-      <PublishState>Auto</PublishState>
-      <IncludeHash>False</IncludeHash>
       <Group>
       </Group>
       <TargetPath>
       </TargetPath>
+      <PublishState>Auto</PublishState>
+      <IncludeHash>False</IncludeHash>
       <FileType>File</FileType>
     </PublishFile>
     <PublishFile Include="StarChef.MSMQService.exe.manifest">
       <Visible>False</Visible>
-      <PublishState>Auto</PublishState>
-      <IncludeHash>False</IncludeHash>
       <Group>
       </Group>
       <TargetPath>
       </TargetPath>
+      <PublishState>Auto</PublishState>
+      <IncludeHash>False</IncludeHash>
       <FileType>ManifestEntryPoint</FileType>
     </PublishFile>
   </ItemGroup>

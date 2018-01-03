@@ -9,8 +9,6 @@ namespace StarChef.MSMQService.Configuration.Impl
 
         public string FromAddress { get; private set; }
 
-        public long Interval { get; private set; }
-
         public string QueueName { get; private set; }
 
         public string Subject { get; private set; }
@@ -25,7 +23,6 @@ namespace StarChef.MSMQService.Configuration.Impl
             this.GlobalUpdateWaitTime = int.Parse(ConfigurationManager.AppSettings["GlobalUpdateWaitTime"]);
             this.QueueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
             this.PoisonQueue = ConfigurationManager.AppSettings["StarChef.MSMQ.PoisonQueue"];
-            this.Interval = long.Parse(ConfigurationManager.AppSettings["interval"]);
             this.Subject = ConfigurationManager.AppSettings["Subject"];
             this.ToAddress = ConfigurationManager.AppSettings["ToAddress"];
             this.Alias = ConfigurationManager.AppSettings["Alias"];

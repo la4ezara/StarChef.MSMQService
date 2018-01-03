@@ -7,7 +7,6 @@ using Autofac;
 using log4net.Config;
 using StarChef.Common;
 using IContainer = Autofac.IContainer;
-using System.Timers;
 
 namespace StarChef.MSMQService
 {
@@ -42,17 +41,13 @@ namespace StarChef.MSMQService
         }
 
         public void Start() {
-            _logger.Info("Service is started.");
-            
-            var periodSetting = _appConfiguration.Interval;
-            var period = TimeSpan.FromMilliseconds(periodSetting);
-            
-            _logger.DebugFormat("Service is configured to run each {0} ms", periodSetting);
-            
+            _logger.Info("Service is starting.");
             _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps).Wait();
+            _logger.Info("Service is started.");
         }
 
         public void Stop() {
+            _logger.Info("Service is stoping.");
             _listener.CanProcess = false;
             while (_listener.IsProcessing)
             {
@@ -93,11 +88,7 @@ namespace StarChef.MSMQService
         {
             if (disposing)
             {
-                _listener.CanProcess = false;
-                while (_listener.IsProcessing)
-                {
-
-                }
+                this.Stop();
             }
         }
     }

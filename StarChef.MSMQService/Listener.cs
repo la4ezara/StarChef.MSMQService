@@ -1,23 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Messaging;
-using System.Data;
-using System.Data.SqlClient;
-using StarChef.Data;
-using System.Configuration;
-using System.Data.Common;
-using System.Linq;
-using System.Net.Mail;
-using StarChef.Orchestrate;
+using Fourth.StarChef.Invariables;
 using log4net;
 using StarChef.Common;
-using StarChef.MSMQService.Configuration;
-using System.Threading.Tasks;
-using Fourth.StarChef.Invariables;
 using StarChef.Common.Extensions;
-using StarChef.Common.Types;
 using StarChef.Data.Extensions;
+using StarChef.MSMQService.Configuration;
+using StarChef.Orchestrate;
+using System;
 using System.Collections;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Messaging;
+using System.Net.Mail;
+using System.Threading.Tasks;
 
 namespace StarChef.MSMQService
 {
@@ -379,7 +375,8 @@ namespace StarChef.MSMQService
                     dbDsn: msg.DSN,
                     databaseId: msg.DatabaseID);
 
-                MSMQHelper.Send(forwardedMessage);
+                var queueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
+                MSMQHelper.Send(forwardedMessage, queueName);
             }
         }
 

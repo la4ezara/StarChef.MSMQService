@@ -17,12 +17,15 @@ namespace StarChef.MSMQService
 		{			
 		}
 
-		public static void Send(UpdateMessage msg)
+		public static void Send(UpdateMessage msg, string queueName)
 		{
 		    var db = new DatabaseManager();
-			var mqm = new MSMQManager(".\\private$\\starchef_update");
-			
-			if (msg == null) return;
+			var mqm = new MSMQManager(queueName);
+
+            if (msg == null)
+            {
+                return;
+            }
 
 			try
 			{
@@ -38,7 +41,6 @@ namespace StarChef.MSMQService
 				// don't throw exception while testing - MSMQ not installed as standard
 				throw e;
 			}
-			
 		}
 	}
 }

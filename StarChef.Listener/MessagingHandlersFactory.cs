@@ -20,6 +20,7 @@ using StarChef.Listener.Extensions;
 using StarChef.Listener.Validators;
 using System;
 using Fourth.StarChef.Invariables;
+using System.Configuration;
 
 namespace StarChef.Listener
 {
@@ -44,7 +45,7 @@ namespace StarChef.Listener
             if (typeof(T) == typeof(AccountCreated))
             {
                 var validator = new AccountCreatedValidator(dbCommands);
-                var handler = new AccountCreatedEventHandler(dbCommands, validator, messagingLogger);
+                var handler = new AccountCreatedEventHandler(dbCommands, validator, configuration, messagingLogger);
                 handler.OnProcessed += SendMsmqMessage;
                 return handler;
             }
@@ -80,7 +81,7 @@ namespace StarChef.Listener
             throw new NotSupportedMessageException(string.Format("Message type {0} is not supported.", typeof(T).Name));
         }
 
-        private async Task SendMsmqMessage(AccountCreatedEventHandler sender, AccountCreatedTransferObject user)
+        private async Task SendMsmqMessage(AccountCreatedEventHandler sender, AccountCreatedTransferObject user, IConfiguration config)
         {
             if (sender == null) return;
 
@@ -95,7 +96,8 @@ namespace StarChef.Listener
                                             action: (int)Constants.MessageActionType.SalesForceUserCreated,
                                             dbDsn: userDetail.Item3,
                                             databaseId: userDetail.Item2);
-                MSMQHelper.Send(msg);
+                var queueName = config.QueueName;
+                MSMQHelper.Send(msg, queueName);
                 _logger.MessageSent(msg);
             }
             catch (Exception ex)
