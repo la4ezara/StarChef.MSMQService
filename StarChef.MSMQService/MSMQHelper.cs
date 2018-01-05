@@ -17,30 +17,29 @@ namespace StarChef.MSMQService
 		{			
 		}
 
-		public static void Send(UpdateMessage msg, string queueName)
+		public static void Send(UpdateMessage msg, string queueName, string poisonQueueName)
 		{
-		    var db = new DatabaseManager();
-			var mqm = new MSMQManager(queueName);
-
-            if (msg == null)
+            if (msg != null)
             {
-                return;
+                var mqm = new MsmqManager(queueName, poisonQueueName);
+
+                try
+                {
+                    var db = new DatabaseManager();
+                    var priority = db.GetSetting(msg.DSN, "CONFIG_MSMQ_MESSAGE_PRIORITY");
+
+                    mqm.mqSend(msg, (MessagePriority)Convert.ToInt32(priority));
+                    mqm.mqDisconnect();
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e);
+
+                    mqm.mqDisconnect();
+                    // don't throw exception while testing - MSMQ not installed as standard
+                    throw e;
+                }
             }
-
-			try
-			{
-			    var priority = db.GetSetting(msg.DSN, "CONFIG_MSMQ_MESSAGE_PRIORITY");
-				mqm.mqSend(msg, (MessagePriority)Convert.ToInt32(priority));
-				mqm.mqDisconnect();
-			}
-			catch (Exception e)
-			{
-                _logger.Error(e);
-
-                mqm.mqDisconnect();
-				// don't throw exception while testing - MSMQ not installed as standard
-				throw e;
-			}
 		}
 	}
 }

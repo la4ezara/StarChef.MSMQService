@@ -18,6 +18,8 @@ namespace StarChef.MSMQService.Configuration.Impl
         public int GlobalUpdateWaitTime { get; private set; }
 
         public string PoisonQueueName { get; private set; }
+
+        public bool SendPoisonMessageNotification { get; private set; }
         public AppConfiguration()
         {
             this.GlobalUpdateWaitTime = int.Parse(ConfigurationManager.AppSettings["GlobalUpdateWaitTime"]);
@@ -27,6 +29,7 @@ namespace StarChef.MSMQService.Configuration.Impl
             this.ToAddress = ConfigurationManager.AppSettings["ToAddress"];
             this.Alias = ConfigurationManager.AppSettings["Alias"];
             this.FromAddress = ConfigurationManager.AppSettings["FromAddress"];
+            this.SendPoisonMessageNotification = true;
         }
     }
 }

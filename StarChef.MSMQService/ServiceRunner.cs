@@ -64,6 +64,7 @@ namespace StarChef.MSMQService
 
         public void Continue() {
             if (!_listener.CanProcess) {
+                _listener.CanProcess = true;
                 _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps).Wait();
             }
 

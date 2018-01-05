@@ -96,8 +96,7 @@ namespace StarChef.Listener
                                             action: (int)Constants.MessageActionType.SalesForceUserCreated,
                                             dbDsn: userDetail.Item3,
                                             databaseId: userDetail.Item2);
-                var queueName = config.QueueName;
-                MSMQHelper.Send(msg, queueName);
+                MSMQHelper.Send(msg, config.NormalQueueName, string.Empty);
                 _logger.MessageSent(msg);
             }
             catch (Exception ex)

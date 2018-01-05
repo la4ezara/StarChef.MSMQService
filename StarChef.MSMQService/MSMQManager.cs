@@ -5,30 +5,41 @@ using System.Messaging;
 
 namespace StarChef.MSMQService
 {
+    public interface IMessageManager
+    {
+        void mqDisconnect();
+        void mqSend(UpdateMessage message, MessagePriority priority);
+        void mqSendToPoisonQueue(UpdateMessage message, MessagePriority priority);
+        Message mqReceive(string messageId, TimeSpan timeout);
+        Message mqPeek(TimeSpan timeout);
+    }
+
 	/// <summary>
 	/// Summary description for MSMQManager.
 	/// </summary>
-	public class MSMQManager
-	{
+	public class MsmqManager : IMessageManager
+    {
         private static readonly ILog Logger =
             LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly string _queueName;
+        private readonly string _normalQueueName;
+        private readonly string _poisonQueueName;
 
-		private MessageQueue mq = null;
+        private MessageQueue mq = null;
 
-		public MSMQManager(string queueName)
+		public MsmqManager(string queueName, string poisonQueueName)
 		{
-            this._queueName = queueName;
+            this._normalQueueName = queueName;
+            this._poisonQueueName = poisonQueueName;
         }
 
 		private MessageQueue mqConnect()
 		{
 			MessageQueue queue;
 			
-			if (MessageQueue.Exists(this._queueName))
+			if (MessageQueue.Exists(this._normalQueueName))
 			{
-				queue = new MessageQueue(this._queueName);
+				queue = new MessageQueue(this._normalQueueName);
 				queue.DefaultPropertiesToSend.Recoverable = true;
 				
 				// Added to make sure we can read the AppSpecific property of messages on this queue
@@ -43,7 +54,7 @@ namespace StarChef.MSMQService
 			}
 			else
 			{
-				throw new Exception("StarChef Message Queue: " + this._queueName + " does not exist. Please check MSMQ Setup");
+				throw new Exception("StarChef Message Queue: " + this._normalQueueName + " does not exist. Please check MSMQ Setup");
 			}
 		}
 
@@ -76,27 +87,29 @@ namespace StarChef.MSMQService
 			mq.Send(msg, message.ToString());
 		}
 
-        public void mqSendToPoisonQueue(string queueName, UpdateMessage message, MessagePriority priority)
+        public void mqSendToPoisonQueue(UpdateMessage message, MessagePriority priority)
         {
             try
             {
-                if (MessageQueue.Exists(queueName))
+                if (MessageQueue.Exists(_poisonQueueName))
                 {
-                    MessageQueue q = new MessageQueue(queueName);
-                    q.DefaultPropertiesToSend.Recoverable = true;
-                    MessagePropertyFilter mf = new MessagePropertyFilter();
-                    mf.SetAll();
-                    mf.AppSpecific = true;
-                    q.MessageReadPropertyFilter = mf;
+                    using (MessageQueue q = new MessageQueue(_poisonQueueName))
+                    {
+                        q.DefaultPropertiesToSend.Recoverable = true;
+                        MessagePropertyFilter mf = new MessagePropertyFilter();
+                        mf.SetAll();
+                        mf.AppSpecific = true;
+                        q.MessageReadPropertyFilter = mf;
 
-                    Message msg = new Message(message);
-                    msg.Priority = priority;
-                    
-                    q.Send(msg, message.ToString());
+                        Message msg = new Message(message);
+                        msg.Priority = priority;
+
+                        q.Send(msg, message.ToString());
+                    }
                 }
                 else
                 {
-                    Logger.Error(new Exception("StarChef Message Queue: " + queueName + " does not exist. Please check MSMQ Setup"));
+                    Logger.Error(new Exception("StarChef Message Queue: " + _poisonQueueName + " does not exist. Please check MSMQ Setup"));
                 }
             }
             catch (Exception ex)
@@ -105,17 +118,16 @@ namespace StarChef.MSMQService
             }
         }
 
-	    public Message mqReceive(string messageId)
+	    public Message mqReceive(string messageId, TimeSpan timeout)
 		{
 		    try
 		    {
-                Message msg;
                 if (mq == null)
                 {
                     mq = mqConnect();
                 }
 
-                msg = mq.ReceiveById(messageId, new TimeSpan(10));
+                var msg = mq.ReceiveById(messageId, timeout);
                 return msg;
 		    }
             catch (MessageQueueException exception)
@@ -131,9 +143,13 @@ namespace StarChef.MSMQService
         {
             try
             {
-                if (mq == null) mq = mqConnect();
+                if (mq == null)
+                {
+                    mq = mqConnect();
+                }
 
-                return mq.Peek(timeout);
+                var msg = mq.Peek(timeout);
+                return msg;
             }
             catch (MessageQueueException exception)
             {
@@ -145,4 +161,3 @@ namespace StarChef.MSMQService
         }
     }
 }
-

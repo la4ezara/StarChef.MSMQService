@@ -23,11 +23,11 @@ namespace StarChef.Listener
                 UserDefaults = values;
             }
 
-            QueueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
+            NormalQueueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
         }
         
         public int PriceBandBatchSize { get; private set; }
         public Dictionary<string, string> UserDefaults { get; private set; }
-        public string QueueName { get; private set; }
+        public string NormalQueueName { get; private set; }
     }
 }

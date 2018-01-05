@@ -15,5 +15,6 @@ namespace StarChef.MSMQService.Configuration
         string ToAddress { get; }
         int GlobalUpdateWaitTime { get; }
         string PoisonQueueName { get; }
+        bool SendPoisonMessageNotification { get; }
     }
 }

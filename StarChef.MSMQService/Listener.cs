@@ -7,7 +7,6 @@ using StarChef.MSMQService.Configuration;
 using StarChef.Orchestrate;
 using System;
 using System.Collections;
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -26,6 +25,8 @@ namespace StarChef.MSMQService
         private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private readonly IStarChefMessageSender _messageSender;
         private readonly IDatabaseManager _databaseManager;
+        private readonly IMessageManager _messageManager;
+        private readonly XmlMessageFormatter _messageFormat;
 
         public bool CanProcess { get; set; }
 
@@ -36,64 +37,84 @@ namespace StarChef.MSMQService
             _appConfiguration = appConfiguration;
             _messageSender = messageSender;
             _databaseManager = databaseManager;
+            _messageManager = new MsmqManager(_appConfiguration.NormalQueueName, _appConfiguration.PoisonQueueName);
+            _messageFormat = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
+            this.CanProcess = true;
         }
 
-        public Task ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps) {
+        public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender, IDatabaseManager databaseManager, IMessageManager messageManager)
+        {
+            _appConfiguration = appConfiguration;
+            _messageSender = messageSender;
+            _databaseManager = databaseManager;
+            _messageManager = messageManager;
+            _messageFormat = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
+            this.CanProcess = true;
+        }
 
+        public Task ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps)
+        {
             Message msg = null;
-            var mqm = new MSMQManager(_appConfiguration.NormalQueueName);
             UpdateMessage updmsg = null;
-            var format = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
+            
             try
             {
-                TimeSpan timeout = TimeSpan.FromSeconds(5);
+                TimeSpan timeout = TimeSpan.FromSeconds(10);
                 this.IsProcessing = true;
                 while (CanProcess)
                 {
-                    msg = mqm.mqPeek(timeout);
+                    msg = _messageManager.mqPeek(timeout);
                     IsProcessing = true;
                     if (msg != null)
                     {
-                        msg.Formatter = format;
                         var messageId = msg.Id;
+                        //Receive message and exclude from queue.
+                        //Remove only when data is processed
+                        msg = _messageManager.mqReceive(msg.Id, timeout);
+                        msg.Formatter = _messageFormat;
                         updmsg = (UpdateMessage)msg.Body;
 
                         if (!activeDatabases.Contains(updmsg.DatabaseID) && updmsg != null)
                         {
-                            updmsg.ArrivedTime = msg.ArrivedTime;
-                            ThreadContext.Properties["OrganisationId"] = updmsg.DatabaseID;
-
-                            if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate && globalUpdateTimeStamps.Contains(updmsg.DatabaseID))
+                            DateTime arrivalTime = DateTime.UtcNow;
+                            if (messageId != "00000000-0000-0000-0000-000000000000\\0")
                             {
-                                if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime)globalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(_appConfiguration.GlobalUpdateWaitTime))
+                                arrivalTime = msg.ArrivedTime;
+                            }
+
+                            updmsg.ArrivedTime = arrivalTime;
+                            int databaseId = updmsg.DatabaseID;
+                            ThreadContext.Properties["OrganisationId"] = databaseId;
+                            
+                            activeDatabases.Add(databaseId, arrivalTime);
+
+                            if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate)
+                            {
+                                if (globalUpdateTimeStamps.Contains(databaseId))
                                 {
-                                    globalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
-                                    activeDatabases[updmsg.DatabaseID] = msg.ArrivedTime;
+                                    if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime)globalUpdateTimeStamps[databaseId]).Minutes) > TimeSpan.FromMinutes(_appConfiguration.GlobalUpdateWaitTime))
+                                    {
+                                        globalUpdateTimeStamps[databaseId] = DateTime.UtcNow;
+                                    }
+                                    else
+                                    {
+                                        //do not process message - message is skipped and lost
+                                        updmsg = null;
+                                    }
                                 }
                                 else
                                 {
-                                    msg = null;
+                                    globalUpdateTimeStamps.Add(databaseId, DateTime.UtcNow);
                                 }
-                            }
-                            else
-                            {
-                                if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate)
-                                {
-                                    globalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
-                                }
-                                activeDatabases[updmsg.DatabaseID] = msg.ArrivedTime;
                             }
 
-                            if (msg != null)
+                            if (updmsg != null)
                             {
                                 ProcessMessage(updmsg);
-                                activeDatabases.Remove(updmsg.DatabaseID);
                             }
 
-                            ThreadContext.Properties.Remove("OrganisationId");
+                            activeDatabases.Remove(databaseId);
                         }
-
-                        msg = mqm.mqReceive(msg.Id);
                     }
                     IsProcessing = false;
                 }
@@ -101,29 +122,41 @@ namespace StarChef.MSMQService
             catch (Exception ex)
             {
                 _logger.Error(ex.Message, ex);
-
-                if (msg != null)
-                {
-                    msg.Formatter = format;
-                    updmsg = (UpdateMessage)msg.Body;
-                    if (updmsg != null)
-                    {
-                        SendMail(updmsg);
-                        _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
-                        mqm.mqSendToPoisonQueue(_appConfiguration.PoisonQueueName, updmsg, msg.Priority);
-                        activeDatabases.Remove(updmsg.DatabaseID);
-                    }
-                }
+                this.SendPoisonMessage(msg, _messageFormat, _messageManager, activeDatabases);
             }
             finally
             {
-                mqm.mqDisconnect();
+                _messageManager.mqDisconnect();
                 ThreadContext.Properties.Remove("OrganisationId");
+
+                if (updmsg != null) {
+                    activeDatabases.Remove(updmsg.DatabaseID);
+                }
+
             }
             return Task.CompletedTask;
         }
 
-        private void SendMail(UpdateMessage message)
+        private void SendPoisonMessage(Message msg, IMessageFormatter format, IMessageManager mqManager, Hashtable activeDatabases)
+        {
+            if (msg != null)
+            {
+                msg.Formatter = format;
+                var updmsg = (UpdateMessage)msg.Body;
+                if (updmsg != null)
+                {
+                    _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
+                    mqManager.mqSendToPoisonQueue(updmsg, msg.Priority);
+                    if (_appConfiguration.SendPoisonMessageNotification)
+                    {
+                        _logger.Error(new Exception("StarChef MQ Service: SENDING POISON MESSAGE TO THE MAIL"));
+                        SendPoisonMessageMail(updmsg);
+                    }
+                }
+            }
+        }
+
+        private void SendPoisonMessageMail(UpdateMessage message)
         {
             try
             {
@@ -146,7 +179,7 @@ namespace StarChef.MSMQService
             }
         }
 
-        private void ProcessMessage(UpdateMessage msg)
+        public void ProcessMessage(UpdateMessage msg)
         {
             if (msg != null)
             {
@@ -357,28 +390,28 @@ namespace StarChef.MSMQService
         /// </summary>
         /// <param name="msg"></param>
         /// <param name="sendUpdateMessageFor">Array of message types which should be forwarded</param>
-        private static void ForwardUpdateMessage(UpdateMessage msg, int[] sendUpdateMessageFor = null)
-        {
-            sendUpdateMessageFor = sendUpdateMessageFor ?? new[]
-            {
-                (int) Constants.MessageSubActionType.ImportedIngredient,
-                (int) Constants.MessageSubActionType.ImportedIngredientCategory,
-                (int) Constants.MessageSubActionType.ImportedIngredientIntolerance,
-                (int) Constants.MessageSubActionType.ImportedIngredientNutrient,
-            };
-            if (sendUpdateMessageFor.Contains(msg.SubAction))
-            {
-                var forwardedMessage = new UpdateMessage(
-                    msg.ProductID,
-                    entityTypeId: msg.EntityTypeId,
-                    action: (int) Constants.MessageActionType.SalesForceUserCreated,
-                    dbDsn: msg.DSN,
-                    databaseId: msg.DatabaseID);
+        //private static void ForwardUpdateMessage(UpdateMessage msg, int[] sendUpdateMessageFor = null)
+        //{
+        //    sendUpdateMessageFor = sendUpdateMessageFor ?? new[]
+        //    {
+        //        (int) Constants.MessageSubActionType.ImportedIngredient,
+        //        (int) Constants.MessageSubActionType.ImportedIngredientCategory,
+        //        (int) Constants.MessageSubActionType.ImportedIngredientIntolerance,
+        //        (int) Constants.MessageSubActionType.ImportedIngredientNutrient,
+        //    };
+        //    if (sendUpdateMessageFor.Contains(msg.SubAction))
+        //    {
+        //        var forwardedMessage = new UpdateMessage(
+        //            msg.ProductID,
+        //            entityTypeId: msg.EntityTypeId,
+        //            action: (int) Constants.MessageActionType.SalesForceUserCreated,
+        //            dbDsn: msg.DSN,
+        //            databaseId: msg.DatabaseID);
 
-                var queueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
-                MSMQHelper.Send(forwardedMessage, queueName);
-            }
-        }
+        //        var queueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
+        //        MSMQHelper.Send(forwardedMessage, queueName);
+        //    }
+        //}
 
         private void ProcessUduUpdate(UpdateMessage msg)
         {
@@ -570,29 +603,8 @@ namespace StarChef.MSMQService
 
         private int ExecuteStoredProc(string connectionString, string spName, params SqlParameter[] parameterValues)
         {
-            //create & open a SqlConnection, and dispose of it after we are done.
-            using (var cn = new SqlConnection(connectionString))
-            {
-                cn.Open();
-
-                // need a command with sensible timeout value (10 minutes), as some 
-                // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
-                };
-                //600
-
-                // add params
-                if (parameterValues != null)
-                    foreach (var param in parameterValues)
-                        cmd.Parameters.Add(param);
-
-                // run proc
-                var retval = cmd.ExecuteNonQuery();
-                return retval;
-            }
+            var result = _databaseManager.Execute(connectionString, spName, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC, parameterValues);
+            return result;
         }
-	}
+    }
 }

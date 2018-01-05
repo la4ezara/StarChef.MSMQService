@@ -5,7 +5,7 @@ namespace StarChef.MSMQService
 {
     public interface IListener {
         Task ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps);
-
+        void ProcessMessage(UpdateMessage msg);
         bool CanProcess { get; set; }
         bool IsProcessing { get; }
     }
