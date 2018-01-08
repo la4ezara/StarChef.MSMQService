@@ -22,45 +22,22 @@ namespace StarChef.MsmqService.Tests
         [Trait("MSMQ Listener", "ProcessMultipleItems")]
         public void ProcessMultipleItems()
         {
-            var messageManager = new Mock<IMessageManager>();
             Queue normalQueue = new Queue();
             Queue poisonQueue = new Queue();
             List<UpdateMessage> processMessages = new List<UpdateMessage>();
             IListener listener = null;
 
-            messageManager.Setup(x => x.mqSend(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
-                var mockMsg = new Mock<Message>(new object[] { msg });
-                normalQueue.Enqueue(mockMsg.Object); });
+            var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
 
-            messageManager.Setup(x => x.mqSendToPoisonQueue(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
-                var mockMsg = new Mock<Message>(new object[] { msg });
-                mockMsg.SetupGet(a => a.ArrivedTime).Returns(DateTime.Now);
-                poisonQueue.Enqueue(mockMsg.Object);
-            });
-
-            messageManager.Setup(x => x.mqPeek(It.IsAny<TimeSpan>())).Returns(() => {
-                if (normalQueue.Count == 0) {
-                    if (listener != null)
-                    {
-                        listener.CanProcess = false;
-                    }
-
-                    return null;
-                }
-
-                return (Message)normalQueue.Peek();
-            });
-            messageManager.Setup(x => x.mqReceive(It.IsAny<string>(), It.IsAny<TimeSpan>())).Returns(() => { return (Message)normalQueue.Dequeue(); });
             var config = new Mock<IAppConfiguration>();
             config.Setup(x => x.GlobalUpdateWaitTime).Returns(10);
 
-            var dbManager = new Mock<IDatabaseManager>();
-            dbManager.Setup(x => x.GetImportSettings(It.IsAny<string>(), It.IsAny<int>())).Returns(new Dictionary<string, ImportTypeSettings>());
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SqlParameter[]>())).Returns(1);
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Returns(1);
+            List<string> calledStoredProcedures = new List<string>();
+            var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
             var sender = new Mock<IStarChefMessageSender>();
             listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e) { listener.CanProcess = false; };
 
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();
@@ -90,47 +67,21 @@ namespace StarChef.MsmqService.Tests
         [Trait("MSMQ Listener", "ProcessMultipleStartStops")]
         public void ProcessMultipleStartStops()
         {
-            var messageManager = new Mock<IMessageManager>();
             Queue normalQueue = new Queue();
             Queue poisonQueue = new Queue();
             List<UpdateMessage> processMessages = new List<UpdateMessage>();
             IListener listener = null;
+            var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
 
-            messageManager.Setup(x => x.mqSend(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
-                var mockMsg = new Mock<Message>(new object[] { msg });
-                normalQueue.Enqueue(mockMsg.Object);
-            });
-
-            messageManager.Setup(x => x.mqSendToPoisonQueue(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
-                var mockMsg = new Mock<Message>(new object[] { msg });
-                mockMsg.SetupGet(a => a.ArrivedTime).Returns(DateTime.Now);
-                poisonQueue.Enqueue(mockMsg.Object);
-            });
-
-            messageManager.Setup(x => x.mqPeek(It.IsAny<TimeSpan>())).Returns(() => {
-                if (normalQueue.Count == 0)
-                {
-                    if (listener != null)
-                    {
-                        listener.CanProcess = false;
-                    }
-
-                    return null;
-                }
-
-                return (Message)normalQueue.Peek();
-            });
-            messageManager.Setup(x => x.mqReceive(It.IsAny<string>(), It.IsAny<TimeSpan>())).Returns(() => { return (Message)normalQueue.Dequeue(); });
             var config = new Mock<IAppConfiguration>();
             config.Setup(x => x.GlobalUpdateWaitTime).Returns(10);
 
-            var dbManager = new Mock<IDatabaseManager>();
-            dbManager.Setup(x => x.GetImportSettings(It.IsAny<string>(), It.IsAny<int>())).Returns(new Dictionary<string, ImportTypeSettings>());
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SqlParameter[]>())).Returns(1);
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Returns(1);
+            List<string> calledStoredProcedures = new List<string>();
+            var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
             var sender = new Mock<IStarChefMessageSender>();
             listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e) { listener.CanProcess = false; };
 
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();
@@ -169,49 +120,23 @@ namespace StarChef.MsmqService.Tests
         [Trait("MSMQ Listener", "ProcessGlobalUpdateMessageNoProcessing")]
         public void ProcessGlobalUpdateMessageNoProcessing()
         {
-            var messageManager = new Mock<IMessageManager>();
             Queue normalQueue = new Queue();
             Queue poisonQueue = new Queue();
+            List<UpdateMessage> nonProcessMessages = new List<UpdateMessage>();
             List<UpdateMessage> processMessages = new List<UpdateMessage>();
             IListener listener = null;
-
-            messageManager.Setup(x => x.mqSend(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
-                var mockMsg = new Mock<Message>(new object[] { msg });
-                normalQueue.Enqueue(mockMsg.Object);
-            });
-
-            messageManager.Setup(x => x.mqSendToPoisonQueue(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
-                var mockMsg = new Mock<Message>(new object[] { msg });
-                mockMsg.SetupGet(a => a.ArrivedTime).Returns(DateTime.Now);
-                poisonQueue.Enqueue(mockMsg.Object);
-            });
-
-            messageManager.Setup(x => x.mqPeek(It.IsAny<TimeSpan>())).Returns(() => {
-                if (normalQueue.Count == 0)
-                {
-                    if (listener != null)
-                    {
-                        listener.CanProcess = false;
-                    }
-
-                    return null;
-                }
-
-                return (Message)normalQueue.Peek();
-            });
-            messageManager.Setup(x => x.mqReceive(It.IsAny<string>(), It.IsAny<TimeSpan>())).Returns(() => { return (Message)normalQueue.Dequeue(); });
+            var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
+            
             var config = new Mock<IAppConfiguration>();
             config.Setup(x => x.GlobalUpdateWaitTime).Returns(10);
 
             List<string> calledStoredProcedures = new List<string>();
-
-            var dbManager = new Mock<IDatabaseManager>();
-            dbManager.Setup(x => x.GetImportSettings(It.IsAny<string>(), It.IsAny<int>())).Returns(new Dictionary<string, ImportTypeSettings>());
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
+            var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
             var sender = new Mock<IStarChefMessageSender>();
             listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
+            { listener.CanProcess = false; };
 
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();
@@ -232,54 +157,28 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().BeEmpty();
             calledStoredProcedures.Should().BeEmpty();
         }
-
+        
         [Fact]
         [Trait("MSMQ Listener", "ProcessGlobalUpdateMessageProcessing")]
         public void ProcessGlobalUpdateMessageProcessing()
         {
-            var messageManager = new Mock<IMessageManager>();
+            
             Queue normalQueue = new Queue();
             Queue poisonQueue = new Queue();
             List<UpdateMessage> processMessages = new List<UpdateMessage>();
             IListener listener = null;
-
-            messageManager.Setup(x => x.mqSend(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
-                var mockMsg = new Mock<Message>(new object[] { msg });
-                normalQueue.Enqueue(mockMsg.Object);
-            });
-
-            messageManager.Setup(x => x.mqSendToPoisonQueue(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
-                var mockMsg = new Mock<Message>(new object[] { msg });
-                mockMsg.SetupGet(a => a.ArrivedTime).Returns(DateTime.Now);
-                poisonQueue.Enqueue(mockMsg.Object);
-            });
-
-            messageManager.Setup(x => x.mqPeek(It.IsAny<TimeSpan>())).Returns(() => {
-                if (normalQueue.Count == 0)
-                {
-                    if (listener != null)
-                    {
-                        listener.CanProcess = false;
-                    }
-
-                    return null;
-                }
-
-                return (Message)normalQueue.Peek();
-            });
-            messageManager.Setup(x => x.mqReceive(It.IsAny<string>(), It.IsAny<TimeSpan>())).Returns(() => { return (Message)normalQueue.Dequeue(); });
+            var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
+            
             var config = new Mock<IAppConfiguration>();
             config.Setup(x => x.GlobalUpdateWaitTime).Returns(10);
 
             List<string> calledStoredProcedures = new List<string>();
-
-            var dbManager = new Mock<IDatabaseManager>();
-            dbManager.Setup(x => x.GetImportSettings(It.IsAny<string>(), It.IsAny<int>())).Returns(new Dictionary<string, ImportTypeSettings>());
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
+            var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
             var sender = new Mock<IStarChefMessageSender>();
             listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
+            { listener.CanProcess = false; };
 
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();
@@ -304,16 +203,8 @@ namespace StarChef.MsmqService.Tests
             calledStoredProcedures.First().Should().Be("sc_calculate_dish_pricing");
         }
 
-        [Fact]
-        [Trait("MSMQ Listener", "ProcessPoisonMesssage")]
-        public void ProcessPoisonMesssage()
-        {
+        protected Mock<IMessageManager> GetMockMessageManager(Queue normalQueue, Queue poisonQueue, IListener listener) {
             var messageManager = new Mock<IMessageManager>();
-            Queue normalQueue = new Queue();
-            Queue poisonQueue = new Queue();
-            List<UpdateMessage> processMessages = new List<UpdateMessage>();
-            IListener listener = null;
-
             messageManager.Setup(x => x.mqSend(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
                 var mockMsg = new Mock<Message>(new object[] { msg });
                 normalQueue.Enqueue(mockMsg.Object);
@@ -338,19 +229,39 @@ namespace StarChef.MsmqService.Tests
                 return (Message)normalQueue.Peek();
             });
             messageManager.Setup(x => x.mqReceive(It.IsAny<string>(), It.IsAny<TimeSpan>())).Returns(() => { return (Message)normalQueue.Dequeue(); });
+            return messageManager;
+        }
+
+        protected Mock<IDatabaseManager> GetMockDatabaseManager(List<string> calledStoredProcedures) {
+            var dbManager = new Mock<IDatabaseManager>();
+            dbManager.Setup(x => x.GetImportSettings(It.IsAny<string>(), It.IsAny<int>())).Returns(new Dictionary<string, ImportTypeSettings>());
+            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
+            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
+            return dbManager;
+        }
+
+        [Fact]
+        [Trait("MSMQ Listener", "ProcessPoisonMesssage")]
+        public void ProcessPoisonMesssage()
+        {
+            Queue normalQueue = new Queue();
+            Queue poisonQueue = new Queue();
+            List<UpdateMessage> processMessages = new List<UpdateMessage>();
+            IListener listener = null;
+            var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
+
             var config = new Mock<IAppConfiguration>();
             config.Setup(x => x.GlobalUpdateWaitTime).Returns(10);
             config.Setup(x => x.SendPoisonMessageNotification).Returns(false);
 
             List<string> calledStoredProcedures = new List<string>();
-
-            var dbManager = new Mock<IDatabaseManager>();
-            dbManager.Setup(x => x.GetImportSettings(It.IsAny<string>(), It.IsAny<int>())).Returns(new Dictionary<string, ImportTypeSettings>());
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(() => { throw new Exception("test"); return 1; });
+            var dbManager = GetMockDatabaseManager(calledStoredProcedures);
             dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(() => { throw new Exception("test"); return 1; });
 
             var sender = new Mock<IStarChefMessageSender>();
             listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
+            { listener.CanProcess = false; };
 
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();
@@ -369,6 +280,46 @@ namespace StarChef.MsmqService.Tests
 
             normalQueue.Should().BeEmpty();
             poisonQueue.Should().NotBeEmpty();
+        }
+
+        [Fact]
+        [Trait("MSMQ Listener", "DisableProcessMessage")]
+        public void DisableProcessMessage()
+        {
+            
+            Queue normalQueue = new Queue();
+            Queue poisonQueue = new Queue();
+            List<UpdateMessage> processMessages = new List<UpdateMessage>();
+            IListener listener = null;
+            var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
+            
+            var config = new Mock<IAppConfiguration>();
+            config.Setup(x => x.GlobalUpdateWaitTime).Returns(10);
+            config.Setup(x => x.SendPoisonMessageNotification).Returns(false);
+
+            List<string> calledStoredProcedures = new List<string>();
+            var dbManager = GetMockDatabaseManager(calledStoredProcedures);
+
+            var sender = new Mock<IStarChefMessageSender>();
+            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+
+            Hashtable activeDatabases = new Hashtable();
+            Hashtable timestamps = new Hashtable();
+            int databaseId = 1;
+
+            //send 1 message to fake queue
+            var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            messageManager.Object.mqSend(singleMessage, MessagePriority.High);
+
+            //check do we have message in queue
+            normalQueue.Should().NotBeEmpty();
+            normalQueue.Should().HaveCount(1, "single item send");
+
+            listener.CanProcess = false;
+            listener.ExecuteAsync(activeDatabases, timestamps);
+
+            normalQueue.Should().NotBeEmpty();
+            poisonQueue.Should().BeEmpty();
         }
     }
 }

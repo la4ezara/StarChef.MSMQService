@@ -1,29 +1,20 @@
 using System;
-using System.ComponentModel;
 using System.ServiceProcess;
-using System.Collections;
-using log4net;
-using StarChef.MSMQService.Configuration;
-using Autofac;
-using log4net.Config;
-using StarChef.Common;
-using IContainer = Autofac.IContainer;
-using System.Timers;
 
 namespace StarChef.MSMQService
 {
-	/// <summary>
-	/// ListenerSVC -- StarChef.MSMQService.exe
-	/// 
-	/// Deployment
-	/// 1) Copy the StarChef.MSMQService.exe together with StarChef.MSMQService.exe.config and StarChef.Data.dll file to the 
-	///    desired destination
-	///	2) Edit the StarChef.MSMQService.exe.config, property StarChef_QueueName to reflect the name of the queue that 
-	///	   is to be listened
-	///	3) Run C:\WINDOWS\Microsoft.NET\Framework\v1.1.4322\installutil StarChef.MSMQService.exe		
-	/// 
-	/// </summary>
-	public class ListenerService : ServiceBase
+    /// <summary>
+    /// ListenerSVC -- StarChef.MSMQService.exe
+    /// 
+    /// Deployment
+    /// 1) Copy the StarChef.MSMQService.exe together with StarChef.MSMQService.exe.config and StarChef.Data.dll file to the 
+    ///    desired destination
+    ///	2) Edit the StarChef.MSMQService.exe.config, property StarChef_QueueName to reflect the name of the queue that 
+    ///	   is to be listened
+    ///	3) Run C:\WINDOWS\Microsoft.NET\Framework\v1.1.4322\installutil StarChef.MSMQService.exe		
+    /// 
+    /// </summary>
+    public class ListenerService : ServiceBase
 	{
         private ServiceRunner _serviceRunner;
 

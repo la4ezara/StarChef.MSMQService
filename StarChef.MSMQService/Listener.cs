@@ -28,6 +28,10 @@ namespace StarChef.MSMQService
         private readonly IMessageManager _messageManager;
         private readonly XmlMessageFormatter _messageFormat;
 
+        public event EventHandler<MessageProcessEventArgs> MessageProcessing;
+        public event EventHandler<MessageProcessEventArgs> MessageProcessed;
+        public event EventHandler<MessageProcessEventArgs> MessageNotProcessing;
+
         public bool CanProcess { get; set; }
 
         public bool IsProcessing { get; private set; }
@@ -60,9 +64,10 @@ namespace StarChef.MSMQService
             try
             {
                 TimeSpan timeout = TimeSpan.FromSeconds(10);
-                this.IsProcessing = true;
-                while (CanProcess)
+                
+                while (CanProcess && !IsProcessing)
                 {
+                    this.IsProcessing = true;
                     msg = _messageManager.mqPeek(timeout);
                     IsProcessing = true;
                     if (msg != null)
@@ -85,7 +90,7 @@ namespace StarChef.MSMQService
                             updmsg.ArrivedTime = arrivalTime;
                             int databaseId = updmsg.DatabaseID;
                             ThreadContext.Properties["OrganisationId"] = databaseId;
-                            
+
                             activeDatabases.Add(databaseId, arrivalTime);
 
                             if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate)
@@ -110,11 +115,19 @@ namespace StarChef.MSMQService
 
                             if (updmsg != null)
                             {
+                                OnMessageProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Processing));
                                 ProcessMessage(updmsg);
+                                OnMessageProcessed(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Success));
                             }
 
                             activeDatabases.Remove(databaseId);
                         }
+                        else {
+                            OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.ParallelDatabaseId));
+                        }
+                    }
+                    else {
+                        OnMessageNotProcessing(new MessageProcessEventArgs(MessageProcessStatus.NoMessage));
                     }
                     IsProcessing = false;
                 }
@@ -135,6 +148,33 @@ namespace StarChef.MSMQService
 
             }
             return Task.CompletedTask;
+        }
+
+        protected virtual void OnMessageProcessing(MessageProcessEventArgs e)
+        {
+            EventHandler<MessageProcessEventArgs> handler = MessageProcessing;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnMessageProcessed(MessageProcessEventArgs e)
+        {
+            EventHandler<MessageProcessEventArgs> handler = MessageProcessing;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnMessageNotProcessing(MessageProcessEventArgs e)
+        {
+            EventHandler<MessageProcessEventArgs> handler = MessageNotProcessing;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
         }
 
         private void SendPoisonMessage(Message msg, IMessageFormatter format, IMessageManager mqManager, Hashtable activeDatabases)
@@ -179,6 +219,10 @@ namespace StarChef.MSMQService
             }
         }
 
+        public void ProcessIncorrectMessage(UpdateMessage msg)
+        {
+        }
+
         public void ProcessMessage(UpdateMessage msg)
         {
             if (msg != null)
@@ -187,60 +231,60 @@ namespace StarChef.MSMQService
 
                 switch (msg.Action)
                 {
-                    case (int) Constants.MessageActionType.UpdatedUserDefinedUnit:
+                    case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
                         ProcessUduUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductSet:
+                    case (int)Constants.MessageActionType.UpdatedProductSet:
                         ProcessProductSetUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedPriceBand:
+                    case (int)Constants.MessageActionType.UpdatedPriceBand:
                         ProcessPriceBandUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedGroup:
+                    case (int)Constants.MessageActionType.UpdatedGroup:
                         ProcessGroupUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductCost:
+                    case (int)Constants.MessageActionType.UpdatedProductCost:
                         ProcessProductCostUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.GlobalUpdate:
+                    case (int)Constants.MessageActionType.GlobalUpdate:
                         ProcessGlobalUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductNutrient:
+                    case (int)Constants.MessageActionType.UpdatedProductNutrient:
                         ProcessProductNutrientUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductIntolerance:
+                    case (int)Constants.MessageActionType.UpdatedProductIntolerance:
                         ProcessProductIntoleranceUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductNutrientInclusive:
+                    case (int)Constants.MessageActionType.UpdatedProductNutrientInclusive:
                         ProcessProductNutrientInclusiveUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.GlobalUpdateBudgeted:
+                    case (int)Constants.MessageActionType.GlobalUpdateBudgeted:
                         ProcessGlobalUpdateBudgeted(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdateAlternateIngredients:
+                    case (int)Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
                     // All Events are populating under StarChefEventsUpdated Action - Additional action added for 
                     // User because of multiple different actions
-                    case (int) Constants.MessageActionType.StarChefEventsUpdated:
+                    case (int)Constants.MessageActionType.StarChefEventsUpdated:
                     // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
-                    case (int) Constants.MessageActionType.UserCreated:
-                    case (int) Constants.MessageActionType.UserUpdated:
-                    case (int) Constants.MessageActionType.UserActivated:
+                    case (int)Constants.MessageActionType.UserCreated:
+                    case (int)Constants.MessageActionType.UserUpdated:
+                    case (int)Constants.MessageActionType.UserActivated:
                     // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
-                    case (int) Constants.MessageActionType.SalesForceUserCreated:
+                    case (int)Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
-                    case (int) Constants.MessageActionType.UserDeActivated:
+                    case (int)Constants.MessageActionType.UserDeActivated:
                         _messageSender.PublishCommand(msg);
                         break;
-                    case (int) Constants.MessageActionType.EntityDeleted:
+                    case (int)Constants.MessageActionType.EntityDeleted:
                         _messageSender.PublishDeleteEvent(msg);
                         break;
-                    case (int) Constants.MessageActionType.EntityUpdated:
+                    case (int)Constants.MessageActionType.EntityUpdated:
                         _messageSender.PublishUpdateEvent(msg);
                         break;
-                    case (int) Constants.MessageActionType.EntityImported:
+                    case (int)Constants.MessageActionType.EntityImported:
                         PostProcessingPerSubAction(msg);
                         break;
                 }
