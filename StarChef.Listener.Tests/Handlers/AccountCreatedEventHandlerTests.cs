@@ -127,7 +127,7 @@ namespace StarChef.Listener.Tests.Handlers
             var messagingLogger = new Mock<IMessagingLogger>();
             var config = new Mock<IConfiguration>();
             var logChecker = new LogChecker(typeof(AccountCreatedEventHandler), Level.All);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, config.Object, logChecker.GetLogger());
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -163,7 +163,7 @@ namespace StarChef.Listener.Tests.Handlers
             var messagingLogger = new Mock<IMessagingLogger>();
             var config = new Mock<IConfiguration>();
             var logChecker = new LogChecker(typeof(AccountCreatedEventHandler), Level.All);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, config.Object, logChecker.GetLogger());
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -203,7 +203,7 @@ namespace StarChef.Listener.Tests.Handlers
             var messagingLogger = new Mock<IMessagingLogger>();
             var config = new Mock<IConfiguration>();
             var logChecker = new LogChecker(typeof(AccountCreatedEventHandler), Level.All);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, config.Object, logChecker.GetLogger());
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -243,7 +243,7 @@ namespace StarChef.Listener.Tests.Handlers
             var messagingLogger = new Mock<IMessagingLogger>();
             var config = new Mock<IConfiguration>();
             var logChecker = new LogChecker(typeof(AccountCreatedEventHandler), Level.All);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, config.Object, logChecker.GetLogger());
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;

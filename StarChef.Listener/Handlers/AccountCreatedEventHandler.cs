@@ -22,11 +22,13 @@ namespace StarChef.Listener.Handlers
         public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IConfiguration config, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
             _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            _config = config;
         }
 
-        public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, IConfiguration config, ILog errorLogger) : base(dbCommands, validator, messagingLogger)
+        public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IConfiguration config, IMessagingLogger messagingLogger, ILog errorLogger) : base(dbCommands, validator, messagingLogger)
         {
             _logger = errorLogger;
+            _config = config;
         }
 
         public event AccountCreatedProcessedDelegate OnProcessed;
