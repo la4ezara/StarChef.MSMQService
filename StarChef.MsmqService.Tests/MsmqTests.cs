@@ -219,7 +219,7 @@ namespace StarChef.MsmqService.Tests
 
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
-            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(() => { throw new Exception("test"); return 1; });
+            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(() => { throw new Exception("test"); });
 
             var sender = new Mock<IStarChefMessageSender>();
             listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);

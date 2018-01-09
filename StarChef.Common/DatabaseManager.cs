@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using Fourth.StarChef.Invariables;
 using StarChef.Common.Types;
+using System.Runtime.Caching;
 
 namespace StarChef.Common
 {
@@ -77,10 +78,32 @@ namespace StarChef.Common
 
         public string GetSetting(string connectionString, string settingName)
         {
-            var reader = ExecuteReader(connectionString, "sc_get_db_setting", new SqlParameter("@setting_name", settingName));
-            if (reader.Read())
-                return reader.GetValue(0).ToString();
-            return null;
+            var result = string.Empty;
+            ObjectCache cache = MemoryCache.Default;
+            CacheItem settingNameItem = cache.GetCacheItem(settingName);
+
+            if (settingNameItem == null)
+            {
+                var value = string.Empty;
+                var reader = ExecuteReader(connectionString, "sc_get_db_setting", new SqlParameter("@setting_name", settingName));
+                if (reader.Read())
+                {
+                    value = reader.GetValue(0).ToString();
+                    result = value;
+                }
+
+                CacheItemPolicy policy = new CacheItemPolicy();
+                policy.AbsoluteExpiration = new DateTimeOffset(
+                    DateTime.UtcNow.AddHours(1));
+                settingNameItem = new CacheItem(settingName, value);
+                cache.Set(settingNameItem, policy);
+            }
+            else
+            {
+                result = settingNameItem.Value as string;
+            }
+            
+            return result;
         }
 
         public IDataReader ExecuteReaderMultiResultset(

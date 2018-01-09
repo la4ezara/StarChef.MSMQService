@@ -20,8 +20,6 @@ namespace StarChef.MSMQService
 
 		public ListenerService()
 		{
-
-
             _serviceRunner = new ServiceRunner();
             InitializeComponent();
 		}
@@ -37,20 +35,20 @@ namespace StarChef.MSMQService
 
 	    static void Main()
 	    {
-            if (Environment.UserInteractive)
+            if (!Environment.UserInteractive)
             {
                 var servicesToRun = new ServiceBase[] { new ListenerService() };
                 Run(servicesToRun);
             }
             else
             {
-                //UpdateMessage msg = new UpdateMessage() { DatabaseID = 6, DSN= "Data Source = 10.10.10.109\\devtest; User ID = sl_web_user; Password = reddevil; Initial Catalog = SCNET_demo_qa", Action = (int)Fourth.StarChef.Invariables.Constants.MessageActionType.StarChefEventsUpdated, SubAction = (int)Fourth.StarChef.Invariables.Constants.MessageSubActionType.Update, ProductID = 12345 };
+                var runner = new ServiceRunner();
+                //UpdateMessage msg = new UpdateMessage() { DatabaseID = 6, DSN= "Data Source = 10.10.10.109\\devtest; User ID = sl_web_user; Password = reddevil; Initial Catalog = SCNET_demo_qa", Action = (int)Fourth.StarChef.Invariables.Constants.MessageActionType.UpdatedProductCost, SubAction = (int)Fourth.StarChef.Invariables.Constants.MessageSubActionType.Update, ProductID = 12345 };
                 //for (int i = 0; i < 50000; i++)
                 //{
-                //    MSMQHelper.Send(msg);
+                //    MSMQHelper.Send(msg, runner.Configuration.NormalQueueName, runner.Configuration.PoisonQueueName);
                 //}
 
-                var runner = new ServiceRunner();
                 runner.Start();
             }
         }

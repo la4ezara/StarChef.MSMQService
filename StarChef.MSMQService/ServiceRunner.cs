@@ -15,6 +15,8 @@ namespace StarChef.MSMQService
         private IAppConfiguration _appConfiguration;
         private readonly IListener _listener;
 
+        public IAppConfiguration Configuration { get { return _appConfiguration; } }
+
         private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private Container _components;

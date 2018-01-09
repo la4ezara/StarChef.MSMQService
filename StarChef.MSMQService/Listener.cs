@@ -161,7 +161,7 @@ namespace StarChef.MSMQService
 
         protected virtual void OnMessageProcessed(MessageProcessEventArgs e)
         {
-            EventHandler<MessageProcessEventArgs> handler = MessageProcessing;
+            EventHandler<MessageProcessEventArgs> handler = MessageProcessed;
             if (handler != null)
             {
                 handler(this, e);
@@ -217,10 +217,6 @@ namespace StarChef.MSMQService
                 _logger.Error(e);
                 throw;
             }
-        }
-
-        public void ProcessIncorrectMessage(UpdateMessage msg)
-        {
         }
 
         public void ProcessMessage(UpdateMessage msg)

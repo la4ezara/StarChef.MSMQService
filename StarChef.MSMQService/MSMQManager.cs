@@ -1,7 +1,6 @@
 using log4net;
 using System;
 using System.Messaging;
-//using Fourth.StarChef.Invariables;
 
 namespace StarChef.MSMQService
 {
@@ -74,9 +73,7 @@ namespace StarChef.MSMQService
                 mq = mqConnect();
             }
 
-			Message msg = new Message(message);
-		    
-            msg.Priority = priority;
+			var msg = new Message(message) { Priority = priority };
 
             //msg.Recoverable = true;	// this is now set as a default value
             if (mq == null)
@@ -101,8 +98,7 @@ namespace StarChef.MSMQService
                         mf.AppSpecific = true;
                         q.MessageReadPropertyFilter = mf;
 
-                        Message msg = new Message(message);
-                        msg.Priority = priority;
+                        var msg = new Message(message) { Priority = priority };
 
                         q.Send(msg, message.ToString());
                     }
