@@ -10,10 +10,11 @@ namespace StarChef.MSMQService.Configuration
     {
         string Alias { get; }
         string FromAddress { get; }
-        long Interval { get; }
-        int MsmqThreadCount { get; }
-        string QueuePath { get; }
+        string NormalQueueName { get; }
         string Subject { get; }
         string ToAddress { get; }
+        int GlobalUpdateWaitTime { get; }
+        string PoisonQueueName { get; }
+        bool SendPoisonMessageNotification { get; }
     }
 }

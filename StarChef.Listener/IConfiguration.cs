@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace StarChef.Listener
 {
@@ -10,5 +6,6 @@ namespace StarChef.Listener
     {
         int PriceBandBatchSize { get; }
         Dictionary<string, string> UserDefaults { get; }
+        string NormalQueueName { get; }
     }
 }

@@ -12,6 +12,12 @@ namespace StarChef.Common
                 string spName,
                 params SqlParameter[] parameterValues);
 
+        int Execute(
+                string connectionString,
+                string spName,
+                int timeout,
+                params SqlParameter[] parameterValues);
+
         IDataReader ExecuteReader(
             string connectionString,
             string spName,

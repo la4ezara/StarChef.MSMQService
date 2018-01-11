@@ -1,22 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Messaging;
-using System.Data;
-using System.Data.SqlClient;
-using StarChef.Data;
-using System.Configuration;
-using System.Data.Common;
-using System.Linq;
-using System.Net.Mail;
-using StarChef.Orchestrate;
+using Fourth.StarChef.Invariables;
 using log4net;
 using StarChef.Common;
-using StarChef.MSMQService.Configuration;
-using System.Threading.Tasks;
-using Fourth.StarChef.Invariables;
 using StarChef.Common.Extensions;
-using StarChef.Common.Types;
 using StarChef.Data.Extensions;
+using StarChef.MSMQService.Configuration;
+using StarChef.Orchestrate;
+using System;
+using System.Collections;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Messaging;
+using System.Net.Mail;
+using System.Threading.Tasks;
 
 namespace StarChef.MSMQService
 {
@@ -29,135 +25,179 @@ namespace StarChef.MSMQService
         private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private readonly IStarChefMessageSender _messageSender;
         private readonly IDatabaseManager _databaseManager;
+        private readonly IMessageManager _messageManager;
+        private readonly XmlMessageFormatter _messageFormat;
+
+        public event EventHandler<MessageProcessEventArgs> MessageProcessing;
+        public event EventHandler<MessageProcessEventArgs> MessageProcessed;
+        public event EventHandler<MessageProcessEventArgs> MessageNotProcessing;
+
+        public bool CanProcess { get; set; }
+
+        public bool IsProcessing { get; private set; }
 
         public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender, IDatabaseManager databaseManager)
         {
             _appConfiguration = appConfiguration;
             _messageSender = messageSender;
             _databaseManager = databaseManager;
+            _messageManager = new MsmqManager(_appConfiguration.NormalQueueName, _appConfiguration.PoisonQueueName);
+            _messageFormat = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
+            this.CanProcess = true;
         }
 
-        public Task ExecuteAsync()
+        public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender, IDatabaseManager databaseManager, IMessageManager messageManager)
+        {
+            _appConfiguration = appConfiguration;
+            _messageSender = messageSender;
+            _databaseManager = databaseManager;
+            _messageManager = messageManager;
+            _messageFormat = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
+            this.CanProcess = true;
+        }
+
+        public Task ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps)
         {
             Message msg = null;
-            var mqm = new MSMQManager {MQName = _appConfiguration .QueuePath};
             UpdateMessage updmsg = null;
-            var u = new UpdateMessage();
-            var format = new XmlMessageFormatter(new [] { u.GetType() });
+            
             try
             {
-                using (var cursor = mqm.mqCreateCursor())
+                TimeSpan timeout = TimeSpan.FromSeconds(10);
+                
+                while (CanProcess && !IsProcessing)
                 {
-                    msg = mqm.mqPeek(cursor, PeekAction.Current);
+                    this.IsProcessing = true;
+                    msg = _messageManager.mqPeek(timeout);
+                    IsProcessing = true;
                     if (msg != null)
                     {
-                        msg.Formatter = format;
                         var messageId = msg.Id;
-                        updmsg = (UpdateMessage) msg.Body;
+                        //Receive message and exclude from queue.
+                        //Remove only when data is processed
+                        msg = _messageManager.mqReceive(msg.Id, timeout);
+                        msg.Formatter = _messageFormat;
+                        updmsg = (UpdateMessage)msg.Body;
 
-                        if (updmsg != null)
+                        if (!activeDatabases.Contains(updmsg.DatabaseID) && updmsg != null)
                         {
-                            ThreadContext.Properties["OrganisationId"] = updmsg.DatabaseID;
-                        }
-
-                        step1:
-                        if (!ListenerService.ActiveTaskDatabaseIDs.Contains(updmsg.DatabaseID))
-                        {
-                            if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate && ListenerService.GlobalUpdateTimeStamps.Contains(updmsg.DatabaseID))
+                            DateTime arrivalTime = DateTime.UtcNow;
+                            if (messageId != "00000000-0000-0000-0000-000000000000\\0")
                             {
-                                if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime) ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID]).Minutes) > TimeSpan.FromMinutes(Double.Parse(ConfigurationSettings.AppSettings.Get("GlobalUpdateWaitTime"))))
+                                arrivalTime = msg.ArrivedTime;
+                            }
+
+                            updmsg.ArrivedTime = arrivalTime;
+                            int databaseId = updmsg.DatabaseID;
+                            ThreadContext.Properties["OrganisationId"] = databaseId;
+
+                            activeDatabases.Add(databaseId, arrivalTime);
+
+                            if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate)
+                            {
+                                if (globalUpdateTimeStamps.Contains(databaseId))
                                 {
-                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
-                                    ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
-                                    msg = mqm.mqReceive(messageId);
-                                }
-                                else
-                                {
-                                    msg = null;
-                                    msg = mqm.mqPeek(cursor, PeekAction.Next);
-                                    if (msg != null)
+                                    if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime)globalUpdateTimeStamps[databaseId]).Minutes) > TimeSpan.FromMinutes(_appConfiguration.GlobalUpdateWaitTime))
                                     {
-                                        msg.Formatter = format;
-                                        messageId = msg.Id;
-                                        updmsg = (UpdateMessage) msg.Body;
-                                        goto step1;
+                                        globalUpdateTimeStamps[databaseId] = DateTime.UtcNow;
+                                    }
+                                    else
+                                    {
+                                        //do not process message - message is skipped and lost
+                                        updmsg = null;
                                     }
                                 }
-                            }
-                            else
-                            {
-                                if (updmsg.Action == (int) Constants.MessageActionType.GlobalUpdate)
-                                {
-                                    ListenerService.GlobalUpdateTimeStamps[updmsg.DatabaseID] = DateTime.UtcNow;
-                                }
-                                ListenerService.ActiveTaskDatabaseIDs[updmsg.DatabaseID] = msg.ArrivedTime;
-                                msg = mqm.mqReceive(messageId);
-                            }
-
-                            if (msg != null)
-                            {
-                                // Added to handle messages from the Web Service (which have the AppSpecific property set
-                                // MTB - 2005-07-28
-                                if (msg.AppSpecific == 99)
-                                {
-                                    WebServMsgHandler.HandleWebServiceQueryMessage(msg);
-                                }
-                                else if (msg.AppSpecific == 98)
-                                {
-                                    WebServMsgHandler.HandleWebServiceCostUpdateMessage(msg);
-                                }
-                                else if (msg.AppSpecific == 89)
-                                {
-                                    //ReportingMsgHandler.HandleReportingMessage(msg);
-                                }
                                 else
                                 {
-                                    msg.Formatter = format;
-                                    updmsg = (UpdateMessage) msg.Body;
-                                    updmsg.ArrivedTime = msg.ArrivedTime;
-                                    ProcessMessage(updmsg);
-                                    ListenerService.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
+                                    globalUpdateTimeStamps.Add(databaseId, DateTime.UtcNow);
                                 }
                             }
-                        }
-                        else
-                        {
-                            msg = null;
-                            msg = mqm.mqPeek(cursor, PeekAction.Next);
-                            if (msg != null)
+
+                            if (updmsg != null)
                             {
-                                msg.Formatter = format;
-                                messageId = msg.Id;
-                                updmsg = (UpdateMessage) msg.Body;
-                                goto step1;
+                                OnMessageProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Processing));
+                                ProcessMessage(updmsg);
+                                OnMessageProcessed(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Success));
                             }
+
+                            activeDatabases.Remove(databaseId);
+                        }
+                        else {
+                            OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.ParallelDatabaseId));
                         }
                     }
+                    else {
+                        OnMessageNotProcessing(new MessageProcessEventArgs(MessageProcessStatus.NoMessage));
+                    }
+                    IsProcessing = false;
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error(ex.Message, ex);
-                    
-                if (msg != null)
-                {
-                    msg.Formatter = format;
-                    updmsg = (UpdateMessage)msg.Body;
-                    SendMail(updmsg);
-                    _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
-                    mqm.mqSendToPoisonQueue(updmsg, msg.Priority);
-                    ListenerService.ActiveTaskDatabaseIDs.Remove(updmsg.DatabaseID);
-                }
+                this.SendPoisonMessage(msg, _messageFormat, _messageManager, activeDatabases);
             }
             finally
             {
-                mqm.mqDisconnect();
+                IsProcessing = false;
+                _messageManager.mqDisconnect();
                 ThreadContext.Properties.Remove("OrganisationId");
+
+                if (updmsg != null) {
+                    activeDatabases.Remove(updmsg.DatabaseID);
+                }
+
             }
             return Task.CompletedTask;
         }
 
-        private void SendMail(UpdateMessage message)
+        protected virtual void OnMessageProcessing(MessageProcessEventArgs e)
+        {
+            EventHandler<MessageProcessEventArgs> handler = MessageProcessing;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnMessageProcessed(MessageProcessEventArgs e)
+        {
+            EventHandler<MessageProcessEventArgs> handler = MessageProcessed;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnMessageNotProcessing(MessageProcessEventArgs e)
+        {
+            EventHandler<MessageProcessEventArgs> handler = MessageNotProcessing;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        private void SendPoisonMessage(Message msg, IMessageFormatter format, IMessageManager mqManager, Hashtable activeDatabases)
+        {
+            if (msg != null)
+            {
+                msg.Formatter = format;
+                var updmsg = (UpdateMessage)msg.Body;
+                if (updmsg != null)
+                {
+                    _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
+                    mqManager.mqSendToPoisonQueue(updmsg, msg.Priority);
+                    if (_appConfiguration.SendPoisonMessageNotification)
+                    {
+                        _logger.Error(new Exception("StarChef MQ Service: SENDING POISON MESSAGE TO THE MAIL"));
+                        SendPoisonMessageMail(updmsg);
+                    }
+                }
+            }
+        }
+
+        private void SendPoisonMessageMail(UpdateMessage message)
         {
             try
             {
@@ -180,7 +220,7 @@ namespace StarChef.MSMQService
             }
         }
 
-        private void ProcessMessage(UpdateMessage msg)
+        public void ProcessMessage(UpdateMessage msg)
         {
             if (msg != null)
             {
@@ -188,60 +228,60 @@ namespace StarChef.MSMQService
 
                 switch (msg.Action)
                 {
-                    case (int) Constants.MessageActionType.UpdatedUserDefinedUnit:
+                    case (int)Constants.MessageActionType.UpdatedUserDefinedUnit:
                         ProcessUduUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductSet:
+                    case (int)Constants.MessageActionType.UpdatedProductSet:
                         ProcessProductSetUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedPriceBand:
+                    case (int)Constants.MessageActionType.UpdatedPriceBand:
                         ProcessPriceBandUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedGroup:
+                    case (int)Constants.MessageActionType.UpdatedGroup:
                         ProcessGroupUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductCost:
+                    case (int)Constants.MessageActionType.UpdatedProductCost:
                         ProcessProductCostUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.GlobalUpdate:
+                    case (int)Constants.MessageActionType.GlobalUpdate:
                         ProcessGlobalUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductNutrient:
+                    case (int)Constants.MessageActionType.UpdatedProductNutrient:
                         ProcessProductNutrientUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductIntolerance:
+                    case (int)Constants.MessageActionType.UpdatedProductIntolerance:
                         ProcessProductIntoleranceUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdatedProductNutrientInclusive:
+                    case (int)Constants.MessageActionType.UpdatedProductNutrientInclusive:
                         ProcessProductNutrientInclusiveUpdate(msg);
                         break;
-                    case (int) Constants.MessageActionType.GlobalUpdateBudgeted:
+                    case (int)Constants.MessageActionType.GlobalUpdateBudgeted:
                         ProcessGlobalUpdateBudgeted(msg);
                         break;
-                    case (int) Constants.MessageActionType.UpdateAlternateIngredients:
+                    case (int)Constants.MessageActionType.UpdateAlternateIngredients:
                         ProcessAlternateIngredientUpdate(msg);
                         break;
                     // All Events are populating under StarChefEventsUpdated Action - Additional action added for 
                     // User because of multiple different actions
-                    case (int) Constants.MessageActionType.StarChefEventsUpdated:
+                    case (int)Constants.MessageActionType.StarChefEventsUpdated:
                     // Starchef to Salesforce - later Salesforce notify to Starchef the user created notification
-                    case (int) Constants.MessageActionType.UserCreated:
-                    case (int) Constants.MessageActionType.UserUpdated:
-                    case (int) Constants.MessageActionType.UserActivated:
+                    case (int)Constants.MessageActionType.UserCreated:
+                    case (int)Constants.MessageActionType.UserUpdated:
+                    case (int)Constants.MessageActionType.UserActivated:
                     // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
-                    case (int) Constants.MessageActionType.SalesForceUserCreated:
+                    case (int)Constants.MessageActionType.SalesForceUserCreated:
                         ProcessStarChefEventsUpdated(msg);
                         break;
-                    case (int) Constants.MessageActionType.UserDeActivated:
+                    case (int)Constants.MessageActionType.UserDeActivated:
                         _messageSender.PublishCommand(msg);
                         break;
-                    case (int) Constants.MessageActionType.EntityDeleted:
+                    case (int)Constants.MessageActionType.EntityDeleted:
                         _messageSender.PublishDeleteEvent(msg);
                         break;
-                    case (int) Constants.MessageActionType.EntityUpdated:
+                    case (int)Constants.MessageActionType.EntityUpdated:
                         _messageSender.PublishUpdateEvent(msg);
                         break;
-                    case (int) Constants.MessageActionType.EntityImported:
+                    case (int)Constants.MessageActionType.EntityImported:
                         PostProcessingPerSubAction(msg);
                         break;
                 }
@@ -391,27 +431,28 @@ namespace StarChef.MSMQService
         /// </summary>
         /// <param name="msg"></param>
         /// <param name="sendUpdateMessageFor">Array of message types which should be forwarded</param>
-        private static void ForwardUpdateMessage(UpdateMessage msg, int[] sendUpdateMessageFor = null)
-        {
-            sendUpdateMessageFor = sendUpdateMessageFor ?? new[]
-            {
-                (int) Constants.MessageSubActionType.ImportedIngredient,
-                (int) Constants.MessageSubActionType.ImportedIngredientCategory,
-                (int) Constants.MessageSubActionType.ImportedIngredientIntolerance,
-                (int) Constants.MessageSubActionType.ImportedIngredientNutrient,
-            };
-            if (sendUpdateMessageFor.Contains(msg.SubAction))
-            {
-                var forwardedMessage = new UpdateMessage(
-                    msg.ProductID,
-                    entityTypeId: msg.EntityTypeId,
-                    action: (int) Constants.MessageActionType.SalesForceUserCreated,
-                    dbDsn: msg.DSN,
-                    databaseId: msg.DatabaseID);
+        //private static void ForwardUpdateMessage(UpdateMessage msg, int[] sendUpdateMessageFor = null)
+        //{
+        //    sendUpdateMessageFor = sendUpdateMessageFor ?? new[]
+        //    {
+        //        (int) Constants.MessageSubActionType.ImportedIngredient,
+        //        (int) Constants.MessageSubActionType.ImportedIngredientCategory,
+        //        (int) Constants.MessageSubActionType.ImportedIngredientIntolerance,
+        //        (int) Constants.MessageSubActionType.ImportedIngredientNutrient,
+        //    };
+        //    if (sendUpdateMessageFor.Contains(msg.SubAction))
+        //    {
+        //        var forwardedMessage = new UpdateMessage(
+        //            msg.ProductID,
+        //            entityTypeId: msg.EntityTypeId,
+        //            action: (int) Constants.MessageActionType.SalesForceUserCreated,
+        //            dbDsn: msg.DSN,
+        //            databaseId: msg.DatabaseID);
 
-                MSMQHelper.Send(forwardedMessage);
-            }
-        }
+        //        var queueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
+        //        MSMQHelper.Send(forwardedMessage, queueName);
+        //    }
+        //}
 
         private void ProcessUduUpdate(UpdateMessage msg)
         {
@@ -603,29 +644,8 @@ namespace StarChef.MSMQService
 
         private int ExecuteStoredProc(string connectionString, string spName, params SqlParameter[] parameterValues)
         {
-            //create & open a SqlConnection, and dispose of it after we are done.
-            using (var cn = new SqlConnection(connectionString))
-            {
-                cn.Open();
-
-                // need a command with sensible timeout value (10 minutes), as some 
-                // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
-                };
-                //600
-
-                // add params
-                if (parameterValues != null)
-                    foreach (var param in parameterValues)
-                        cmd.Parameters.Add(param);
-
-                // run proc
-                var retval = cmd.ExecuteNonQuery();
-                return retval;
-            }
+            var result = _databaseManager.Execute(connectionString, spName, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC, parameterValues);
+            return result;
         }
-	}
+    }
 }
