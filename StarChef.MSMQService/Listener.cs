@@ -139,6 +139,7 @@ namespace StarChef.MSMQService
             }
             finally
             {
+                IsProcessing = false;
                 _messageManager.mqDisconnect();
                 ThreadContext.Properties.Remove("OrganisationId");
 

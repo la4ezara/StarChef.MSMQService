@@ -7,6 +7,7 @@ using Autofac;
 using log4net.Config;
 using StarChef.Common;
 using IContainer = Autofac.IContainer;
+using System.Threading;
 
 namespace StarChef.MSMQService
 {
@@ -43,6 +44,10 @@ namespace StarChef.MSMQService
         }
 
         public void Start() {
+            ThreadPool.QueueUserWorkItem(StartProcessing);
+        }
+
+        private void StartProcessing(Object stateInfo) {
             _logger.Info("Service is starting.");
             _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps).Wait();
             _logger.Info("Service is started.");
