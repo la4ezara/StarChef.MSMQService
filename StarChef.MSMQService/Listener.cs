@@ -59,7 +59,7 @@ namespace StarChef.MSMQService
         public Task ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps)
         {
             Message msg = null;
-            UpdateMessage updmsg = null;
+           UpdateMessage updmsg = null;
             
             try
             {
@@ -76,54 +76,61 @@ namespace StarChef.MSMQService
                         //Receive message and exclude from queue.
                         //Remove only when data is processed
                         msg = _messageManager.mqReceive(msg.Id, timeout);
-                        msg.Formatter = _messageFormat;
-                        updmsg = (UpdateMessage)msg.Body;
-
-                        if (!activeDatabases.Contains(updmsg.DatabaseID) && updmsg != null)
+                        if (msg != null)
                         {
-                            DateTime arrivalTime = DateTime.UtcNow;
-                            if (messageId != "00000000-0000-0000-0000-000000000000\\0")
+                            msg.Formatter = _messageFormat;
+                            updmsg = (UpdateMessage)msg.Body;
+
+                            if (!activeDatabases.Contains(updmsg.DatabaseID) && updmsg != null)
                             {
-                                arrivalTime = msg.ArrivedTime;
-                            }
-
-                            updmsg.ArrivedTime = arrivalTime;
-                            int databaseId = updmsg.DatabaseID;
-                            ThreadContext.Properties["OrganisationId"] = databaseId;
-
-                            activeDatabases.Add(databaseId, arrivalTime);
-
-                            if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate)
-                            {
-                                if (globalUpdateTimeStamps.Contains(databaseId))
+                                DateTime arrivalTime = DateTime.UtcNow;
+                                if (messageId != "00000000-0000-0000-0000-000000000000\\0")
                                 {
-                                    if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime)globalUpdateTimeStamps[databaseId]).Minutes) > TimeSpan.FromMinutes(_appConfiguration.GlobalUpdateWaitTime))
+                                    arrivalTime = msg.ArrivedTime;
+                                }
+
+                                updmsg.ArrivedTime = arrivalTime;
+                                int databaseId = updmsg.DatabaseID;
+                                ThreadContext.Properties["OrganisationId"] = databaseId;
+
+                                activeDatabases.Add(databaseId, arrivalTime);
+
+                                if (updmsg.Action == (int)Constants.MessageActionType.GlobalUpdate)
+                                {
+                                    if (globalUpdateTimeStamps.Contains(databaseId))
                                     {
-                                        globalUpdateTimeStamps[databaseId] = DateTime.UtcNow;
+                                        if (TimeSpan.FromMinutes(DateTime.UtcNow.Subtract((DateTime)globalUpdateTimeStamps[databaseId]).Minutes) > TimeSpan.FromMinutes(_appConfiguration.GlobalUpdateWaitTime))
+                                        {
+                                            globalUpdateTimeStamps[databaseId] = DateTime.UtcNow;
+                                        }
+                                        else
+                                        {
+                                            //do not process message - message is skipped and lost
+                                            updmsg = null;
+                                        }
                                     }
                                     else
                                     {
-                                        //do not process message - message is skipped and lost
-                                        updmsg = null;
+                                        globalUpdateTimeStamps.Add(databaseId, DateTime.UtcNow);
                                     }
                                 }
-                                else
+
+                                if (updmsg != null)
                                 {
-                                    globalUpdateTimeStamps.Add(databaseId, DateTime.UtcNow);
+                                    OnMessageProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Processing));
+                                    ProcessMessage(updmsg);
+                                    OnMessageProcessed(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Success));
                                 }
-                            }
 
-                            if (updmsg != null)
+                                activeDatabases.Remove(databaseId);
+                            }
+                            else
                             {
-                                OnMessageProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Processing));
-                                ProcessMessage(updmsg);
-                                OnMessageProcessed(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Success));
+                                OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.ParallelDatabaseId));
                             }
-
-                            activeDatabases.Remove(databaseId);
                         }
                         else {
-                            OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.ParallelDatabaseId));
+                            OnMessageNotProcessing(new MessageProcessEventArgs(MessageProcessStatus.NoMessage));
                         }
                     }
                     else {

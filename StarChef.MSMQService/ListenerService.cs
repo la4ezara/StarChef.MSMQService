@@ -50,6 +50,7 @@ namespace StarChef.MSMQService
                 //}
 
                 runner.Start();
+                Console.ReadLine();
             }
         }
 

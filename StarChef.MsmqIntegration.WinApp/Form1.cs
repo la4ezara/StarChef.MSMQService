@@ -70,6 +70,7 @@ namespace StarChef.MsmqIntegration.WinApp
                     myFilter.SetDefaults();
                     myFilter.AppSpecific = true;
                     myFilter.Body = false;
+                    
                     queue.MessageReadPropertyFilter = myFilter;
 
                     var messages = queue.GetAllMessages();
@@ -149,7 +150,7 @@ namespace StarChef.MsmqIntegration.WinApp
 
                 MsmqManager manager = new MsmqManager(_config.NormalQueueName, _config.PoisonQueueName);
                 var msg = new UpdateMessage() { Action = (int)messageType, DSN = dsn, DatabaseID = databaseId, EntityTypeId = (int)entityType, ExternalId = databaseId.ToString(), GroupID = 1, ProductID = productId };
-                for (int i = 0; i <= count; i++)
+                for (int i = 0; i < count; i++)
                 {
                     manager.mqSend(msg, MessagePriority.High);
                 }
