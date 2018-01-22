@@ -635,6 +635,11 @@ namespace StarChef.MSMQService
                     entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent;
                     entityId = msg.ProductID;
                     break;
+                case (int)Constants.EntityType.ProductSet:
+                    entityTypeId = (int)Constants.EntityType.ProductSet;
+                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.ProductSet;
+                    entityId = msg.ProductID;
+                    break;
             }
 
             if (entityTypeWrapper.HasValue)

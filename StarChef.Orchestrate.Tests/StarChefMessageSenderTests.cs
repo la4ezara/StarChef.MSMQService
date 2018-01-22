@@ -23,6 +23,7 @@ using MenuUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.MenuUpdated.B
 using MealPeriodUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.MealPeriodUpdated.Builder;
 using SupplierUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated.Builder;
 using UserUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.UserUpdated.Builder;
+using SetUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SetUpdated.Builder;
 
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 using StarChef.Orchestrate.EventSetters.Impl;
@@ -279,7 +280,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MenuUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 eventSetter.Object,
-                Mock.Of<IEventSetter<UserUpdatedBuilder>>());
+                Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
 
             var databaseManager = new Mock<IDatabaseManager>();
             databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
