@@ -16,6 +16,7 @@ using MenuUpdated = Fourth.Orchestration.Model.Menus.Events.MenuUpdated;
 using MealPeriodUpdated = Fourth.Orchestration.Model.Menus.Events.MealPeriodUpdated;
 using SupplierUpdated = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated;
 using UserUpdated = Fourth.Orchestration.Model.Menus.Events.UserUpdated;
+using SetUpdated = Fourth.Orchestration.Model.Menus.Events.SetUpdated;
 
 using IngredientUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.IngredientUpdated.Builder;
 using RecipeUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated.Builder;
@@ -25,6 +26,7 @@ using MealPeriodUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.MealPer
 using SupplierUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated.Builder;
 using UserUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.UserUpdated.Builder;
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
+using SetUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SetUpdated.Builder;
 
 using CreateAccountBuilder = Fourth.Orchestration.Model.People.Commands.CreateAccount.Builder;
 using UpdateAccountBuilder = Fourth.Orchestration.Model.People.Commands.UpdateAccount.Builder;
@@ -197,6 +199,12 @@ namespace StarChef.Orchestrate
                                     result = Publish(bus, payload);
                                 }
                                 break;
+                            case EnumHelper.EntityTypeWrapper.ProductSet:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<SetUpdated, SetUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
                             default:
                                 throw new NotSupportedException();
                         }
@@ -345,7 +353,7 @@ namespace StarChef.Orchestrate
                     break;
                 case Constants.EntityType.ProductSet:
                     {
-                        _logger.InfoFormat("ProductSet deletion message is not sent because it's not supported in Fourth.Orchestration.Model.Menus.Events.");
+                        payload = _eventFactory.CreateDeleteEvent<SetUpdated, SetUpdatedBuilder>(dbConnectionString, entityExternalId, databaseId);
                     }
                     break;
                 case Constants.EntityType.Supplier:

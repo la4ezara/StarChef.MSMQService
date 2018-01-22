@@ -16,8 +16,8 @@
             UserActivated,
             UserDeactivated,
             SendUserUpdatedEvent,
-            SendSupplierUpdatedEvent
-
+            SendSupplierUpdatedEvent,
+            ProductSet
         }
     }
 }

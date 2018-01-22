@@ -136,7 +136,46 @@ namespace StarChef.Orchestrate
                 }
             }
 
+            //Recipe sets
+            var recipeSets = new List<RecipeSet>();
+            if (reader.NextResult())
+            {
+                recipeSets = GetRecipeSets(reader);
+            }
+            BuildRecipeSets(builder, recipeSets);
+
             return true;
+        }
+
+        private static List<RecipeSet> GetRecipeSets(IDataReader reader)
+        {
+            List<RecipeSet> recipeSets = new List<RecipeSet>();
+
+            while (reader.Read())
+            {
+                var recipeSet = new RecipeSet
+                {
+                    Id = reader.GetValueOrDefault<int>("pset_id"),
+                    Name = reader.GetValueOrDefault<string>("pset_name")
+                };
+                recipeSets.Add(recipeSet);
+            }
+
+            return recipeSets;
+        }
+
+        private static void BuildRecipeSets(Events.RecipeUpdated.Builder builder, List<RecipeSet> recipeSets)
+        {
+            foreach (var recipeSet in recipeSets)
+            {
+                var setBuilder = Events.RecipeUpdated.Types.Set.CreateBuilder();
+
+                setBuilder
+                    .SetExternalId(recipeSet.Id)
+                    .SetSetName(recipeSet.Name);
+
+                builder.AddSets(setBuilder);
+            }
         }
 
         internal static void BuildIngredients(Events.RecipeUpdated.Builder builder, List<RecipeIngredient> ingredientList, Dictionary<int, List<KitchenArea>> kitchenAreaLookup)
@@ -226,6 +265,12 @@ namespace StarChef.Orchestrate
             public double ProductMeasure { get; set; }
             public string ProductUom { get; set; }
             public int ProductPartId { get; set; }
+        }
+
+        private class RecipeSet
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
         }
     }
 }
