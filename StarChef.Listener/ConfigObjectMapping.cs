@@ -43,11 +43,7 @@ namespace StarChef.Listener
                         c.CreateMap<AccountCreateFailed, AccountCreateFailedTransferObject>()
                                         .ForMember(dest => dest.LoginId, o => o.MapFrom(src => int.Parse(src.InternalId)))
                                         .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
-                                        .ForMember(dest => dest.Description, o =>
-                                        {
-                                            o.Condition(src => src.DetailsCount > 0);
-                                            o.MapFrom(src => src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]"));
-                                        })
+                                        .ForMember(dest => dest.Description, o => o.MapFrom(src => src.DetailsCount > 0 ? src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]") : null))
                                         .ForAllOtherMembers(m => m.Ignore());
                         #endregion
 
@@ -65,11 +61,7 @@ namespace StarChef.Listener
                         c.CreateMap<AccountUpdateFailed, AccountUpdateFailedTransferObject>()
                                         .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
                                         .ForMember(dest => dest.ErrorCode, o => o.MapFrom(src => src.Reason))
-                                        .ForMember(dest => dest.Description, o =>
-                                        {
-                                            o.Condition(src => src.DetailsCount > 0);
-                                            o.MapFrom(src => src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]"));
-                                        })
+                                        .ForMember(dest => dest.Description, o => o.MapFrom(src => src.DetailsCount > 0 ? src.DetailsList.Aggregate((s, s1) => s + ",[" + s1 + "]") : null))
                                         .ForAllOtherMembers(m => m.Ignore());
                         #endregion
 
