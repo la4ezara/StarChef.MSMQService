@@ -69,9 +69,9 @@ namespace StarChef.MSMQService
                 {
                     this.IsProcessing = true;
                     msg = _messageManager.mqPeek(timeout);
-                    IsProcessing = true;
                     if (msg != null)
                     {
+                        IsProcessing = true;
                         var messageId = msg.Id;
                         //Receive message and exclude from queue.
                         //Remove only when data is processed
