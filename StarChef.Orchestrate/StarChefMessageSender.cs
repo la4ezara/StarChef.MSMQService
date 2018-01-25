@@ -3,7 +3,9 @@ using Fourth.Orchestration.Messaging;
 using log4net;
 using StarChef.Common;
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using Google.ProtocolBuffers;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 
@@ -53,7 +55,7 @@ namespace StarChef.Orchestrate
         private readonly ICommandFactory _commandFactory;
 
         public StarChefMessageSender(
-            IMessagingFactory messagingFactory, 
+            IMessagingFactory messagingFactory,
             IDatabaseManager databaseManager,
             IEventFactory eventFactory,
             ICommandFactory commandFactory)
@@ -74,6 +76,26 @@ namespace StarChef.Orchestrate
             )
         {
             return Send(entityTypeWrapper, dbConnectionString, entityTypeId, entityTypeId, string.Empty, databaseId, messageArrivedTime);
+        }
+
+        public bool Send(
+            EnumHelper.EntityTypeWrapper entityTypeWrapper,
+            string dbConnectionString,
+            int entityTypeId,
+            List<int> entityIds,
+            string entityExternalId,
+            int databaseId,
+            DateTime messageArrivedTime
+        )
+        {
+            var result = false;
+
+            Parallel.ForEach(entityIds, entityId =>
+            {
+                result = Send(entityTypeWrapper, dbConnectionString, entityTypeId, entityId, entityExternalId, databaseId, messageArrivedTime);
+            });
+            
+            return result;
         }
 
         public bool Send(
@@ -445,7 +467,7 @@ namespace StarChef.Orchestrate
             switch (messageActionType)
             {
                 case Constants.MessageActionType.EntityUpdated:
-                   
+
                     return _eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>(message.DSN, message.ProductID, message.DatabaseID);
                 default:
                     throw new NotSupportedException(string.Format("Action type {0} is not supported by commands.", messageActionType));
