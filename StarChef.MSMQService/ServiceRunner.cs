@@ -48,9 +48,9 @@ namespace StarChef.MSMQService
         }
 
         private void StartProcessing(Object stateInfo) {
-            _logger.Info("Service is starting.");
-            _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps).Wait();
-            _logger.Info("Service is started.");
+            _logger.Info("Service is stared.");
+            _listener.Execute(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps);
+            _logger.Info("Service finish.");
         }
 
         public void Stop() {
@@ -72,7 +72,7 @@ namespace StarChef.MSMQService
         public void Continue() {
             if (!_listener.CanProcess) {
                 _listener.CanProcess = true;
-                _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps).Wait();
+                ThreadPool.QueueUserWorkItem(StartProcessing);
             }
 
             _logger.Info("Service is continued.");

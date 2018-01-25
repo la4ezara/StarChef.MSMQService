@@ -24,7 +24,7 @@ namespace StarChef.Orchestrate
 
             var cust = new Customer(databaseId);
             var reader = ExecuteDbCommand(connectionString, entityId);
-
+            
             if (reader.Read())
             {
                 builder.SetCustomerId(cust.ExternalId)

@@ -72,7 +72,7 @@ namespace StarChef.MsmqService.IntegrationTests
 
             //try process half messages
             listener.CanProcess = true;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             var items = queue.GetAllMessages();
             items.Should().NotBeEmpty();
@@ -81,7 +81,7 @@ namespace StarChef.MsmqService.IntegrationTests
 
             //try process another half
             listener.CanProcess = true;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             items = queue.GetAllMessages();
             items.Should().BeEmpty();
