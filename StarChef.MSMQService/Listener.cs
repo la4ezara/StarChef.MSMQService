@@ -56,16 +56,16 @@ namespace StarChef.MSMQService
             this.CanProcess = true;
         }
 
-        public Task ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps)
+        public void Execute(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps)
         {
             Message msg = null;
-           UpdateMessage updmsg = null;
-            
-            try
+            UpdateMessage updmsg = null;
+
+            TimeSpan timeout = TimeSpan.FromSeconds(10);
+
+            while (CanProcess && !IsProcessing)
             {
-                TimeSpan timeout = TimeSpan.FromSeconds(10);
-                
-                while (CanProcess && !IsProcessing)
+                try
                 {
                     this.IsProcessing = true;
                     msg = _messageManager.mqPeek(timeout);
@@ -80,8 +80,9 @@ namespace StarChef.MSMQService
                         {
                             msg.Formatter = _messageFormat;
                             updmsg = (UpdateMessage)msg.Body;
-
-                            if (!activeDatabases.Contains(updmsg.DatabaseID) && updmsg != null)
+                            _logger.Debug("message: " + msg.Body.ToString());
+                            int databaseId = updmsg.DatabaseID;
+                            if (!activeDatabases.Contains(databaseId) && updmsg != null)
                             {
                                 DateTime arrivalTime = DateTime.UtcNow;
                                 if (messageId != "00000000-0000-0000-0000-000000000000\\0")
@@ -90,7 +91,7 @@ namespace StarChef.MSMQService
                                 }
 
                                 updmsg.ArrivedTime = arrivalTime;
-                                int databaseId = updmsg.DatabaseID;
+                                
                                 ThreadContext.Properties["OrganisationId"] = databaseId;
 
                                 activeDatabases.Add(databaseId, arrivalTime);
@@ -118,44 +119,53 @@ namespace StarChef.MSMQService
                                 if (updmsg != null)
                                 {
                                     OnMessageProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Processing));
+                                    _logger.Debug("start processing");
                                     ProcessMessage(updmsg);
+                                    _logger.Debug("end processing");
                                     OnMessageProcessed(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Success));
                                 }
-
+                                _logger.Debug("removing databaseId");
                                 activeDatabases.Remove(databaseId);
+                                _logger.Debug("end removing databaseId");
                             }
                             else
                             {
                                 OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.ParallelDatabaseId));
+                                _logger.Debug("exists in active hastable");
                             }
                         }
-                        else {
+                        else
+                        {
                             OnMessageNotProcessing(new MessageProcessEventArgs(MessageProcessStatus.NoMessage));
+                            _logger.Debug("Receive null");
                         }
                     }
-                    else {
+                    else
+                    {
                         OnMessageNotProcessing(new MessageProcessEventArgs(MessageProcessStatus.NoMessage));
+                        _logger.Debug("Peek null");
                     }
                     IsProcessing = false;
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex.Message, ex);
-                this.SendPoisonMessage(msg, _messageFormat, _messageManager, activeDatabases);
-            }
-            finally
-            {
-                IsProcessing = false;
-                _messageManager.mqDisconnect();
-                ThreadContext.Properties.Remove("OrganisationId");
 
-                if (updmsg != null) {
-                    activeDatabases.Remove(updmsg.DatabaseID);
+                catch (Exception ex)
+                {
+                    _logger.Error(ex.Message, ex);
+                    this.SendPoisonMessage(msg, _messageFormat, _messageManager, activeDatabases);
                 }
+                finally
+                {
+                    IsProcessing = false;
+                    _messageManager.mqDisconnect();
+                    ThreadContext.Properties.Remove("OrganisationId");
 
+                    if (updmsg != null)
+                    {
+                        activeDatabases.Remove(updmsg.DatabaseID);
+                    }
+
+                }
             }
-            return Task.CompletedTask;
         }
 
         protected virtual void OnMessageProcessing(MessageProcessEventArgs e)
@@ -277,7 +287,9 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UserActivated:
                     // Once user created in Salesforce, SF will notified and to SC and SC store the external id on DB
                     case (int)Constants.MessageActionType.SalesForceUserCreated:
+                        _logger.Debug("enter StarChefEventsUpdated");
                         ProcessStarChefEventsUpdated(msg);
+                        _logger.Debug("exit StarChefEventsUpdated");
                         break;
                     case (int)Constants.MessageActionType.UserDeActivated:
                         _messageSender.PublishCommand(msg);
@@ -644,6 +656,7 @@ namespace StarChef.MSMQService
 
             if (entityTypeWrapper.HasValue)
             {
+                _logger.Debug("enter send");
                 _messageSender.Send(entityTypeWrapper.Value,
                                     msg.DSN,
                                     entityTypeId,
@@ -651,6 +664,7 @@ namespace StarChef.MSMQService
                                     msg.ExternalId,
                                     msg.DatabaseID,
                                     arrivedTime);
+                _logger.Debug("exit send");
             }
         }
 

@@ -57,7 +57,7 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().HaveCount(2, "single item send");
 
             listener.CanProcess = true;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             normalQueue.Should().BeEmpty();
             normalQueue.Should().HaveCount(0, "item processed");
@@ -98,7 +98,7 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().HaveCount(2, "single item send");
 
             listener.CanProcess = true;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             normalQueue.Should().BeEmpty();
             normalQueue.Should().HaveCount(0, "item processed");
@@ -110,7 +110,7 @@ namespace StarChef.MsmqService.Tests
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
             listener.CanProcess = true;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             normalQueue.Should().BeEmpty();
             normalQueue.Should().HaveCount(0, "item processed");
@@ -152,7 +152,7 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().HaveCount(1, "single item send");
 
             listener.CanProcess = true;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             normalQueue.Should().BeEmpty();
             calledStoredProcedures.Should().BeEmpty();
@@ -194,7 +194,7 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().HaveCount(1, "single item send");
 
             listener.CanProcess = true;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             normalQueue.Should().BeEmpty();
 
@@ -239,7 +239,7 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().HaveCount(1, "single item send");
 
             listener.CanProcess = true;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             normalQueue.Should().BeEmpty();
             poisonQueue.Should().NotBeEmpty();
@@ -279,7 +279,7 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().HaveCount(1, "single item send");
 
             listener.CanProcess = false;
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             normalQueue.Should().NotBeEmpty();
             poisonQueue.Should().BeEmpty();
@@ -321,7 +321,7 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().NotBeEmpty();
             normalQueue.Should().HaveCount(1, "single item send");
             activeDatabases.Add(databaseId, DateTime.UtcNow);
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
 
             normalQueue.Should().BeEmpty();
             poisonQueue.Should().BeEmpty();
@@ -357,7 +357,7 @@ namespace StarChef.MsmqService.Tests
             Hashtable timestamps = new Hashtable();
             
             //act
-            listener.ExecuteAsync(activeDatabases, timestamps);
+            listener.Execute(activeDatabases, timestamps);
             
             //assert
             result.Should().NotBeNull();

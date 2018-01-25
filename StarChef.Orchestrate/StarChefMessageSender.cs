@@ -105,8 +105,11 @@ namespace StarChef.Orchestrate
                         {
                             case EnumHelper.EntityTypeWrapper.Recipe:
                                 {
+                                    _logger.Debug("enter createEventUpdate");
                                     var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    _logger.Debug("exit createEventUpdate");
                                     result = Publish(bus, payload);
+                                    _logger.Debug("exit publish recipe");
                                 }
                                 break;
                             case EnumHelper.EntityTypeWrapper.MealPeriod:
@@ -210,21 +213,23 @@ namespace StarChef.Orchestrate
                         }
                     }
                 }
-
+                
                 if (!logged)
                 {
+                    _logger.Debug("enter LogDatabase");
                     LogDatabase(dbConnectionString,
                                         entityTypeId,
                                         entityId,
                                         messageArrivedTime,
                                         result);
+                    _logger.Debug("exit LogDatabase");
                 }
             }
             catch (Exception ex)
             {
                 _logger.Fatal("StarChef MSMQService Orchestrate failed to send to Orchestration in Send.", ex);
             }
-
+            _logger.Debug("Finish Send");
             return result;
         }
 
