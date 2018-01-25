@@ -7,12 +7,14 @@ using StarChef.MSMQService.Configuration;
 using StarChef.Orchestrate;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Messaging;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace StarChef.MSMQService
 {
@@ -587,6 +589,7 @@ namespace StarChef.MSMQService
             var arrivedTime = msg.ArrivedTime;
 
             EnumHelper.EntityTypeWrapper? entityTypeWrapper = null;
+            var productIds = new List<int>();
             switch (msg.EntityTypeId)
             {
                 case (int) Constants.EntityType.User:
@@ -621,11 +624,19 @@ namespace StarChef.MSMQService
                     entityTypeId = (int) Constants.EntityType.Ingredient;
                     entityId = msg.ProductID;
                     entityTypeWrapper = EnumHelper.EntityTypeWrapper.Ingredient;
+                    if (!string.IsNullOrEmpty(msg.ExtendedProperties))
+                    {
+                        productIds = JsonConvert.DeserializeObject<List<int>>(msg.ExtendedProperties);
+                    }
                     break;
                 case (int) Constants.EntityType.Dish:
                     entityTypeId = (int) Constants.EntityType.Dish;
                     entityTypeWrapper = EnumHelper.EntityTypeWrapper.Recipe;
                     entityId = msg.ProductID;
+                    if (!string.IsNullOrEmpty(msg.ExtendedProperties))
+                    {
+                        productIds = JsonConvert.DeserializeObject<List<int>>(msg.ExtendedProperties);
+                    }
                     break;
                 case (int) Constants.EntityType.Menu:
                     entityTypeId = (int) Constants.EntityType.Menu;
@@ -654,7 +665,8 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (entityTypeWrapper.HasValue)
+            if (!entityTypeWrapper.HasValue) return;
+            if (!productIds.Any())
             {
                 _logger.Debug("enter send");
                 _messageSender.Send(entityTypeWrapper.Value,
@@ -665,6 +677,16 @@ namespace StarChef.MSMQService
                                     msg.DatabaseID,
                                     arrivedTime);
                 _logger.Debug("exit send");
+            }
+            else
+            {
+                _messageSender.Send(entityTypeWrapper.Value,
+                    msg.DSN,
+                    entityTypeId,
+                    productIds,
+                    msg.ExternalId,
+                    msg.DatabaseID,
+                    arrivedTime);
             }
         }
 
