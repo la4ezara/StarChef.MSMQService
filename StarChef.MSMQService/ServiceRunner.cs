@@ -25,7 +25,8 @@ namespace StarChef.MSMQService
         private readonly Hashtable _globalUpdateTimeStamps;
         private readonly Hashtable _activeTaskDatabaseIDs;
 
-        public ServiceRunner() {
+        public ServiceRunner()
+        {
 
             _components = new Container();
             // Start log4net up
@@ -43,34 +44,42 @@ namespace StarChef.MSMQService
             _listener = container.Resolve<IListener>();
         }
 
-        public void Start() {
+        public void Start()
+        {
             ThreadPool.QueueUserWorkItem(StartProcessing);
         }
 
-        private void StartProcessing(Object stateInfo) {
+        private bool _isCompleted;
+
+        private async void StartProcessing(Object stateInfo)
+        {
             _logger.Info("Service is stared.");
-            _listener.Execute(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps);
+            _isCompleted = await _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps);
             _logger.Info("Service finish.");
         }
 
-        public void Stop() {
+        public void Stop()
+        {
             _logger.Info("Service is stoping.");
             _listener.CanProcess = false;
-            while (_listener.IsProcessing)
-            {
-                
-            }
 
+            while (!_isCompleted)
+            {
+                Thread.Sleep(2000);
+            }
             _logger.Info("Service is stopped.");
         }
 
-        public void Pause() {
+        public void Pause()
+        {
             _listener.CanProcess = false;
             _logger.Info("Service is paused.");
         }
 
-        public void Continue() {
-            if (!_listener.CanProcess) {
+        public void Continue()
+        {
+            if (!_listener.CanProcess)
+            {
                 _listener.CanProcess = true;
                 ThreadPool.QueueUserWorkItem(StartProcessing);
             }

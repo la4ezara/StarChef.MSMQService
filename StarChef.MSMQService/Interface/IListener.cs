@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 namespace StarChef.MSMQService
 {
     public interface IListener {
-        void Execute(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps);
+        Task<bool> ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps);
         bool CanProcess { get; set; }
-        bool IsProcessing { get; }
 
         event EventHandler<MessageProcessEventArgs> MessageProcessing;
         event EventHandler<MessageProcessEventArgs> MessageProcessed;

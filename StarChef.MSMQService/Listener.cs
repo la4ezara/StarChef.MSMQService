@@ -8,7 +8,6 @@ using StarChef.Orchestrate;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Messaging;
@@ -36,8 +35,6 @@ namespace StarChef.MSMQService
 
         public bool CanProcess { get; set; }
 
-        public bool IsProcessing { get; private set; }
-
         public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender, IDatabaseManager databaseManager)
         {
             _appConfiguration = appConfiguration;
@@ -58,22 +55,20 @@ namespace StarChef.MSMQService
             this.CanProcess = true;
         }
 
-        public void Execute(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps)
+        public async Task<bool> ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps)
         {
             Message msg = null;
             UpdateMessage updmsg = null;
 
             TimeSpan timeout = TimeSpan.FromSeconds(10);
 
-            while (CanProcess && !IsProcessing)
+            while (CanProcess)
             {
                 try
                 {
-                    this.IsProcessing = true;
                     msg = _messageManager.mqPeek(timeout);
                     if (msg != null)
                     {
-                        IsProcessing = true;
                         var messageId = msg.Id;
                         //Receive message and exclude from queue.
                         //Remove only when data is processed
@@ -147,7 +142,6 @@ namespace StarChef.MSMQService
                         OnMessageNotProcessing(new MessageProcessEventArgs(MessageProcessStatus.NoMessage));
                         _logger.Debug("Peek null");
                     }
-                    IsProcessing = false;
                 }
 
                 catch (Exception ex)
@@ -157,17 +151,17 @@ namespace StarChef.MSMQService
                 }
                 finally
                 {
-                    IsProcessing = false;
-                    _messageManager.mqDisconnect();
-                    ThreadContext.Properties.Remove("OrganisationId");
-
                     if (updmsg != null)
                     {
                         activeDatabases.Remove(updmsg.DatabaseID);
                     }
-
+                    ThreadContext.Properties.Remove("OrganisationId");
+                    
+                    _messageManager.mqDisconnect();
                 }
             }
+
+            return await Task.FromResult<bool>(true);
         }
 
         protected virtual void OnMessageProcessing(MessageProcessEventArgs e)

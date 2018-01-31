@@ -91,7 +91,7 @@
             this.txtProductId.Name = "txtProductId";
             this.txtProductId.Size = new System.Drawing.Size(121, 20);
             this.txtProductId.TabIndex = 4;
-            this.txtProductId.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtCount_KeyPress);
+            this.txtProductId.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtProductId_KeyPress);
             // 
             // lblProductId
             // 
