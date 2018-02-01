@@ -46,7 +46,8 @@ namespace StarChef.Listener.Tests.Handlers
 
             var validator = new AccountCreatedValidator(dbCommands.Object);
             var messagingLogger = new Mock<IMessagingLogger>();
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
+            var config = new Mock<IConfiguration>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, config.Object, messagingLogger.Object);
 
             var result = handler.HandleAsync(payload, "1").Result;
 
@@ -75,7 +76,8 @@ namespace StarChef.Listener.Tests.Handlers
             var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict); // ensure there is no setup, this  object should not been called
             var validator = new AccountCreatedValidator(dbCommands.Object);
             var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
+            var config = new Mock<IConfiguration>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, config.Object, messagingLogger.Object);
 
             var result = handler.HandleAsync(payload, "1").Result;
 
@@ -93,7 +95,8 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsAllowedEvent(It.IsAny<object>())).Returns(true);
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(false);
             var messagingLogger = new Mock<IMessagingLogger>();
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
+            var config = new Mock<IConfiguration>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object);
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -122,8 +125,9 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsAllowedEvent(payload)).Returns(false);
 
             var messagingLogger = new Mock<IMessagingLogger>();
+            var config = new Mock<IConfiguration>();
             var logChecker = new LogChecker(typeof(AccountCreatedEventHandler), Level.All);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -157,8 +161,9 @@ namespace StarChef.Listener.Tests.Handlers
 
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
+            var config = new Mock<IConfiguration>();
             var logChecker = new LogChecker(typeof(AccountCreatedEventHandler), Level.All);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -196,8 +201,9 @@ namespace StarChef.Listener.Tests.Handlers
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(false);
             validator.Setup(m => m.GetErrors()).Returns(string.Empty);
             var messagingLogger = new Mock<IMessagingLogger>();
+            var config = new Mock<IConfiguration>();
             var logChecker = new LogChecker(typeof(AccountCreatedEventHandler), Level.All);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -235,8 +241,9 @@ namespace StarChef.Listener.Tests.Handlers
 
             validator.Setup(m => m.IsValidPayload(It.IsAny<object>())).Returns(true);
             var messagingLogger = new Mock<IMessagingLogger>();
+            var config = new Mock<IConfiguration>();
             var logChecker = new LogChecker(typeof(AccountCreatedEventHandler), Level.All);
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object, logChecker.GetLogger());
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object, logChecker.GetLogger());
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;
@@ -289,7 +296,8 @@ namespace StarChef.Listener.Tests.Handlers
             var dbCommands = new Mock<IDatabaseCommands>();
             dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false)); // user is not exists
 
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, messagingLogger.Object);
+            var config = new Mock<IConfiguration>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator.Object, config.Object, messagingLogger.Object);
 
             // act
             var result = handler.HandleAsync(payload, "1").Result;

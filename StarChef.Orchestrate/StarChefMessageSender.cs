@@ -3,7 +3,9 @@ using Fourth.Orchestration.Messaging;
 using log4net;
 using StarChef.Common;
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using Google.ProtocolBuffers;
 using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 
@@ -16,6 +18,7 @@ using MenuUpdated = Fourth.Orchestration.Model.Menus.Events.MenuUpdated;
 using MealPeriodUpdated = Fourth.Orchestration.Model.Menus.Events.MealPeriodUpdated;
 using SupplierUpdated = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated;
 using UserUpdated = Fourth.Orchestration.Model.Menus.Events.UserUpdated;
+using SetUpdated = Fourth.Orchestration.Model.Menus.Events.SetUpdated;
 
 using IngredientUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.IngredientUpdated.Builder;
 using RecipeUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated.Builder;
@@ -25,6 +28,7 @@ using MealPeriodUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.MealPer
 using SupplierUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated.Builder;
 using UserUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.UserUpdated.Builder;
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
+using SetUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SetUpdated.Builder;
 
 using CreateAccountBuilder = Fourth.Orchestration.Model.People.Commands.CreateAccount.Builder;
 using UpdateAccountBuilder = Fourth.Orchestration.Model.People.Commands.UpdateAccount.Builder;
@@ -51,7 +55,7 @@ namespace StarChef.Orchestrate
         private readonly ICommandFactory _commandFactory;
 
         public StarChefMessageSender(
-            IMessagingFactory messagingFactory, 
+            IMessagingFactory messagingFactory,
             IDatabaseManager databaseManager,
             IEventFactory eventFactory,
             ICommandFactory commandFactory)
@@ -72,6 +76,26 @@ namespace StarChef.Orchestrate
             )
         {
             return Send(entityTypeWrapper, dbConnectionString, entityTypeId, entityTypeId, string.Empty, databaseId, messageArrivedTime);
+        }
+
+        public bool Send(
+            EnumHelper.EntityTypeWrapper entityTypeWrapper,
+            string dbConnectionString,
+            int entityTypeId,
+            List<int> entityIds,
+            string entityExternalId,
+            int databaseId,
+            DateTime messageArrivedTime
+        )
+        {
+            var result = false;
+
+            Parallel.ForEach(entityIds, entityId =>
+            {
+                result = Send(entityTypeWrapper, dbConnectionString, entityTypeId, entityId, entityExternalId, databaseId, messageArrivedTime);
+            });
+            
+            return result;
         }
 
         public bool Send(
@@ -103,8 +127,11 @@ namespace StarChef.Orchestrate
                         {
                             case EnumHelper.EntityTypeWrapper.Recipe:
                                 {
+                                    _logger.Debug("enter createEventUpdate");
                                     var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    _logger.Debug("exit createEventUpdate");
                                     result = Publish(bus, payload);
+                                    _logger.Debug("exit publish recipe");
                                 }
                                 break;
                             case EnumHelper.EntityTypeWrapper.MealPeriod:
@@ -197,26 +224,34 @@ namespace StarChef.Orchestrate
                                     result = Publish(bus, payload);
                                 }
                                 break;
+                            case EnumHelper.EntityTypeWrapper.ProductSet:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<SetUpdated, SetUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
                             default:
                                 throw new NotSupportedException();
                         }
                     }
                 }
-
+                
                 if (!logged)
                 {
+                    _logger.Debug("enter LogDatabase");
                     LogDatabase(dbConnectionString,
                                         entityTypeId,
                                         entityId,
                                         messageArrivedTime,
                                         result);
+                    _logger.Debug("exit LogDatabase");
                 }
             }
             catch (Exception ex)
             {
                 _logger.Fatal("StarChef MSMQService Orchestrate failed to send to Orchestration in Send.", ex);
             }
-
+            _logger.Debug("Finish Send");
             return result;
         }
 
@@ -345,7 +380,7 @@ namespace StarChef.Orchestrate
                     break;
                 case Constants.EntityType.ProductSet:
                     {
-                        _logger.InfoFormat("ProductSet deletion message is not sent because it's not supported in Fourth.Orchestration.Model.Menus.Events.");
+                        payload = _eventFactory.CreateDeleteEvent<SetUpdated, SetUpdatedBuilder>(dbConnectionString, entityExternalId, databaseId);
                     }
                     break;
                 case Constants.EntityType.Supplier:
@@ -437,7 +472,7 @@ namespace StarChef.Orchestrate
             switch (messageActionType)
             {
                 case Constants.MessageActionType.EntityUpdated:
-                   
+
                     return _eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>(message.DSN, message.ProductID, message.DatabaseID);
                 default:
                     throw new NotSupportedException(string.Format("Action type {0} is not supported by commands.", messageActionType));

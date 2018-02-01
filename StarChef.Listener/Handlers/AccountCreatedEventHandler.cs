@@ -12,20 +12,23 @@ using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 
 namespace StarChef.Listener.Handlers
 {
-    public delegate Task AccountCreatedProcessedDelegate(AccountCreatedEventHandler sender, AccountCreatedTransferObject user);
+    public delegate Task AccountCreatedProcessedDelegate(AccountCreatedEventHandler sender, AccountCreatedTransferObject user, IConfiguration config);
 
     public class AccountCreatedEventHandler : ListenerEventHandler, IMessageHandler<AccountCreated>
     {
         private readonly ILog _logger;
+        private readonly IConfiguration _config;
 
-        public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
+        public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IConfiguration config, IMessagingLogger messagingLogger) : base(dbCommands, validator, messagingLogger)
         {
             _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            _config = config;
         }
 
-        public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IMessagingLogger messagingLogger, ILog errorLogger) : base(dbCommands, validator, messagingLogger)
+        public AccountCreatedEventHandler(IDatabaseCommands dbCommands, IEventValidator validator, IConfiguration config, IMessagingLogger messagingLogger, ILog errorLogger) : base(dbCommands, validator, messagingLogger)
         {
             _logger = errorLogger;
+            _config = config;
         }
 
         public event AccountCreatedProcessedDelegate OnProcessed;
@@ -74,7 +77,7 @@ namespace StarChef.Listener.Handlers
                             if (evt != null)
                             {
                                 _logger.Info("Post-processing the event");
-                                await evt(this, user);
+                                await evt(this, user, _config);
                             }
                         }
                         catch (ListenerException ex)

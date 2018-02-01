@@ -88,9 +88,48 @@ namespace StarChef.Orchestrate
                     ingredientGroups = GetIngredientGroups(reader);
                 }
                 BuildIngredientGroups(builder, ingredientGroups);
+
+                //Ingredient sets
+                var ingredientSets = new List<IngredientSet>();
+                if (reader.NextResult())
+                {
+                    ingredientSets = GetIngredientSets(reader);
+                }
+                BuildIngredientSets(builder, ingredientSets);
             }
 
             return true;
+        }
+
+        private static List<IngredientSet> GetIngredientSets(IDataReader reader)
+        {
+            List<IngredientSet> ingredientSets = new List<IngredientSet>();
+
+            while (reader.Read())
+            {
+                var ingredientSet = new IngredientSet
+                {
+                    Id = reader.GetValueOrDefault<int>("pset_id"),
+                    Name = reader.GetValueOrDefault<string>("pset_name")
+                };
+                ingredientSets.Add(ingredientSet);
+            }
+
+            return ingredientSets;
+        }
+
+        private static void BuildIngredientSets(Events.IngredientUpdated.Builder builder, List<IngredientSet> ingredientSets)
+        {
+            foreach (var ingredientSet in ingredientSets)
+            {
+                var setBuilder = Events.IngredientUpdated.Types.Set.CreateBuilder();
+
+                setBuilder
+                    .SetExternalId(ingredientSet.Id)
+                    .SetSetName(ingredientSet.Name);
+
+                builder.AddSets(setBuilder);
+            }
         }
 
         private static List<IngredientSuppliedPackSize> GetSuppliedPackSizes(IDataReader reader)
@@ -349,6 +388,12 @@ namespace StarChef.Orchestrate
             public double Quantity { get; set; }
             public string UnitCode { get; set; }
             public string PackDescription { get; set; }
+        }
+
+        private class IngredientSet
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
         }
     }
 }

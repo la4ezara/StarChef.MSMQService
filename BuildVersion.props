@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- 
+      Configuration of versioning scheme to use for assemblies:
+        - 'ThreeDot' scheme is Major.Minor.Build.Revision (suitable for classic releases to customers, e.g. desktop/bundled software)
+        - 'TwoDot' scheme is Major.Minor.Revision (suitable for web or Nuget package releases). Note: CfgBuildNumber is ignored in this case
+    -->
+    <CfgVersionScheme>TwoDot</CfgVersionScheme>
+    <CfgMajorVersion>1</CfgMajorVersion>
+    <CfgMinorVersion>31</CfgMinorVersion>
+    <CfgBuildNumber>1</CfgBuildNumber>
+    <CfgBuildRevision>$([MSBuild]::ValueOrDefault($(CI_BuildNum), 9999))</CfgBuildRevision>
+    <CfgCompany>Fourth</CfgCompany>
+    <CfgProduct>StarChef MSMQ Service</CfgProduct>
+    <CfgCopyright>Copyright © $([System.DateTime]::Now.Year) $(CfgCompany)</CfgCopyright>
+
+    <!-- WiX projects support
+      WiX Toolset projects will automatically receive following constants to be used across .wxs source files
+        var.BuildVersionMajor
+        var.BuildVersionMinor
+        var.BuildVersionBuild - cfgBuildNumber (for ThreeDot scheme) or CfgBuildRevision (for TwoDot scheme)
+        var.BuildVersionFull  - same as full version in assemblies (see CfgVersionScheme above). For ThreeDot scheme revision could be 
+            stripped by using a setting below
+    -->
+    <!--<WiXFullVersionNoRevision>true</WiXFullVersionNoRevision>-->
+    <!--<WiXOutputAddVersion>true</WiXOutputAddVersion>-->
+
+    <!-- Internal Properties: used by the package, in most cases adjustment will not be needed (advanced uses only!) -->
+    <BuildVersionPropsPath>$(MSBuildThisFileFullPath)</BuildVersionPropsPath>
+    <!-- 
+      Automatically generated version info file name
+      NOTE: As of version 1.5 this file is generated into intermediate files dir and automatically included into build process.
+            There is no more need to exclude from source code control and project file edits.      -->
+    <SharedVersionOutputFile>SharedAssemblyInfo.g.cs</SharedVersionOutputFile>
+
+  </PropertyGroup>
+</Project>
