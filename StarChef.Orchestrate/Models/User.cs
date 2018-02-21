@@ -55,11 +55,18 @@ namespace StarChef.Orchestrate.Models
 
             if (reader.Read())
             {
+                var addApplicationsToAdd = reader["applications_to_add"].ToString().Trim().Split(',');                
+
                 builder.SetCustomerId(cust.ExternalId)
                         .SetEmailAddress(reader[1].ToString())
                         .SetFirstName(reader[3].ToString())
                         .SetLastName(reader[4].ToString())
                         .SetSource(Commands.SourceSystem.STARCHEF);
+
+                foreach (var app in addApplicationsToAdd)
+                {
+                    builder.AddApplicationsToAdd(app);
+                }
 
                 if (readerLogin.Read())
                 {
@@ -86,12 +93,26 @@ namespace StarChef.Orchestrate.Models
 
             if (reader.Read())
             {
+                var addApplicationsToAdd = reader["applications_to_add"].ToString().Trim().Split(',');
+                var addApplicationsToRemove = reader["applications_to_remove"].ToString().Trim().Split(',');
+                
+
                 builder.SetCustomerId(cust.ExternalId)
                         .SetEmailAddress(reader[1].ToString())
                         .SetFirstName(reader[3].ToString())
                         .SetLastName(reader[4].ToString())
-                        .SetCommandId(rand.Next(1, int.MaxValue).ToString())
+                        .SetCommandId(rand.Next(1, int.MaxValue).ToString())                        
                         .SetSource(Commands.SourceSystem.STARCHEF);
+
+                foreach (var app in addApplicationsToAdd)
+                {
+                    builder.AddApplicationsToAdd(app);
+                }
+
+                foreach (var app in addApplicationsToRemove)
+                {
+                    builder.AddApplicationsToRemove(app);
+                }
 
                 if (readerLogin.Read())
                 {
