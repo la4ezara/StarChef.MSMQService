@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
+using System.Collections.Generic;
 
 namespace StarChef.Listener.Commands
 {
@@ -95,7 +96,7 @@ namespace StarChef.Listener.Commands
         /// <exception cref="ListenerException">Exception in general logic of the listener</exception>
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         /// <returns></returns>
-        Task UpdateUser(string externalLoginId, string username, string firstName, string lastName, string emailAddress);
+        Task UpdateUser(string externalLoginId, string username, string firstName, string lastName, string emailAddress, IEnumerable<string> permissionSets);
 
         /// <summary>
         ///     Set user identifier in the external system (such as Fourth Account Service)

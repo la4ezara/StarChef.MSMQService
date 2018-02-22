@@ -95,6 +95,9 @@ namespace StarChef.Listener.Commands.Impl
             var dbDetails = await _csProvider.GetCustomerDbDetails(user.ExternalCustomerId, loginDbConnectionString);
             var orgId = dbDetails.Item1;
             var connectionString = dbDetails.Item2;
+            var applicationsToAdd = string.Empty;
+            if (user.PermissionSets.Count() > 0)
+                applicationsToAdd = String.Join(",", user.PermissionSets.ToArray());
 
             var dbUserId = new SqlParameter("@user_id", SqlDbType.Int) {Direction = ParameterDirection.Output};
             await Exec(connectionString, "sc_admin_save_preferences", p =>
@@ -107,6 +110,7 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@ugroup_id", values["ugroup_id"]);
                 p.AddWithValue("@language_id", values["language_id"]);
                 p.AddWithValue("@set_default", true); // required to add default group
+                p.AddWithValue("@applications_to_add", applicationsToAdd);
             });
 
             var userId = Convert.ToInt32(dbUserId.Value);
@@ -146,7 +150,7 @@ namespace StarChef.Listener.Commands.Impl
         /// <exception cref="DatabaseException">Error is occurred while saving data to database</exception>
         /// <exception cref="ListenerException">Exception in general logic of the listener</exception>
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
-        public async Task UpdateUser(string externalLoginId, string username, string firstName, string lastName, string emailAddress)
+        public async Task UpdateUser(string externalLoginId, string username, string firstName, string lastName, string emailAddress, IEnumerable<string> permissionSets)
         {
             var loginDbConnectionString = await _csProvider.GetLoginDb();
             if (string.IsNullOrEmpty(loginDbConnectionString))
@@ -157,6 +161,10 @@ namespace StarChef.Listener.Commands.Impl
                 throw new ListenerException("Cannot map external account to the StarChef account");
             var loginId = ids.Item1;
             var userId = ids.Item2;
+
+            var applicationsToAdd = string.Empty;
+            if(permissionSets.Count() > 0)
+                applicationsToAdd = String.Join(",", permissionSets.ToArray());
 
             var connectionString = await _csProvider.GetCustomerDb(loginId, loginDbConnectionString);
             if (string.IsNullOrEmpty(connectionString))
@@ -174,6 +182,7 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@login_name", username);
                 p.AddWithValue("@forename", firstName);
                 p.AddWithValue("@lastname", lastName);
+                p.AddWithValue("@applications_to_add", applicationsToAdd);
             });
         }
 
