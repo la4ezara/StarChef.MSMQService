@@ -8,7 +8,7 @@ namespace StarChef.Orchestrate
     public interface IStarChefMessageSender
     {
         bool Send(
-            EnumHelper.EntityTypeWrapper entityTypeWrapper, 
+            EnumHelper.EntityTypeWrapper entityTypeWrapper,
             string dbConnectionString,
             int entityTypeId,
             int entityId,
@@ -16,7 +16,7 @@ namespace StarChef.Orchestrate
             int databaseId,
             DateTime messageArrivedTime);
 
-        bool Send(
+        IList<KeyValuePair<Tuple<int, int>, bool>> Send(
             EnumHelper.EntityTypeWrapper entityTypeWrapper,
             string dbConnectionString,
             int entityTypeId,

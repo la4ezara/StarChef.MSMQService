@@ -78,7 +78,7 @@ namespace StarChef.Orchestrate
             return Send(entityTypeWrapper, dbConnectionString, entityTypeId, entityTypeId, string.Empty, databaseId, messageArrivedTime);
         }
 
-        public bool Send(
+        public IList<KeyValuePair<Tuple<int, int>, bool>> Send(
             EnumHelper.EntityTypeWrapper entityTypeWrapper,
             string dbConnectionString,
             int entityTypeId,
@@ -88,13 +88,14 @@ namespace StarChef.Orchestrate
             DateTime messageArrivedTime
         )
         {
-            var result = false;
+            var result = new List<KeyValuePair<Tuple<int, int>, bool>>();
 
             Parallel.ForEach(entityIds, entityId =>
             {
-                result = Send(entityTypeWrapper, dbConnectionString, entityTypeId, entityId, entityExternalId, databaseId, messageArrivedTime);
+                var keyValuePaid = new KeyValuePair<Tuple<int,int>, bool>(Tuple.Create(entityId, entityTypeId), Send(entityTypeWrapper, dbConnectionString, entityTypeId, entityId, entityExternalId, databaseId, messageArrivedTime));
+                result.Add(keyValuePaid);
             });
-            
+
             return result;
         }
 
@@ -235,7 +236,7 @@ namespace StarChef.Orchestrate
                         }
                     }
                 }
-                
+
                 if (!logged)
                 {
                     _logger.Debug("enter LogDatabase");

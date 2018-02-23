@@ -8,10 +8,11 @@ using log4net.Config;
 using StarChef.Common;
 using IContainer = Autofac.IContainer;
 using System.Threading;
+using StarChef.MSMQService.Interface;
 
 namespace StarChef.MSMQService
 {
-    public class ServiceRunner : IDisposable
+    public class ServiceRunner : IServiceRunner
     {
         private IAppConfiguration _appConfiguration;
         private readonly IListener _listener;

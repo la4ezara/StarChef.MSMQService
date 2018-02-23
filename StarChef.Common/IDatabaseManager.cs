@@ -32,6 +32,8 @@ namespace StarChef.Common
 
         string GetSetting(string connectionString, string settingName);
 
+        HashSet<UserDatabase> GetUserDatabases(string connectionString);
+
         IList<int> GetUsersInGroup(string connectionString, int groupId);
 
         bool IsPublishEnabled(string connectionString, int entityTypeId);

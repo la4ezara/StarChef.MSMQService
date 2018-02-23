@@ -76,6 +76,22 @@ namespace StarChef.Common
             return retval;
         }
 
+        public HashSet<UserDatabase> GetUserDatabases(string connectionString)
+        {
+            var userDatabases = new HashSet<UserDatabase>();
+            var reader = ExecuteReader(connectionString, "sp_Get_Users_ConnectionStrings");
+
+            while (reader.Read())
+            {
+                var dataBaseId = reader.GetValue<int>("db_database_id");
+                var databaseConnectionString = reader.GetValue<string>("connString");
+                var externalId = reader.GetValue<string>("external_id");
+                var db = new UserDatabase(dataBaseId, databaseConnectionString, externalId);
+                userDatabases.Add(db);
+            }
+            return userDatabases;
+        }
+
         public string GetSetting(string connectionString, string settingName)
         {
             var result = string.Empty;
@@ -128,8 +144,12 @@ namespace StarChef.Common
 
                 // add params
                 if (parameterValues != null)
+                {
                     foreach (var param in parameterValues)
+                    {
                         cmd.Parameters.Add(param);
+                    }
+                }
 
                 // run proc
                 SqlDataAdapter adapter = new SqlDataAdapter(cmd);
