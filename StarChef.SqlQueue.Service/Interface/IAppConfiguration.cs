@@ -3,6 +3,6 @@
     public interface IAppConfiguration
     {
         string UserDSN { get; }
-        
+        int MessagesCount { get; }
     }
 }

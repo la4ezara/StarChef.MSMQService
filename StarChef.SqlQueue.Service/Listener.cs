@@ -75,7 +75,7 @@ namespace StarChef.SqlQueue.Service
                 try
                 {
                     messages = new HashSet<CalculateUpdateMessage>();
-                    var sqlParam = new SqlParameter("@count", System.Data.SqlDbType.Int) { Value = 100000 };
+                    var sqlParam = new SqlParameter("@count", System.Data.SqlDbType.Int) { Value = _appConfiguration.MessagesCount };
                     var reader = _databaseManager.ExecuteReaderMultiResultset(userDatabase.ConnectionString, "sc_calculation_dequeue", sqlParam);
 
                     while (reader.Read())
