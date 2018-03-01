@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Autofac;
 using log4net;
 using StarChef.Common;
 using StarChef.SqlQueue.Service.Interface;
+using System.Linq;
 
 namespace StarChef.SqlQueue.Service
 {
@@ -49,6 +52,12 @@ namespace StarChef.SqlQueue.Service
             {
                 Thread.Sleep(2000);
             }
+
+            while (this._listener.ActiveThreads.Any(c => c.IsAlive))
+            {
+                Thread.Sleep(2000);
+            }
+
             _logger.Info("SQL Queue Service is stopped.");
         }
 

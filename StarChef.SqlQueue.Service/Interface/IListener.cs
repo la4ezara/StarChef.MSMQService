@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Threading;
+
 namespace StarChef.SqlQueue.Service.Interface
 {
     using System.Threading.Tasks;
@@ -6,5 +9,6 @@ namespace StarChef.SqlQueue.Service.Interface
     {
         Task<bool> ExecuteAsync();
         bool CanProcess { get; set; }
+        List<Thread> ActiveThreads { get; }
     }
 }

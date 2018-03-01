@@ -80,8 +80,10 @@ namespace StarChef.Orchestrate
                 while (reader.Read())
                 {
                     var groupBuilder = Events.RecipeUpdated.Types.RecipeGroup.CreateBuilder();
-                    groupBuilder.SetExternalId(reader[0].ToString())
-                        .SetGroupName(reader[1].ToString());
+                    var externalId = reader[0].ToString();
+                    var groupName = reader[1].ToString();
+                    groupBuilder.SetExternalId(externalId)
+                        .SetGroupName(groupName);
                     builder.AddGroups(groupBuilder);
                 }
             }

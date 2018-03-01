@@ -34,7 +34,7 @@ namespace StarChef.Orchestrate.EventSetters.Impl
                     var parentBuilder = mainCategoryBuilder;
                     while (parentItem.SubCategories != null)
                     {
-                        var nestedItem = category.SubCategories.First();
+                        var nestedItem = parentItem.SubCategories.First();
                         var nestedBuilder = createCategory();
                         nestedBuilder
                             .SetExternalId(nestedItem.ExternalId)

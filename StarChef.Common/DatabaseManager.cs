@@ -11,8 +11,8 @@ namespace StarChef.Common
     public class DatabaseManager : IDatabaseManager
     {
         public int Execute(
-            string connectionString, 
-            string spName, 
+            string connectionString,
+            string spName,
             params SqlParameter[] parameterValues
             )
         {
@@ -27,7 +27,8 @@ namespace StarChef.Common
                 // of these procs may take several minutes to complete
                 var cmd = new SqlCommand(spName, cn)
                 {
-                    CommandType = CommandType.StoredProcedure
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = cn.ConnectionTimeout
                 };
 
                 // add params
@@ -118,13 +119,13 @@ namespace StarChef.Common
             {
                 result = settingNameItem.Value as string;
             }
-            
+
             return result;
         }
 
         public IDataReader ExecuteReaderMultiResultset(
-            string connectionString, 
-            string spName, 
+            string connectionString,
+            string spName,
             params SqlParameter[] parameterValues
             )
         {
@@ -139,7 +140,8 @@ namespace StarChef.Common
                 // of these procs may take several minutes to complete
                 var cmd = new SqlCommand(spName, cn)
                 {
-                    CommandType = CommandType.StoredProcedure
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = cn.ConnectionTimeout
                 };
 
                 // add params
@@ -156,6 +158,39 @@ namespace StarChef.Common
                 adapter.Fill(dataSet);
                 return dataSet.CreateDataReader();
             }
+        }
+
+        public int ExecuteScalar(
+            string connectionString,
+            string spName,
+            params SqlParameter[] parameterValues
+        )
+        {
+            int result;
+            using (var cn = new SqlConnection(connectionString))
+            {
+                cn.Open();
+                
+                // need a command with sensible timeout value (10 minutes), as some 
+                // of these procs may take several minutes to complete
+                var cmd = new SqlCommand(spName, cn)
+                {
+                    CommandType = CommandType.Text,
+                    CommandTimeout = cn.ConnectionTimeout
+                };
+                
+                // add params
+                if (parameterValues != null)
+                {
+                    foreach (var param in parameterValues)
+                    {
+                        cmd.Parameters.Add(param);
+                    }
+                }
+
+                result = (int)cmd.ExecuteScalar();
+            }
+            return result;
         }
 
         public IDataReader ExecuteReader(
