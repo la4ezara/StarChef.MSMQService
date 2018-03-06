@@ -1,6 +1,7 @@
 using System;
 using System.Messaging;
 using System.Reflection;
+using Fourth.StarChef.Invariables;
 using log4net;
 using StarChef.Common;
 

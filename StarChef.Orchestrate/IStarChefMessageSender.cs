@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fourth.StarChef.Invariables;
 using StarChef.Common;
-using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 
 namespace StarChef.Orchestrate
 {

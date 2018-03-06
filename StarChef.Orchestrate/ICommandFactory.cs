@@ -1,5 +1,5 @@
+using Fourth.StarChef.Invariables;
 using Google.ProtocolBuffers;
-using StarChef.MSMQService;
 
 namespace StarChef.Orchestrate
 {

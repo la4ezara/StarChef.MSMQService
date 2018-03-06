@@ -1,5 +1,5 @@
-﻿using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
-using StarChef.MSMQService;
+﻿using Fourth.StarChef.Invariables;
+using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
 
 namespace StarChef.Orchestrate.EventSetters.Impl
 {

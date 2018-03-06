@@ -1,4 +1,4 @@
-using StarChef.MSMQService;
+using Fourth.StarChef.Invariables;
 
 namespace StarChef.Orchestrate
 {

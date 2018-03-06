@@ -3,7 +3,7 @@
 namespace StarChef.Common
 {
     using System;
-    using StarChef.MSMQService;
+    using Fourth.StarChef.Invariables;
 
     [Serializable]
     public class CalculateUpdateMessage : UpdateMessage

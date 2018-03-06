@@ -1,11 +1,10 @@
-﻿using Messaging.MSMQ.Interface;
+﻿using Fourth.StarChef.Invariables.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
-using Messaging.MSMQ;
-using static DataExported.Constants;
 using System.Linq;
+using static DataExported.Constants;
 
 namespace DataExported
 {
@@ -90,7 +89,7 @@ namespace DataExported
             {
                 var entityId = Convert.ToInt32(row[0]);
 
-                messages.Add(new UpdateMessage(entityId,
+                messages.Add(new Fourth.StarChef.Invariables.UpdateMessage(entityId,
                                             this.dbDSN,
                                             (int)actionType,
                                             this.databaseId,

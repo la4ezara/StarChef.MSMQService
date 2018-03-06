@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Google.ProtocolBuffers;
-using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 
 #region Orchestration types
 

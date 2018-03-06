@@ -1,23 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Fourth.StarChef.Invariables;
 using Moq;
-using StarChef.MSMQService;
 using Xunit;
-
-using SourceSystem = Fourth.Orchestration.Model.People.Commands.SourceSystem;
-
-using CreateAccount = Fourth.Orchestration.Model.People.Commands.CreateAccount;
-using UpdateAccount = Fourth.Orchestration.Model.People.Commands.UpdateAccount;
-using ActivateAccount = Fourth.Orchestration.Model.People.Commands.ActivateAccount;
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
-
-using CreateAccountBuilder = Fourth.Orchestration.Model.People.Commands.CreateAccount.Builder;
-using UpdateAccountBuilder = Fourth.Orchestration.Model.People.Commands.UpdateAccount.Builder;
-using ActivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.ActivateAccount.Builder;
 using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
+using SourceSystem = Fourth.Orchestration.Model.People.Commands.SourceSystem;
 
 namespace StarChef.Orchestrate.Tests
 {

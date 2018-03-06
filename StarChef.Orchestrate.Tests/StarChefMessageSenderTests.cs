@@ -8,7 +8,6 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Fourth.StarChef.Invariables;
-using StarChef.MSMQService;
 using Google.ProtocolBuffers;
 using Microsoft.WindowsAzure.Storage.Table;
 using Xunit;
@@ -25,7 +24,6 @@ using SupplierUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SupplierU
 using UserUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.UserUpdated.Builder;
 using SetUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SetUpdated.Builder;
 
-using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 using StarChef.Orchestrate.EventSetters.Impl;
 
 namespace StarChef.Orchestrate.Tests
