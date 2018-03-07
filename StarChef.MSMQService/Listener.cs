@@ -299,6 +299,9 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.EntityImported:
                         PostProcessingPerSubAction(msg);
                         break;
+                    case (int)Constants.MessageActionType.UpdatedInventoryValidation:
+                        ProcessUpdatedInventoryValidation(msg);
+                        break;
                 }
             }
         }
@@ -440,34 +443,6 @@ namespace StarChef.MSMQService
                     break;
             }
         }
-
-        /// <summary>
-        /// Resend message to use another processing algorithm
-        /// </summary>
-        /// <param name="msg"></param>
-        /// <param name="sendUpdateMessageFor">Array of message types which should be forwarded</param>
-        //private static void ForwardUpdateMessage(UpdateMessage msg, int[] sendUpdateMessageFor = null)
-        //{
-        //    sendUpdateMessageFor = sendUpdateMessageFor ?? new[]
-        //    {
-        //        (int) Constants.MessageSubActionType.ImportedIngredient,
-        //        (int) Constants.MessageSubActionType.ImportedIngredientCategory,
-        //        (int) Constants.MessageSubActionType.ImportedIngredientIntolerance,
-        //        (int) Constants.MessageSubActionType.ImportedIngredientNutrient,
-        //    };
-        //    if (sendUpdateMessageFor.Contains(msg.SubAction))
-        //    {
-        //        var forwardedMessage = new UpdateMessage(
-        //            msg.ProductID,
-        //            entityTypeId: msg.EntityTypeId,
-        //            action: (int) Constants.MessageActionType.SalesForceUserCreated,
-        //            dbDsn: msg.DSN,
-        //            databaseId: msg.DatabaseID);
-
-        //        var queueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
-        //        MSMQHelper.Send(forwardedMessage, queueName);
-        //    }
-        //}
 
         private void ProcessUduUpdate(UpdateMessage msg)
         {
@@ -688,6 +663,10 @@ namespace StarChef.MSMQService
         {
             var result = _databaseManager.Execute(connectionString, spName, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC, parameterValues);
             return result;
+        }
+
+        private void ProcessUpdatedInventoryValidation(UpdateMessage msg) {
+            ExecuteStoredProc(msg.DSN, "sc_switch_invisible_validation");
         }
     }
 }
