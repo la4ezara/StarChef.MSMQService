@@ -235,7 +235,7 @@
     <TransformXml Source="App.config" Destination="$(IntermediateOutputPath)$(TargetFileName).config" Transform="App.$(Configuration).config" />
     <!--Force build process to use the transformed configuration file from now on.-->
     <ItemGroup>
-      <AppConfigWithTargetPath Remove="App.config" />
+      <AppConfigWithTargetPath Remove="@(AppConfigWithTargetPath)"/>
       <AppConfigWithTargetPath Include="$(IntermediateOutputPath)$(TargetFileName).config">
         <TargetPath>$(TargetFileName).config</TargetPath>
       </AppConfigWithTargetPath>
