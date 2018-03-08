@@ -27,6 +27,13 @@ namespace StarChef.Orchestrate
             
             if (reader.Read())
             {
+                var changeTypeSc = reader["ChangeType"].ToString();
+                var changeType = Events.ChangeType.UPDATE;
+                if (changeTypeSc == "Archive")
+                {
+                    changeType = Events.ChangeType.ARCHIVE;
+                }
+
                 builder.SetCustomerId(cust.ExternalId)
                     .SetCustomerName(cust.Name)
                     .SetExternalId(reader[0].ToString())
@@ -51,7 +58,8 @@ namespace StarChef.Orchestrate
                     .SetCaptureDate(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>(22)))
                     .SetModifiedDate(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>(23)))
                     .SetPortionSizeQuantity(reader.GetValueOrDefault<double>("PortionSizeQuantity"))
-                    .SetPortionSizeUom(reader.GetValueOrDefault<string>("PortionSizeUom") ?? string.Empty);
+                    .SetPortionSizeUom(reader.GetValueOrDefault<string>("PortionSizeUom") ?? string.Empty)
+                    .SetChangeType(changeType);
             }
 
             //Ingredients
