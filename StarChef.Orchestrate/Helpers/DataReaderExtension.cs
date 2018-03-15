@@ -34,15 +34,16 @@ namespace StarChef.Orchestrate.Helpers
             #endregion
             #region get category types
             // category types don't have a parent
-            categoryTypes = records.Where(i => !i.TagParentId.HasValue).Select(i => new CategoryType
-            {
-                ProductId = i.ProductId,
-                Id = i.TagId,
-                ExternalId = Convert.ToString(i.TagGuid),
-                Name = i.TagName,
-                CategoryExportType = i.TagExportTypeId,
-                MainCategories = new List<Category>() // will be at least one item in category
-            }).ToList();
+            categoryTypes = records.Where(i => !i.TagParentId.HasValue)
+                .Select(i => new CategoryType
+                {
+                    ProductId = i.ProductId,
+                    Id = i.TagId,
+                    ExternalId = Convert.ToString(i.TagGuid),
+                    Name = i.TagName,
+                    CategoryExportType = i.TagExportTypeId,
+                    MainCategories = new List<Category>() // will be at least one item in category
+                }).ToList();
             #endregion
 
             #region build category legs for selected ones

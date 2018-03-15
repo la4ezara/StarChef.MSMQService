@@ -11,8 +11,8 @@ namespace StarChef.Common
     public class DatabaseManager : IDatabaseManager
     {
         public int Execute(
-            string connectionString, 
-            string spName, 
+            string connectionString,
+            string spName,
             params SqlParameter[] parameterValues
             )
         {
@@ -27,7 +27,8 @@ namespace StarChef.Common
                 // of these procs may take several minutes to complete
                 var cmd = new SqlCommand(spName, cn)
                 {
-                    CommandType = CommandType.StoredProcedure
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = cn.ConnectionTimeout
                 };
 
                 // add params
@@ -76,6 +77,22 @@ namespace StarChef.Common
             return retval;
         }
 
+        public HashSet<UserDatabase> GetUserDatabases(string connectionString)
+        {
+            var userDatabases = new HashSet<UserDatabase>();
+            var reader = ExecuteReader(connectionString, "sp_Get_Users_ConnectionStrings");
+
+            while (reader.Read())
+            {
+                var dataBaseId = reader.GetValue<int>("db_database_id");
+                var databaseConnectionString = reader.GetValue<string>("connString");
+                var externalId = reader.GetValue<string>("external_id");
+                var db = new UserDatabase(dataBaseId, databaseConnectionString, externalId);
+                userDatabases.Add(db);
+            }
+            return userDatabases;
+        }
+
         public string GetSetting(string connectionString, string settingName)
         {
             var result = string.Empty;
@@ -102,13 +119,13 @@ namespace StarChef.Common
             {
                 result = settingNameItem.Value as string;
             }
-            
+
             return result;
         }
 
         public IDataReader ExecuteReaderMultiResultset(
-            string connectionString, 
-            string spName, 
+            string connectionString,
+            string spName,
             params SqlParameter[] parameterValues
             )
         {
@@ -123,19 +140,57 @@ namespace StarChef.Common
                 // of these procs may take several minutes to complete
                 var cmd = new SqlCommand(spName, cn)
                 {
-                    CommandType = CommandType.StoredProcedure
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = cn.ConnectionTimeout
                 };
 
                 // add params
                 if (parameterValues != null)
+                {
                     foreach (var param in parameterValues)
+                    {
                         cmd.Parameters.Add(param);
+                    }
+                }
 
                 // run proc
                 SqlDataAdapter adapter = new SqlDataAdapter(cmd);
                 adapter.Fill(dataSet);
                 return dataSet.CreateDataReader();
             }
+        }
+
+        public int ExecuteScalar(
+            string connectionString,
+            string spName,
+            params SqlParameter[] parameterValues
+        )
+        {
+            int result;
+            using (var cn = new SqlConnection(connectionString))
+            {
+                cn.Open();
+                
+                // need a command with sensible timeout value (10 minutes), as some 
+                // of these procs may take several minutes to complete
+                var cmd = new SqlCommand(spName, cn)
+                {
+                    CommandType = CommandType.Text,
+                    CommandTimeout = cn.ConnectionTimeout
+                };
+                
+                // add params
+                if (parameterValues != null)
+                {
+                    foreach (var param in parameterValues)
+                    {
+                        cmd.Parameters.Add(param);
+                    }
+                }
+
+                result = (int)cmd.ExecuteScalar();
+            }
+            return result;
         }
 
         public IDataReader ExecuteReader(

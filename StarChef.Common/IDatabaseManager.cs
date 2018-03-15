@@ -30,7 +30,15 @@ namespace StarChef.Common
             params SqlParameter[] parameterValues
             );
 
+        int ExecuteScalar(
+            string connectionString,
+            string spName,
+            params SqlParameter[] parameterValues
+        );
+
         string GetSetting(string connectionString, string settingName);
+
+        HashSet<UserDatabase> GetUserDatabases(string connectionString);
 
         IList<int> GetUsersInGroup(string connectionString, int groupId);
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fourth.StarChef.Invariables.Interfaces;
+using System;
 using System.Threading.Tasks;
 
 namespace Messaging.MSMQ.Interface

@@ -5,7 +5,7 @@ using Commands = Fourth.Orchestration.Model.People.Commands;
 using SourceSystem = Fourth.Orchestration.Model.People.Commands.SourceSystem;
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
 using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
-using StarChef.MSMQService;
+using Fourth.StarChef.Invariables;
 
 namespace StarChef.Orchestrate
 {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Fourth.StarChef.Invariables;
+using System;
 
 namespace StarChef.MSMQService
 {

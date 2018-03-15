@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using log4net;
 using StarChef.Orchestrate.Models.TransferObjects;
 using MSMQHelper = StarChef.MSMQService.MSMQHelper;
-using UpdateMessage = StarChef.MSMQService.UpdateMessage;
 using StarChef.Listener.Extensions;
 using StarChef.Listener.Validators;
 using System;
@@ -94,7 +93,7 @@ namespace StarChef.Listener
                 var msg = new UpdateMessage(productId: userDetail.Item1,
                                             entityTypeId: (int)Constants.EntityType.User,
                                             action: (int)Constants.MessageActionType.SalesForceUserCreated,
-                                            dbDsn: userDetail.Item3,
+                                            dbDSN: userDetail.Item3,
                                             databaseId: userDetail.Item2);
                 MSMQHelper.Send(msg, config.NormalQueueName, string.Empty);
                 _logger.MessageSent(msg);

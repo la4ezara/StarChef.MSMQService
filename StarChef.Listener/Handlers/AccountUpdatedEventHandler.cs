@@ -45,7 +45,7 @@ namespace StarChef.Listener.Handlers
                             if (isUserExists)
                             {
                                 _logger.UpdatingUser(user);
-                                await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress);
+                                await DbCommands.UpdateUser(user.ExternalLoginId, user.Username, user.FirstName, user.LastName, user.EmailAddress, user.PermissionSets);
                             }
 
                             await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);

@@ -1,4 +1,5 @@
-﻿using Messaging.MSMQ;
+﻿using Fourth.StarChef.Invariables.Interfaces;
+using Messaging.MSMQ;
 using Messaging.MSMQ.Interface;
 using System;
 using System.Collections.Concurrent;

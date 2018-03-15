@@ -1,4 +1,6 @@
-﻿namespace StarChef.Orchestrate.Models.TransferObjects
+﻿using System.Collections.Generic;
+
+namespace StarChef.Orchestrate.Models.TransferObjects
 {
     public class AccountUpdatedTransferObject
     {
@@ -7,5 +9,6 @@
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string EmailAddress { get; set; }
+        public IEnumerable<string> PermissionSets { get; set;}
     }
 }

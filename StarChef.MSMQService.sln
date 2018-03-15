@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.MsmqService.Integr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.MsmqIntegration.WinApp", "StarChef.MsmqIntegration.WinApp\StarChef.MsmqIntegration.WinApp.csproj", "{C62E0C5E-4425-419D-A9FB-37E506B2F122}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.SqlQueue.Service", "StarChef.SqlQueue.Service\StarChef.SqlQueue.Service.csproj", "{C17B34EB-AC40-45FC-824E-8FCD1B432880}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +88,10 @@ Global
 		{C62E0C5E-4425-419D-A9FB-37E506B2F122}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C62E0C5E-4425-419D-A9FB-37E506B2F122}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C62E0C5E-4425-419D-A9FB-37E506B2F122}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C17B34EB-AC40-45FC-824E-8FCD1B432880}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C17B34EB-AC40-45FC-824E-8FCD1B432880}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C17B34EB-AC40-45FC-824E-8FCD1B432880}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C17B34EB-AC40-45FC-824E-8FCD1B432880}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
