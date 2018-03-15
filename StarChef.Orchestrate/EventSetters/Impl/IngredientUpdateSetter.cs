@@ -23,7 +23,14 @@ namespace StarChef.Orchestrate
             using (var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_ingredient", new SqlParameter("@product_id", entityId)))
             {
                 if (reader.Read())
-                {                
+                {
+                    var changeTypeSc = reader["changetype"].ToString();
+                    var changeType = Events.ChangeType.UPDATE;
+                    if (changeTypeSc == "Archive")
+                    {
+                        changeType = Events.ChangeType.ARCHIVE;
+                    }
+                              
                     builder
                         .SetExternalId(reader[0].ToString())
                         .SetCustomerId(cust.ExternalId)
@@ -48,7 +55,8 @@ namespace StarChef.Orchestrate
                         .SetVintage(reader[18].ToString())
                         .SetMinimumShelfLife(reader.GetValueOrDefault<long>(19))
                         .SetIsExpiryDateInputRequired(reader.GetValueOrDefault<bool>(20))
-                        .SetImageUrl(reader[21].ToString());
+                        .SetImageUrl(reader[21].ToString())
+                        .SetChangeType(changeType);
                 }
 
                 //SuppliedPackSizes
