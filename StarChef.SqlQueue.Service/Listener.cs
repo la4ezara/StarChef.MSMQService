@@ -35,6 +35,7 @@ namespace StarChef.SqlQueue.Service
         {
             while (CanProcess)
             {
+                int dbId = default(int);
                 try
                 {
                     var timeSpan = TimeSpan.FromMinutes(_appConfiguration.SleepMinutes);
@@ -43,6 +44,7 @@ namespace StarChef.SqlQueue.Service
                     this._userDatabases = _databaseManager.GetUserDatabases(this._appConfiguration.UserDSN);
                     foreach (var userDatabase in _userDatabases)
                     {
+                        dbId = userDatabase.DatabaseId;
                         var reader = _databaseManager.ExecuteReader(userDatabase.ConnectionString, "sc_get_orchestration_lookups");
                         while (reader.Read())
                         {
@@ -66,7 +68,8 @@ namespace StarChef.SqlQueue.Service
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e);
+                    var message = $"Database ID: { dbId }";
+                    Logger.Error(message, e);
                 }
             }
 
@@ -83,7 +86,7 @@ namespace StarChef.SqlQueue.Service
                 {
                     if (this.ActiveThreads.All(t => t.Name != threadName))
                     {
-                        var t = new Thread(() => Process(userDatabase, count)) {Name = threadName};
+                        var t = new Thread(() => Process(userDatabase, count)) { Name = threadName };
                         t.Start();
                         ActiveThreads.Add(t);
                     }
@@ -186,7 +189,8 @@ namespace StarChef.SqlQueue.Service
                     {
                         Parallel.ForEach(messages, m => Enqueue(userDatabase.ConnectionString, m.ProductID, m.EntityTypeId, m.StatusId, m.RetryCount, m.ArrivedTime, userDatabase.DatabaseId));
                     }
-                    Logger.Error(e);
+                    var message = $"Database ID: { userDatabase.DatabaseId }";
+                    Logger.Error(message, e);
                 }
             }
             Logger.Info($"Process finished for db {userDatabase.DatabaseId}");
