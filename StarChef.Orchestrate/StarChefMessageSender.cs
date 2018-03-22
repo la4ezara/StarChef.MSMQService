@@ -97,7 +97,7 @@ namespace StarChef.Orchestrate
 
             return result;
         }
-
+                
         public bool Send(
             EnumHelper.EntityTypeWrapper entityTypeWrapper,
             string dbConnectionString,
@@ -235,7 +235,7 @@ namespace StarChef.Orchestrate
                         }
                     }
                 }
-
+                
                 if (!logged)
                 {
                     _logger.Debug("enter LogDatabase");
