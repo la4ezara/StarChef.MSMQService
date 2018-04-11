@@ -37,7 +37,7 @@
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
     <IsWebBootstrapper>true</IsWebBootstrapper>
-	<NoWin32Manifest>true</NoWin32Manifest>
+    <NoWin32Manifest>true</NoWin32Manifest>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -154,6 +154,9 @@
       <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="log4net.Ext.Json, Version=1.2.15.4228, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.Ext.Json.1.2.15.14586\lib\net45-full\log4net.Ext.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Azure.KeyVault.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.2.0.4\lib\net45\Microsoft.Azure.KeyVault.Core.dll</HintPath>
       <Private>True</Private>
@@ -229,6 +232,8 @@
     <Compile Include="Listener.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="log4net.Ext.Json.LICENSE.txt" />
+    <Content Include="log4net.Ext.Json.README.txt" />
     <None Include="App.config" />
     <Content Include="Install\install.bat" />
     <Content Include="Install\uninstall.bat" />

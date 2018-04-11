@@ -32,6 +32,7 @@ namespace StarChef.MSMQService
             _components = new Container();
             // Start log4net up
             XmlConfigurator.Configure();
+            GlobalContext.Properties["component"] = "Fourth.StarChef.MSMQ";
             log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
 
             _globalUpdateTimeStamps = new Hashtable();

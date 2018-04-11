@@ -7,6 +7,7 @@ using log4net;
 using StarChef.Common;
 using StarChef.SqlQueue.Service.Interface;
 using System.Linq;
+using log4net.Config;
 
 namespace StarChef.SqlQueue.Service
 {
@@ -18,6 +19,9 @@ namespace StarChef.SqlQueue.Service
 
         public ServiceRunner()
         {
+            XmlConfigurator.Configure();
+            GlobalContext.Properties["component"] = "Fourth.StarChef.SqlQueue.Service";
+
             var builder = new ContainerBuilder();
             builder.RegisterModule<DependencyConfiguration>();
             IContainer container = builder.Build();
