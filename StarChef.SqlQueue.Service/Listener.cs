@@ -36,6 +36,7 @@ namespace StarChef.SqlQueue.Service
             while (CanProcess)
             {
                 int dbId = default(int);
+                var dbForDeletion = new List<int>();
                 try
                 {
                     var timeSpan = TimeSpan.FromMinutes(_appConfiguration.SleepMinutes);
@@ -44,15 +45,31 @@ namespace StarChef.SqlQueue.Service
                     this._userDatabases = _databaseManager.GetUserDatabases(this._appConfiguration.UserDSN);
                     foreach (var userDatabase in _userDatabases)
                     {
-                        dbId = userDatabase.DatabaseId;
-                        var reader = _databaseManager.ExecuteReader(userDatabase.ConnectionString, "sc_get_orchestration_lookups");
-                        while (reader.Read())
+                        try
                         {
+                            dbId = userDatabase.DatabaseId;
+                            var reader = _databaseManager.ExecuteReader(userDatabase.ConnectionString, "sc_get_orchestration_lookups");
+                            while (reader.Read())
+                            {
+                                var entityTypeId = reader.GetValue<int>("entity_type_id");
+                                var canPublish = reader.GetValue<bool>("can_publish");
+                                var lookup = new OrchestrationLookup(entityTypeId, canPublish);
+                                userDatabase.OrchestrationLookups.Add(lookup);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            dbForDeletion.Add(userDatabase.DatabaseId);
+                            var message = $"Database ID: { userDatabase.DatabaseId }";
+                            Logger.Error(message, ex);
+                        }
+                    }
 
-                            var entityTypeId = reader.GetValue<int>("entity_type_id");
-                            var canPublish = reader.GetValue<bool>("can_publish");
-                            var lookup = new OrchestrationLookup(entityTypeId, canPublish);
-                            userDatabase.OrchestrationLookups.Add(lookup);
+                    if (dbForDeletion.Any())
+                    {
+                        foreach (var db  in dbForDeletion)
+                        {
+                            this._userDatabases.RemoveWhere(c => c.DatabaseId == db);
                         }
                     }
 
@@ -64,7 +81,7 @@ namespace StarChef.SqlQueue.Service
                         }
                     }
 
-                    Parallel.ForEach(this._userDatabases, StartProcess);
+                   Parallel.ForEach(this._userDatabases, StartProcess);
                 }
                 catch (Exception e)
                 {
