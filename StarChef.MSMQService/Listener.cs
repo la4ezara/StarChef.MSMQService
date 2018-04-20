@@ -84,7 +84,7 @@ namespace StarChef.MSMQService
                                 DateTime arrivalTime = DateTime.UtcNow;
                                 if (messageId != "00000000-0000-0000-0000-000000000000\\0")
                                 {
-                                    arrivalTime = msg.ArrivedTime;
+                                    arrivalTime = msg.ArrivedTime.ToUniversalTime();
                                 }
 
                                 updmsg.ArrivedTime = arrivalTime;
