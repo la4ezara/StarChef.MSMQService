@@ -37,6 +37,7 @@ namespace StarChef.SqlQueue.Service
             {
                 int dbId = default(int);
                 var dbForDeletion = new List<int>();
+
                 try
                 {
                     var timeSpan = TimeSpan.FromMinutes(_appConfiguration.SleepMinutes);
