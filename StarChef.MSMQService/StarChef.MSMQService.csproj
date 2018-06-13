@@ -245,7 +245,6 @@
     </Compile>
     <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="Interface\IAppConfiguration.cs" />
-    <Compile Include="Constant.cs" />
     <Compile Include="DependencyConfiguration.cs" />
     <Compile Include="Interface\IListener.cs" />
     <Compile Include="Listener.cs">

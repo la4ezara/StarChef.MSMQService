@@ -13,6 +13,7 @@ namespace StarChef.Listener
         public WindowsServiceClass()
         {
             XmlConfigurator.Configure();
+            GlobalContext.Properties["component"] = "Fourth.StarChef.Listener";
         }
 
         static void Main()

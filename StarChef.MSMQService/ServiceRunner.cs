@@ -32,7 +32,7 @@ namespace StarChef.MSMQService
             _components = new Container();
             // Start log4net up
             XmlConfigurator.Configure();
-
+            GlobalContext.Properties["component"] = "Fourth.StarChef.MSMQ";
             _globalUpdateTimeStamps = new Hashtable();
             _activeTaskDatabaseIDs = new Hashtable();
 
