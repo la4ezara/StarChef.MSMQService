@@ -209,7 +209,7 @@ namespace StarChef.Listener.Tests.Extensions
         #region IsStarChefEvent
 
         [Theory]
-        [MemberData("StarChefEvents")]
+        [MemberData(nameof(StarChefEvents))]
         public void IsStarChefEvent_should_return_true_for_StarChef(IMessage message)
         {
             var actual = message.IsStarChefEvent();
@@ -218,7 +218,7 @@ namespace StarChef.Listener.Tests.Extensions
         }
 
         [Theory]
-        [MemberData("NonStarChefEvents")]
+        [MemberData(nameof(NonStarChefEvents))]
         public void IsStarChefEvent_should_return_false_for_nonStarChef(IMessage message)
         {
             var actual = message.IsStarChefEvent();

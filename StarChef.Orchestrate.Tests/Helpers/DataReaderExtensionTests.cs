@@ -93,7 +93,7 @@ namespace StarChef.Orchestrate.Tests.Helpers
             Assert.Equal(2, categoryTypes.Single(t => t.Name == "Ingredient Category").MainCategories.Count);
 
             Assert.NotNull(categoryTypes.Single(t => t.Name == "Region"));
-            Assert.Equal(1, categoryTypes.Single(t => t.Name == "Region").MainCategories.Count);
+            Assert.Single(categoryTypes.Single(t => t.Name == "Region").MainCategories);
 
             // assert categories, some of them should have nested items, which actually were selected
             Assert.Equal(6, categories.Count);
@@ -101,11 +101,11 @@ namespace StarChef.Orchestrate.Tests.Helpers
             Assert.NotNull(categories.Single(c => c.Name == "Starters" && c.SubCategories == null));
 
             Assert.NotNull(categories.Single(c => c.Name == "Starters" && c.SubCategories != null));
-            Assert.Equal(1, categories.Single(c => c.Name == "Starters" && c.SubCategories != null).SubCategories.Count);
+            Assert.Single(categories.Single(c => c.Name == "Starters" && c.SubCategories != null).SubCategories);
             Assert.Equal("test", categories.Single(c => c.Name == "Starters" && c.SubCategories != null).SubCategories.First().Name);
 
             Assert.NotNull(categories.Single(c => c.Name == "Bakery" && c.SubCategories != null));
-            Assert.Equal(1, categories.Single(c => c.Name == "Bakery" && c.SubCategories != null).SubCategories.Count);
+            Assert.Single(categories.Single(c => c.Name == "Bakery" && c.SubCategories != null).SubCategories);
             Assert.Equal("Italian Breads", categories.Single(c => c.Name == "Bakery" && c.SubCategories != null).SubCategories.First().Name);
 
             Assert.NotNull(categories.Single(c => c.Name == "Grocery" && c.SubCategories == null));

@@ -39,7 +39,7 @@ namespace StarChef.Listener.Tests.Handlers
             logChecker.Dispose();
 
             // assert
-            Assert.Equal(messageList.Count, 0);
+            Assert.Empty(messageList);
 
             Assert.Null(ThreadContext.Properties[AccountStatusChangeFailedEventHandler.EXTERNAL_ID]);
         }
@@ -72,7 +72,7 @@ namespace StarChef.Listener.Tests.Handlers
             // assert
             Assert.All(messageList, item =>
             {
-                Assert.Equal(item.Properties[AccountStatusChangeFailedEventHandler.EXTERNAL_ID], "1");
+                Assert.Equal("1", item.Properties[AccountStatusChangeFailedEventHandler.EXTERNAL_ID]);
             });
 
             Assert.Null(ThreadContext.Properties[AccountStatusChangeFailedEventHandler.EXTERNAL_ID]);
@@ -108,7 +108,7 @@ namespace StarChef.Listener.Tests.Handlers
             // assert
             Assert.All(messageList, item =>
             {
-                Assert.Equal(item.Properties[AccountStatusChangeFailedEventHandler.EXTERNAL_ID], "1");
+                Assert.Equal("1", item.Properties[AccountStatusChangeFailedEventHandler.EXTERNAL_ID]);
             });
 
             Assert.Null(ThreadContext.Properties[AccountStatusChangeFailedEventHandler.EXTERNAL_ID]);

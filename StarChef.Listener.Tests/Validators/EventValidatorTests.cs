@@ -22,7 +22,7 @@ namespace StarChef.Listener.Tests.Types
     public class EventValidatorTests
     {
         [Theory(DisplayName = "Account validator should return True for StarChef source")]
-        [MemberData("AccountEventsWithStarChefSourceSystem")]
+        [MemberData(nameof(AccountEventsWithStarChefSourceSystem))]
         public void Should_return_True_for_event_with_StartChef_source(object payload, object validator)
         {
             var actual = ((EventValidator)validator).IsAllowedEvent(payload);
@@ -31,7 +31,7 @@ namespace StarChef.Listener.Tests.Types
         }
 
         [Theory(DisplayName = "Account validator should return False for non StarChef source")]
-        [MemberData("AccountEventsWithNonStarChefSourceSystem")]
+        [MemberData(nameof(AccountEventsWithNonStarChefSourceSystem))]
         public void Should_return_False_for_event_with_nonStartChef_source(object payload, object validator)
         {
             var actual = ((EventValidator)validator).IsAllowedEvent(payload);
@@ -40,7 +40,7 @@ namespace StarChef.Listener.Tests.Types
         }
 
         [Theory(DisplayName = "Account validator should return False if source is not set")]
-        [MemberData("AccountEventsWithoutSourceSystem")]
+        [MemberData(nameof(AccountEventsWithoutSourceSystem))]
         public void Should_return_False_if_source_is_not_set_for_event(object payload, object validator)
         {
             var actual = ((EventValidator)validator).IsAllowedEvent(payload);

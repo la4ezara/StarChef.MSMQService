@@ -42,7 +42,7 @@ namespace StarChef.Listener.Tests.Handlers
             logChecker.Dispose();
 
             // assert
-            Assert.Equal(messageList.Count, 0);
+            Assert.Empty(messageList);
 
             Assert.Null(ThreadContext.Properties[AccountStatusChangedEventHandler.EXTERNAL_ID]);
         }

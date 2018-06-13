@@ -58,7 +58,6 @@
     <Compile Include="Extensions\TypeExtensions.cs" />
     <Compile Include="IDatabaseManager.cs" />
     <Compile Include="EnumHelper.cs" />
-    <Compile Include="log4netHelper.cs" />
     <Compile Include="Types\ImportTypeSettings.cs" />
     <Compile Include="UpdateMessage.cs" />
     <Compile Include="UserDatabase.cs" />

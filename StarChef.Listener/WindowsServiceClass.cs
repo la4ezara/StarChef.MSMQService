@@ -13,8 +13,6 @@ namespace StarChef.Listener
         public WindowsServiceClass()
         {
             XmlConfigurator.Configure();
-            GlobalContext.Properties["component"] = "Fourth.StarChef.Listener";
-            log4netHelper.ConfigureAdoAppenderCommandText(Constant.CONFIG_LOG4NET_ADO_APPENDER_COMMAND);
         }
 
         static void Main()
