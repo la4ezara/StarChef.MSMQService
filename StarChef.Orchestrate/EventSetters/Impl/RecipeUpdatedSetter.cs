@@ -88,10 +88,12 @@ namespace StarChef.Orchestrate
                 while (reader.Read())
                 {
                     var groupBuilder = Events.RecipeUpdated.Types.RecipeGroup.CreateBuilder();
-                    var externalId = reader[0].ToString();
-                    var groupName = reader[1].ToString();
+                    var externalId = reader.GetValueOrDefault<Guid>("group_guid").ToString();
+                    var groupName = reader.GetValueOrDefault<string>("group_name");
+                    var groupPrice = reader.GetValueOrDefault<decimal>("product_price");
                     groupBuilder.SetExternalId(externalId)
-                        .SetGroupName(groupName);
+                        .SetGroupName(groupName)
+                        .SetPrice(Fourth.Orchestration.Model.Common.Decimal.BuildFromDecimal(groupPrice));
                     builder.AddGroups(groupBuilder);
                 }
             }

@@ -33,31 +33,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Fourth.Orchestration, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.181\lib\net452\Fourth.Orchestration.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.181\lib\net452\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.181\lib\net452\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.SharedMemoryStub, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.181\lib\net452\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Model, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.Model.1.2.181\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Fourth.Orchestration.Model.1.2.195\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.181\lib\net452\Fourth.Orchestration.Storage.Azure.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Storage.Azure.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.7\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
+      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.15\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
     </Reference>
     <Reference Include="Google.ProtocolBuffers, Version=2.4.1.555, Culture=neutral, PublicKeyToken=55f7125234beb589, processorArchitecture=MSIL">
       <HintPath>..\packages\Google.ProtocolBuffers.2.4.1.555\lib\net40\Google.ProtocolBuffers.dll</HintPath>
@@ -84,18 +78,16 @@
       <HintPath>..\packages\Microsoft.Data.Services.Client.5.8.3\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.ServiceBus.4.1.7\lib\net45\Microsoft.ServiceBus.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\WindowsAzure.ServiceBus.4.1.10\lib\net45\Microsoft.ServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.2.3\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=9.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.Storage.9.0.0\lib\net45\Microsoft.WindowsAzure.Storage.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=9.1.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.Storage.9.1.1\lib\net45\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="SharedMemory, Version=2.0.16.0, Culture=neutral, PublicKeyToken=71afd155bcebae3e, processorArchitecture=MSIL">
       <HintPath>..\packages\SharedMemory.2.0.16\lib\net40\SharedMemory.dll</HintPath>
