@@ -309,33 +309,33 @@ namespace StarChef.Orchestrate
             return result;
         }
 
-        public bool PublishUpdateEvent(UpdateMessage message)
-        {
-            var result = false;
-            var connectionString = message.DSN;
-            var entityTypeId = message.EntityTypeId;
+        //public bool PublishUpdateEvent(UpdateMessage message)
+        //{
+        //    var result = false;
+        //    var connectionString = message.DSN;
+        //    var entityTypeId = message.EntityTypeId;
 
-            try
-            {
-                if (_databaseManager.IsPublishEnabled(connectionString, entityTypeId))
-                {
-                    using (var bus = _messagingFactory.CreateMessageBus())
-                    {
-                        var payload = CreateUpdateEvent(message);
-                        if (payload != null)
-                        {
-                            result = Publish(bus, payload);
-                            LogDatabase(connectionString, entityTypeId, message.ProductID, message.ArrivedTime, result);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Fatal("Failed to publish delete event.", ex);
-            }
-            return result;
-        }
+        //    try
+        //    {
+        //        if (_databaseManager.IsPublishEnabled(connectionString, entityTypeId))
+        //        {
+        //            using (var bus = _messagingFactory.CreateMessageBus())
+        //            {
+        //                var payload = CreateUpdateEvent(message);
+        //                if (payload != null)
+        //                {
+        //                    result = Publish(bus, payload);
+        //                    LogDatabase(connectionString, entityTypeId, message.ProductID, message.ArrivedTime, result);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.Fatal("Failed to publish update event.", ex);
+        //    }
+        //    return result;
+        //}
 
         internal IMessage CreateDeleteEventPayload(string entityExternalId, int entityTypeId, int databaseId, string dbConnectionString, IDatabaseManager databaseManager)
         {
@@ -466,17 +466,17 @@ namespace StarChef.Orchestrate
             }
         }
 
-        public IMessage CreateUpdateEvent(UpdateMessage message)
-        {
-            var messageActionType = (Constants.MessageActionType)message.Action;
-            switch (messageActionType)
-            {
-                case Constants.MessageActionType.EntityUpdated:
+        //public IMessage CreateUpdateEvent(UpdateMessage message)
+        //{
+        //    var messageActionType = (Constants.MessageActionType)message.Action;
+        //    switch (messageActionType)
+        //    {
+        //        case Constants.MessageActionType.EntityUpdated:
 
-                    return _eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>(message.DSN, message.ProductID, message.DatabaseID);
-                default:
-                    throw new NotSupportedException(string.Format("Action type {0} is not supported by commands.", messageActionType));
-            }
-        }
+        //            return _eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>(message.DSN, message.ProductID, message.DatabaseID);
+        //        default:
+        //            throw new NotSupportedException(string.Format("Action type {0} is not supported by commands.", messageActionType));
+        //    }
+        //}
     }
 }

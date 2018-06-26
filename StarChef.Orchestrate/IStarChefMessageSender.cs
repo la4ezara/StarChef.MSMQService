@@ -27,7 +27,7 @@ namespace StarChef.Orchestrate
         );
 
         bool PublishDeleteEvent(UpdateMessage message);
-        bool PublishUpdateEvent(UpdateMessage message);
+        //bool PublishUpdateEvent(UpdateMessage message);
         bool PublishCommand(UpdateMessage message);
     }
 }

@@ -179,10 +179,15 @@
       <Project>{89EF0B30-23AF-4F8C-A073-7924D2B51167}</Project>
       <Name>StarChef.Orchestrate</Name>
     </ProjectReference>
+    <ProjectReference Include="..\StarChef.SqlQueue.Service\StarChef.SqlQueue.Service.csproj">
+      <Project>{c17b34eb-ac40-45fc-824e-8fcd1b432880}</Project>
+      <Name>StarChef.SqlQueue.Service</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\xunit.analyzers.0.8.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

@@ -284,14 +284,15 @@ namespace StarChef.Orchestrate.Tests
             var databaseManager = new Mock<IDatabaseManager>();
             databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
             var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, eventFactory, Mock.Of<ICommandFactory>());
-            
+
             // the message which is received from MSMQ
             var msg = new UpdateMessage
             {
-                Action = (int)Constants.MessageActionType.EntityUpdated
+                Action = (int)Constants.MessageActionType.StarChefEventsUpdated,
+                EntityTypeId = (int)Constants.EntityType.Supplier
             };
             
-            sender.PublishUpdateEvent(msg);
+            sender.Send(EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent, string.Empty, msg.EntityTypeId, msg.ProductID, string.Empty, msg.DatabaseID, DateTime.UtcNow);
 
             // verify that the event is passed to the Publish method of the bus and it has correct values in properties
             bus.Verify(m => m.Publish(It.Is<IMessage>(omsg => ((SupplierUpdated)omsg).ExternalId == "22")), Times.Once);

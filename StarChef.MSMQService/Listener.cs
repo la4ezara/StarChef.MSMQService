@@ -252,6 +252,10 @@ namespace StarChef.MSMQService
                         break;
                     case (int)Constants.MessageActionType.UpdatedGroup:
                         ProcessGroupUpdate(msg);
+                        //extend processing to orchestration
+                        msg.Action = (int)Constants.MessageActionType.StarChefEventsUpdated;
+                        msg.EntityTypeId = (int)Constants.EntityType.Group;
+                        ProcessStarChefEventsUpdated(msg);
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductCost:
                         ProcessProductCostUpdate(msg);
@@ -286,15 +290,6 @@ namespace StarChef.MSMQService
                         _logger.Debug("enter StarChefEventsUpdated");
                         ProcessStarChefEventsUpdated(msg);
                         _logger.Debug("exit StarChefEventsUpdated");
-                        break;
-                    case (int)Constants.MessageActionType.UserDeActivated:
-                        _messageSender.PublishCommand(msg);
-                        break;
-                    case (int)Constants.MessageActionType.EntityDeleted:
-                        _messageSender.PublishDeleteEvent(msg);
-                        break;
-                    case (int)Constants.MessageActionType.EntityUpdated:
-                        _messageSender.PublishUpdateEvent(msg);
                         break;
                     case (int)Constants.MessageActionType.EntityImported:
                         PostProcessingPerSubAction(msg);
@@ -555,44 +550,21 @@ namespace StarChef.MSMQService
         {
             var entityTypeId = 0;
             var entityId = 0;
-            var arrivedTime = msg.ArrivedTime;
 
-            EnumHelper.EntityTypeWrapper? entityTypeWrapper = null;
             var productIds = new List<int>();
             switch (msg.EntityTypeId)
             {
                 case (int) Constants.EntityType.User:
                     entityTypeId = (int) Constants.EntityType.User;
                     entityId = msg.ProductID;
-                    switch (msg.Action)
-                    {
-                        case (int) Constants.MessageActionType.UserCreated:
-                        case (int) Constants.MessageActionType.StarChefEventsUpdated:
-                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.User;
-                            break;
-                        case (int) Constants.MessageActionType.UserActivated:
-                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserActivated;
-                            break;
-                        case (int) Constants.MessageActionType.UserDeActivated:
-                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserDeactivated;
-                            break;
-                        case (int)Constants.MessageActionType.SalesForceUserCreated:
-                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendUserUpdatedEvent;
-                            break;
-                        default:
-                            entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand;
-                            break;
-                    }
                     break;
                 case (int)Constants.EntityType.UserGroup:
                     entityTypeId = (int)Constants.EntityType.UserGroup;
                     entityId = msg.ProductID;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.UserGroup;
                     break;
                 case (int) Constants.EntityType.Ingredient:
                     entityTypeId = (int) Constants.EntityType.Ingredient;
                     entityId = msg.ProductID;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.Ingredient;
                     if (!string.IsNullOrEmpty(msg.ExtendedProperties))
                     {
                         productIds = JsonConvert.DeserializeObject<List<int>>(msg.ExtendedProperties);
@@ -600,7 +572,6 @@ namespace StarChef.MSMQService
                     break;
                 case (int) Constants.EntityType.Dish:
                     entityTypeId = (int) Constants.EntityType.Dish;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.Recipe;
                     entityId = msg.ProductID;
                     if (!string.IsNullOrEmpty(msg.ExtendedProperties))
                     {
@@ -609,53 +580,39 @@ namespace StarChef.MSMQService
                     break;
                 case (int) Constants.EntityType.Menu:
                     entityTypeId = (int) Constants.EntityType.Menu;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.Menu;
                     entityId = msg.ProductID;
                     break;
                 case (int) Constants.EntityType.MealPeriodManagement:
                     entityTypeId = (int) Constants.EntityType.MealPeriodManagement;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.MealPeriod;
                     entityId = msg.ProductID;
                     break;
                 case (int)Constants.EntityType.Group:
                     entityTypeId = (int)Constants.EntityType.Group;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.Group;
                     entityId = msg.ProductID;
                     break;
                 case (int)Constants.EntityType.Supplier:
                     entityTypeId = (int)Constants.EntityType.Supplier;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent;
                     entityId = msg.ProductID;
                     break;
                 case (int)Constants.EntityType.ProductSet:
                     entityTypeId = (int)Constants.EntityType.ProductSet;
-                    entityTypeWrapper = EnumHelper.EntityTypeWrapper.ProductSet;
                     entityId = msg.ProductID;
                     break;
             }
 
-            if (!entityTypeWrapper.HasValue) return;
             if (!productIds.Any())
             {
                 _logger.Debug("enter send");
-                _messageSender.Send(entityTypeWrapper.Value,
-                                    msg.DSN,
-                                    entityTypeId,
-                                    entityId,
-                                    msg.ExternalId,
-                                    msg.DatabaseID,
-                                    arrivedTime);
+
+                AddOrchestrationMessageToQueue(msg.DSN, entityId, entityTypeId, msg.ExternalId, (Constants.MessageActionType)msg.Action);
                 _logger.Debug("exit send");
             }
             else
             {
-                _messageSender.Send(entityTypeWrapper.Value,
-                    msg.DSN,
-                    entityTypeId,
-                    productIds,
-                    msg.ExternalId,
-                    msg.DatabaseID,
-                    arrivedTime);
+                foreach (int id in productIds)
+                {
+                    AddOrchestrationMessageToQueue(msg.DSN, id, entityTypeId, string.Empty, (Constants.MessageActionType)msg.Action);
+                }
             }
         }
 
@@ -667,6 +624,20 @@ namespace StarChef.MSMQService
 
         private void ProcessUpdatedInventoryValidation(UpdateMessage msg) {
             ExecuteStoredProc(msg.DSN, "sc_switch_invisible_validation");
+        }
+
+        private void AddOrchestrationMessageToQueue(string dsn, int entityId, int entityTypeId, string externalId, Constants.MessageActionType messageActionTypeId) {
+            
+            ExecuteStoredProc(dsn,
+                "sc_calculation_enqueue",
+                new SqlParameter("@EntityId", entityId),
+                new SqlParameter("@EntityTypeId", entityTypeId),
+                new SqlParameter("@RetryCount", 0),
+                new SqlParameter("@StatusId", 1),
+                new SqlParameter("@DateCreated", DateTime.UtcNow),
+                new SqlParameter("@ExternalId", externalId),
+                new SqlParameter("@MessageActionTypeId", messageActionTypeId));
+
         }
     }
 }
