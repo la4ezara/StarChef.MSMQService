@@ -65,13 +65,7 @@ node {
 		}
 
 		stage('Run Unit Tests'){
-			echo 'Run Unit Tests StarChef.Orchestrate'
-			bat "\"$env.WORKSPACE/%XUNIT_CONSOLE_RUNNER_V2_3_1%\" \"$env.WORKSPACE/StarChef.Orchestrate.Tests/bin/${buildMode}/StarChef.Orchestrate.Tests.dll\" -xml \"$env.WORKSPACE/starchef-orchestrate-xunit-results.xml\""
-			step([$class: 'XUnitPublisher', testTimeMargin: '3000', thresholdMode: 0, thresholds: [[$class: 'FailedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: ''], [$class: 'SkippedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: '']], tools: [[$class: 'XUnitDotNetTestType', deleteOutputFiles: true, failIfNotNew: true, pattern: '**/starchef-orchestrate-xunit-results.xml', skipNoTestFiles: false, stopProcessingIfError: true]]])
-
-			echo 'Run Unit Tests StarChef.Listener'
-			bat "\"$env.WORKSPACE/%XUNIT_CONSOLE_RUNNER_V2_3_1%\" \"$env.WORKSPACE/StarChef.Listener.Tests/bin/${buildMode}/StarChef.Listener.Tests.dll\" -xml \"$env.WORKSPACE/starchef-listener-xunit-results.xml\""
-			step([$class: 'XUnitPublisher', testTimeMargin: '3000', thresholdMode: 0, thresholds: [[$class: 'FailedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: ''], [$class: 'SkippedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: '']], tools: [[$class: 'XUnitDotNetTestType', deleteOutputFiles: true, failIfNotNew: true, pattern: '**/starchef-listener-xunit-results.xml', skipNoTestFiles: false, stopProcessingIfError: true]]])
+			runXUnitTests("$env.WORKSPACE", "*.Tests.dll")
 		}
 		
 		stage('SonarQube Analysis') {
