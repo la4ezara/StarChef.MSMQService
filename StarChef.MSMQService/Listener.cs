@@ -24,7 +24,6 @@ namespace StarChef.MSMQService
     {
         private readonly IAppConfiguration _appConfiguration;
         private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly IStarChefMessageSender _messageSender;
         private readonly IDatabaseManager _databaseManager;
         private readonly IMessageManager _messageManager;
         private readonly XmlMessageFormatter _messageFormat;
@@ -35,20 +34,18 @@ namespace StarChef.MSMQService
 
         public bool CanProcess { get; set; }
 
-        public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender, IDatabaseManager databaseManager)
+        public Listener(IAppConfiguration appConfiguration, IDatabaseManager databaseManager)
         {
             _appConfiguration = appConfiguration;
-            _messageSender = messageSender;
             _databaseManager = databaseManager;
             _messageManager = new MsmqManager(_appConfiguration.NormalQueueName, _appConfiguration.PoisonQueueName);
             _messageFormat = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
             this.CanProcess = true;
         }
 
-        public Listener(IAppConfiguration appConfiguration, IStarChefMessageSender messageSender, IDatabaseManager databaseManager, IMessageManager messageManager)
+        public Listener(IAppConfiguration appConfiguration, IDatabaseManager databaseManager, IMessageManager messageManager)
         {
             _appConfiguration = appConfiguration;
-            _messageSender = messageSender;
             _databaseManager = databaseManager;
             _messageManager = messageManager;
             _messageFormat = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });

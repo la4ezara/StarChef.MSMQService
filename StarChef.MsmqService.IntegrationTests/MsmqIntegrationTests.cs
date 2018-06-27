@@ -59,8 +59,7 @@ namespace StarChef.MsmqService.IntegrationTests
                 }
             }).Returns(1);
 
-            var sender = new Mock<IStarChefMessageSender>();
-            listener = new Listener(config, sender.Object, dbManager.Object, messageManager);
+            listener = new Listener(config, dbManager.Object, messageManager);
 
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();

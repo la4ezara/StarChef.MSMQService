@@ -36,8 +36,7 @@ namespace StarChef.MsmqService.Tests
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
-            var sender = new Mock<IStarChefMessageSender>();
-            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
             listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e) { listener.CanProcess = false; };
 
             Hashtable activeDatabases = new Hashtable();
@@ -80,8 +79,7 @@ namespace StarChef.MsmqService.Tests
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
-            var sender = new Mock<IStarChefMessageSender>();
-            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
             listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e) { listener.CanProcess = false; };
 
             Hashtable activeDatabases = new Hashtable();
@@ -134,8 +132,7 @@ namespace StarChef.MsmqService.Tests
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
-            var sender = new Mock<IStarChefMessageSender>();
-            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
             listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
             { listener.CanProcess = false; };
 
@@ -176,8 +173,7 @@ namespace StarChef.MsmqService.Tests
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
-            var sender = new Mock<IStarChefMessageSender>();
-            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
             listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
             { listener.CanProcess = false; };
 
@@ -222,8 +218,7 @@ namespace StarChef.MsmqService.Tests
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
             dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(() => { throw new Exception("test"); });
 
-            var sender = new Mock<IStarChefMessageSender>();
-            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
             listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
             { listener.CanProcess = false; };
 
@@ -264,8 +259,7 @@ namespace StarChef.MsmqService.Tests
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
-            var sender = new Mock<IStarChefMessageSender>();
-            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
 
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();
@@ -304,9 +298,8 @@ namespace StarChef.MsmqService.Tests
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
-            var sender = new Mock<IStarChefMessageSender>();
             MessageProcessEventArgs result = null;
-            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
             listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
             { result = e; listener.CanProcess = false; };
 
@@ -348,9 +341,8 @@ namespace StarChef.MsmqService.Tests
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
-            var sender = new Mock<IStarChefMessageSender>();
             MessageProcessEventArgs result = null;
-            listener = new Listener(config.Object, sender.Object, dbManager.Object, messageManager.Object);
+            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
             listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
             { result = e; listener.CanProcess = false; };
 
