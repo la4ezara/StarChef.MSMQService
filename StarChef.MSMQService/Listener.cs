@@ -144,7 +144,7 @@ namespace StarChef.MSMQService
                 catch (Exception ex)
                 {
                     _logger.Error(ex.Message, ex);
-                    this.SendPoisonMessage(msg, _messageFormat, _messageManager, activeDatabases);
+                    this.SendPoisonMessage(msg, _messageFormat, _messageManager);
                 }
                 finally
                 {
@@ -188,7 +188,7 @@ namespace StarChef.MSMQService
             }
         }
 
-        private void SendPoisonMessage(Message msg, IMessageFormatter format, IMessageManager mqManager, Hashtable activeDatabases)
+        private void SendPoisonMessage(Message msg, IMessageFormatter format, IMessageManager mqManager)
         {
             if (msg != null)
             {
@@ -363,13 +363,10 @@ namespace StarChef.MSMQService
                         // first try to recalculate fibre if need
                         string fiberFlag;
                         var properties = msg.ExtendedProperties.Pairs();
-                        if (properties.TryGetValue("FIBER_RECALC_REQUIRED", out fiberFlag))
+                        if (properties.TryGetValue("FIBER_RECALC_REQUIRED", out fiberFlag) && Convert.ToBoolean(fiberFlag))
                         {
-                            if (Convert.ToBoolean(fiberFlag))
-                            {
-                                _databaseManager.Execute(msg.DSN, "_sc_recalculate_nutrient_fibre",
-                                    new SqlParameter("@product_id", msg.ProductID));
-                            }
+                            _databaseManager.Execute(msg.DSN, "_sc_recalculate_nutrient_fibre",
+                                new SqlParameter("@product_id", msg.ProductID));
                         }
 
                         //calculate summary for ingredient
