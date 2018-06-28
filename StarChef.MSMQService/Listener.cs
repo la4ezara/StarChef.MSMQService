@@ -626,7 +626,7 @@ namespace StarChef.MSMQService
                 "sc_calculation_enqueue",
                 new SqlParameter("@EntityId", entityId),
                 new SqlParameter("@EntityTypeId", entityTypeId),
-                new SqlParameter("@RetryCount", 0),
+                new SqlParameter("@RetryCount", 0) { Value = 0, DbType = System.Data.DbType.Int32 },
                 new SqlParameter("@StatusId", 1),
                 new SqlParameter("@DateCreated", DateTime.UtcNow),
                 new SqlParameter("@ExternalId", externalId),
