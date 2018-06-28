@@ -128,7 +128,7 @@ namespace StarChef.SqlQueue.Service
                 var retryCount = reader.GetValue<int>("RetryCount");
                 var dateCreaded = reader.GetValue<DateTime>("DateCreated");
                 var externalId = reader.GetValue<string>("ExternalId");
-                var messageActionType = reader.GetValue<Constants.MessageActionType>("MessageActionTypeId");
+                var messageActionType = reader.GetValueOrDefault<Constants.MessageActionType>("MessageActionTypeId");
                 if (messageActionType == Constants.MessageActionType.NoMessage)
                 {
                     messageActionType = Constants.MessageActionType.StarChefEventsUpdated;
