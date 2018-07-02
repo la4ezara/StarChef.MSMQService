@@ -153,11 +153,19 @@ namespace StarChef.Orchestrate
                                         IMessage messagePayload;
 
                                         if (string.IsNullOrEmpty(entityExternalId))
+                                        {
                                             messagePayload = CommandFactory.CreateAccountCommand(dbConnectionString, entityId, databaseId);
+                                        }
                                         else
+                                        {
                                             messagePayload = CommandFactory.UpdateAccountCommand(dbConnectionString, entityId, databaseId);
+                                        }
 
-                                        return Send(bus, messagePayload);
+                                        result = Send(bus, messagePayload);
+                                    }
+                                    else {
+                                        _logger.Warn("SSO not enabled");
+                                        result = true;
                                     }
                                 }
                                 break;
@@ -167,6 +175,11 @@ namespace StarChef.Orchestrate
                                     {
                                         var userCommandAccountActivated = CommandFactory.ActivateAccountCommand(entityId, databaseId);
                                         result = Send(bus, userCommandAccountActivated);
+                                    }
+                                    else
+                                    {
+                                        _logger.Warn("SSO not enabled");
+                                        result = true;
                                     }
                                 }
                                 break;
@@ -197,12 +210,19 @@ namespace StarChef.Orchestrate
                             case EnumHelper.EntityTypeWrapper.UserGroup:
                                 {
                                     var userIds = _databaseManager.GetUsersInGroup(dbConnectionString, entityId);
-                                    foreach (var userId in userIds)
+                                    if (userIds != null && userIds.Any())
                                     {
-                                        var payload = _eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>(dbConnectionString, userId, databaseId);
-                                        result = Publish(bus, payload);
-                                        LogDatabase(dbConnectionString, entityTypeId, entityId, messageArrivedTime, result);
-                                        logged = true;
+                                        foreach (var userId in userIds)
+                                        {
+                                            var payload = _eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>(dbConnectionString, userId, databaseId);
+                                            result = Publish(bus, payload);
+                                            LogDatabase(dbConnectionString, entityTypeId, entityId, messageArrivedTime, result);
+                                            logged = true;
+                                        }
+                                    }
+                                    else {
+                                        result = true;
+                                        _logger.Warn($"No users for usergroupId {entityId}");
                                     }
                                 }
                                 break;
