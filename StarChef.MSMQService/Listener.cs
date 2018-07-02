@@ -252,6 +252,7 @@ namespace StarChef.MSMQService
                         //extend processing to orchestration
                         msg.Action = (int)Constants.MessageActionType.StarChefEventsUpdated;
                         msg.EntityTypeId = (int)Constants.EntityType.Group;
+                        msg.ProductID = msg.GroupID;
                         ProcessStarChefEventsUpdated(msg);
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductCost:
