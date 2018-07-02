@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{30AB6BED-525D-47B5-9F1E-AAB8D1CA57E5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Fourth.Import.DataService</RootNamespace>
+    <AssemblyName>Fourth.Import.DataService</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.15\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DbSettingAttributeType.cs" />
+    <Compile Include="ExceptionMessageService.cs" />
+    <Compile Include="ImportProductService.cs" />
+    <Compile Include="IngredientImportService.cs" />
+    <Compile Include="LookupService.cs" />
+    <Compile Include="MappingColumnService.cs" />
+    <Compile Include="MappingTableService.cs" />
+    <Compile Include="PConversionService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SuppDistService.cs" />
+    <Compile Include="TagLookupService.cs" />
+    <Compile Include="UnitLookupService.cs" />
+    <Compile Include="ValidationRulesService.cs" />
+    <Compile Include="OperationTypeService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fourth.Import.Common\Fourth.Import.Common.csproj">
+      <Project>{46A65ACA-6EE6-43A6-B13F-F1FE1F19A17F}</Project>
+      <Name>Fourth.Import.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Import.Data\Fourth.Import.Data.csproj">
+      <Project>{0B29F6C3-E8BE-427C-94B7-1DCD3CE84AC8}</Project>
+      <Name>Fourth.Import.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Import.Exceptions\Fourth.Import.Exceptions.csproj">
+      <Project>{E04EC8FD-DA8D-41A4-8C6E-EAC4A6A04D57}</Project>
+      <Name>Fourth.Import.Exceptions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Import.Model\Fourth.Import.Model.csproj">
+      <Project>{8C34E179-40D9-4A62-9545-40BCB104DC35}</Project>
+      <Name>Fourth.Import.Model</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

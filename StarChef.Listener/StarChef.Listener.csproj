@@ -56,22 +56,22 @@
       <HintPath>..\packages\AutoMapper.6.2.2\lib\net45\AutoMapper.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.SharedMemoryStub, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Model, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.Model.1.2.195\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.Model.1.2.201\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Storage.Azure.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.Storage.Azure.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.15\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
@@ -170,6 +170,7 @@
     <Compile Include="Commands\ILoginDbCommands.cs" />
     <Compile Include="Commands\Impl\DatabaseCommands.cs" />
     <Compile Include="Commands\IDatabaseCommands.cs" />
+    <Compile Include="Handlers\FileUploadCompletedHandler.cs" />
     <Compile Include="IConfiguration.cs" />
     <Compile Include="IEventValidator.cs" />
     <Compile Include="IMessagingLogger.cs" />
@@ -196,6 +197,7 @@
     <Compile Include="Validators\AlwaysTrueEventValidator.cs" />
     <Compile Include="Types\EventValidator.cs" />
     <Compile Include="Types\MessagingLogger.cs" />
+    <Compile Include="Validators\FileUploadEventValidator.cs" />
     <Compile Include="Validators\PriceBandUpdatedValidator.cs" />
     <Compile Include="WindowsServiceClass.cs">
       <SubType>Component</SubType>
@@ -219,6 +221,8 @@
     <None Include="App.Release.config">
       <DependentUpon>App.config</DependentUpon>
     </None>
+    <None Include="ExceptionReportTemplate.xls" />
+    <None Include="ExceptionReportTemplate2.xls" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
@@ -245,12 +249,12 @@
   <ItemGroup>
     <PublishFile Include="StarChef.Listener.exe.manifest">
       <Visible>False</Visible>
-      <PublishState>Auto</PublishState>
-      <IncludeHash>False</IncludeHash>
       <Group>
       </Group>
       <TargetPath>
       </TargetPath>
+      <PublishState>Auto</PublishState>
+      <IncludeHash>False</IncludeHash>
       <FileType>ManifestEntryPoint</FileType>
     </PublishFile>
   </ItemGroup>
@@ -260,6 +264,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fourth.Import.Process\Fourth.Import.Process.csproj">
+      <Project>{c58f421a-5ef0-4a78-9449-d96e34934dfb}</Project>
+      <Name>Fourth.Import.Process</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StarChef.Common\StarChef.Common.csproj">
       <Project>{6fd83544-9ea6-41b9-a29c-e9117aafef35}</Project>
       <Name>StarChef.Common</Name>

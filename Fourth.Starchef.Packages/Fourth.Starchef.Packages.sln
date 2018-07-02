@@ -1,0 +1,117 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Word", "Fourth.Starchef.Packages.Word\Fourth.Starchef.Packages.Word.csproj", "{41787CFB-6E0A-419B-ACD9-995C90292B4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Manager", "Fourth.Starchef.Packages.Manager\Fourth.Starchef.Packages.Manager.csproj", "{A9F198BE-9634-4115-B8FD-CEFDC4331EA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Model", "Fourth.Starchef.Packages.Model\Fourth.Starchef.Packages.Model.csproj", "{46C1F561-4427-4155-A8D3-9007958FC1F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Data", "Fourth.Starchef.Packages.Data\Fourth.Starchef.Packages.Data.csproj", "{DFBBF163-1678-4EAB-BB2F-85E2394DCE42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Excel", "Fourth.Starchef.Packages.Excel\Fourth.Starchef.Packages.Excel.csproj", "{D5B31B96-2E89-4A31-BCE9-62DD0EE1508F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Pdf", "Fourth.Starchef.Packages.Pdf\Fourth.Starchef.Packages.Pdf.csproj", "{AC9DFC66-A477-4271-9BB0-2D70E851A0C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Toc", "Fourth.Starchef.Packages.Toc\Fourth.Starchef.Packages.Toc.csproj", "{C61993CB-57CB-41BF-B0CC-75129F00E99D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Report", "Fourth.Starchef.Packages.Report\Fourth.Starchef.Packages.Report.csproj", "{0B130DF2-DD1B-44A3-A414-C0F57ED5F498}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Util", "Fourth.Starchef.Util\Fourth.Starchef.Util.csproj", "{8F3F93E3-82EC-4137-8A8E-48D7ADB1D95E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.DataService", "Fourth.Starchef.Packages.DataService\Fourth.Starchef.Packages.DataService.csproj", "{EE624920-3E1A-485C-9E17-BB0C9860BEDE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Starchef.Packages.Service", "Fourth.Starchef.Packages.Service\Fourth.Starchef.Packages.Service.csproj", "{170721CA-A07A-4E3E-874A-49B8CFEA01B6}"
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 12
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = Fourth.Starchef.Packages.Data\\Fourth.Starchef.Packages.Data.csproj
+		SccLocalPath1 = .
+		SccProjectFilePathRelativizedFromConnection1 = Fourth.Starchef.Packages.Data\\
+		SccProjectUniqueName2 = Fourth.Starchef.Packages.DataService\\Fourth.Starchef.Packages.DataService.csproj
+		SccLocalPath2 = .
+		SccProjectFilePathRelativizedFromConnection2 = Fourth.Starchef.Packages.DataService\\
+		SccProjectUniqueName3 = Fourth.Starchef.Packages.Excel\\Fourth.Starchef.Packages.Excel.csproj
+		SccLocalPath3 = .
+		SccProjectFilePathRelativizedFromConnection3 = Fourth.Starchef.Packages.Excel\\
+		SccProjectUniqueName4 = Fourth.Starchef.Packages.Manager\\Fourth.Starchef.Packages.Manager.csproj
+		SccLocalPath4 = .
+		SccProjectFilePathRelativizedFromConnection4 = Fourth.Starchef.Packages.Manager\\
+		SccProjectUniqueName5 = Fourth.Starchef.Packages.Model\\Fourth.Starchef.Packages.Model.csproj
+		SccLocalPath5 = .
+		SccProjectFilePathRelativizedFromConnection5 = Fourth.Starchef.Packages.Model\\
+		SccProjectUniqueName6 = Fourth.Starchef.Packages.Pdf\\Fourth.Starchef.Packages.Pdf.csproj
+		SccLocalPath6 = .
+		SccProjectFilePathRelativizedFromConnection6 = Fourth.Starchef.Packages.Pdf\\
+		SccProjectUniqueName7 = Fourth.Starchef.Packages.Report\\Fourth.Starchef.Packages.Report.csproj
+		SccLocalPath7 = .
+		SccProjectFilePathRelativizedFromConnection7 = Fourth.Starchef.Packages.Report\\
+		SccProjectUniqueName8 = Fourth.Starchef.Packages.Service\\Fourth.Starchef.Packages.Service.csproj
+		SccLocalPath8 = .
+		SccProjectFilePathRelativizedFromConnection8 = Fourth.Starchef.Packages.Service\\
+		SccProjectUniqueName9 = Fourth.Starchef.Packages.Toc\\Fourth.Starchef.Packages.Toc.csproj
+		SccLocalPath9 = .
+		SccProjectFilePathRelativizedFromConnection9 = Fourth.Starchef.Packages.Toc\\
+		SccProjectUniqueName10 = Fourth.Starchef.Packages.Word\\Fourth.Starchef.Packages.Word.csproj
+		SccLocalPath10 = .
+		SccProjectFilePathRelativizedFromConnection10 = Fourth.Starchef.Packages.Word\\
+		SccProjectUniqueName11 = Fourth.Starchef.Util\\Fourth.Starchef.Util.csproj
+		SccLocalPath11 = .
+		SccProjectFilePathRelativizedFromConnection11 = Fourth.Starchef.Util\\
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{41787CFB-6E0A-419B-ACD9-995C90292B4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41787CFB-6E0A-419B-ACD9-995C90292B4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41787CFB-6E0A-419B-ACD9-995C90292B4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41787CFB-6E0A-419B-ACD9-995C90292B4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9F198BE-9634-4115-B8FD-CEFDC4331EA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9F198BE-9634-4115-B8FD-CEFDC4331EA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9F198BE-9634-4115-B8FD-CEFDC4331EA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9F198BE-9634-4115-B8FD-CEFDC4331EA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46C1F561-4427-4155-A8D3-9007958FC1F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46C1F561-4427-4155-A8D3-9007958FC1F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46C1F561-4427-4155-A8D3-9007958FC1F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46C1F561-4427-4155-A8D3-9007958FC1F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFBBF163-1678-4EAB-BB2F-85E2394DCE42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFBBF163-1678-4EAB-BB2F-85E2394DCE42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFBBF163-1678-4EAB-BB2F-85E2394DCE42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFBBF163-1678-4EAB-BB2F-85E2394DCE42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5B31B96-2E89-4A31-BCE9-62DD0EE1508F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B31B96-2E89-4A31-BCE9-62DD0EE1508F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5B31B96-2E89-4A31-BCE9-62DD0EE1508F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5B31B96-2E89-4A31-BCE9-62DD0EE1508F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC9DFC66-A477-4271-9BB0-2D70E851A0C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC9DFC66-A477-4271-9BB0-2D70E851A0C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC9DFC66-A477-4271-9BB0-2D70E851A0C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC9DFC66-A477-4271-9BB0-2D70E851A0C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C61993CB-57CB-41BF-B0CC-75129F00E99D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C61993CB-57CB-41BF-B0CC-75129F00E99D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C61993CB-57CB-41BF-B0CC-75129F00E99D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C61993CB-57CB-41BF-B0CC-75129F00E99D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B130DF2-DD1B-44A3-A414-C0F57ED5F498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B130DF2-DD1B-44A3-A414-C0F57ED5F498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B130DF2-DD1B-44A3-A414-C0F57ED5F498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B130DF2-DD1B-44A3-A414-C0F57ED5F498}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F3F93E3-82EC-4137-8A8E-48D7ADB1D95E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F3F93E3-82EC-4137-8A8E-48D7ADB1D95E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F3F93E3-82EC-4137-8A8E-48D7ADB1D95E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F3F93E3-82EC-4137-8A8E-48D7ADB1D95E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE624920-3E1A-485C-9E17-BB0C9860BEDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE624920-3E1A-485C-9E17-BB0C9860BEDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE624920-3E1A-485C-9E17-BB0C9860BEDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE624920-3E1A-485C-9E17-BB0C9860BEDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{170721CA-A07A-4E3E-874A-49B8CFEA01B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{170721CA-A07A-4E3E-874A-49B8CFEA01B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{170721CA-A07A-4E3E-874A-49B8CFEA01B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{170721CA-A07A-4E3E-874A-49B8CFEA01B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

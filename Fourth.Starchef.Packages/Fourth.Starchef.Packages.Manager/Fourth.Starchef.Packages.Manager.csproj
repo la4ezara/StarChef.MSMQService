@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A9F198BE-9634-4115-B8FD-CEFDC4331EA5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Fourth.Starchef.Packages.Manager</RootNamespace>
+    <AssemblyName>Fourth.Starchef.Packages.Manager</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AuxDocumentManager.cs" />
+    <Compile Include="Package.cs" />
+    <Compile Include="PackageManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReportsManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fourth.Starchef.Packages.DataService\Fourth.Starchef.Packages.DataService.csproj">
+      <Project>{ee624920-3e1a-485c-9e17-bb0c9860bede}</Project>
+      <Name>Fourth.Starchef.Packages.DataService</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Starchef.Packages.Excel\Fourth.Starchef.Packages.Excel.csproj">
+      <Project>{d5b31b96-2e89-4a31-bce9-62dd0ee1508f}</Project>
+      <Name>Fourth.Starchef.Packages.Excel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Starchef.Packages.Model\Fourth.Starchef.Packages.Model.csproj">
+      <Project>{46c1f561-4427-4155-a8d3-9007958fc1f0}</Project>
+      <Name>Fourth.Starchef.Packages.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Starchef.Packages.Pdf\Fourth.Starchef.Packages.Pdf.csproj">
+      <Project>{ac9dfc66-a477-4271-9bb0-2d70e851a0c3}</Project>
+      <Name>Fourth.Starchef.Packages.Pdf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Starchef.Packages.Report\Fourth.Starchef.Packages.Report.csproj">
+      <Project>{0b130df2-dd1b-44a3-a414-c0f57ed5f498}</Project>
+      <Name>Fourth.Starchef.Packages.Report</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Starchef.Packages.Toc\Fourth.Starchef.Packages.Toc.csproj">
+      <Project>{c61993cb-57cb-41bf-b0cc-75129f00e99d}</Project>
+      <Name>Fourth.Starchef.Packages.Toc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Starchef.Packages.Word\Fourth.Starchef.Packages.Word.csproj">
+      <Project>{41787CFB-6E0A-419B-ACD9-995C90292B4B}</Project>
+      <Name>Fourth.Starchef.Packages.Word</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fourth.Starchef.Util\Fourth.Starchef.Util.csproj">
+      <Project>{8F3F93E3-82EC-4137-8A8E-48D7ADB1D95E}</Project>
+      <Name>Fourth.Starchef.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

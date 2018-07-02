@@ -25,11 +25,11 @@ namespace StarChef.Common
 
                 // need a command with sensible timeout value (10 minutes), as some 
                 // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = cn.ConnectionTimeout
-                };
+                var cmd = new SqlCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Connection = cn;
+                cmd.CommandTimeout = cn.ConnectionTimeout;
+                cmd.CommandText = spName;
 
                 // add params
                 if (parameterValues != null)
@@ -59,11 +59,11 @@ namespace StarChef.Common
 
                 // need a command with sensible timeout value (10 minutes), as some 
                 // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = timeout
-                };
+                var cmd = new SqlCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = timeout;
+                cmd.Connection = cn;
+                cmd.CommandText = spName;
 
                 // add params
                 if (parameterValues != null)
@@ -138,11 +138,11 @@ namespace StarChef.Common
 
                 // need a command with sensible timeout value (10 minutes), as some 
                 // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = cn.ConnectionTimeout
-                };
+                var cmd = new SqlCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Connection = cn;
+                cmd.CommandTimeout = cn.ConnectionTimeout;
+                cmd.CommandText = spName;
 
                 // add params
                 if (parameterValues != null)
@@ -170,15 +170,15 @@ namespace StarChef.Common
             using (var cn = new SqlConnection(connectionString))
             {
                 cn.Open();
-                
+
                 // need a command with sensible timeout value (10 minutes), as some 
                 // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.Text,
-                    CommandTimeout = cn.ConnectionTimeout
-                };
-                
+                var cmd = new SqlCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Connection = cn;
+                cmd.CommandTimeout = cn.ConnectionTimeout;
+                cmd.CommandText = spName;
+
                 // add params
                 if (parameterValues != null)
                 {
@@ -206,10 +206,10 @@ namespace StarChef.Common
 
                 // need a command with sensible timeout value (10 minutes), as some 
                 // of these procs may take several minutes to complete
-                var cmd = new SqlCommand(spName, cn)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+                var cmd = new SqlCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Connection = cn;
+                cmd.CommandText = spName;
 
                 // add params
                 if (parameterValues != null)
@@ -247,11 +247,11 @@ namespace StarChef.Common
 
                 // need a command with sensible timeout value (10 minutes), as some 
                 // of these procs may take several minutes to complete
-                var cmd = new SqlCommand("sc_get_orchestration_lookup", cn)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC
-                };
+                var cmd = new SqlCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC;
+                cmd.Connection = cn;
+                cmd.CommandText = "sc_get_orchestration_lookup";
                 cmd.Parameters.Add(new SqlParameter("@entity_type_id", entityTypeId));
                 var rdr = cmd.ExecuteReader();
                 if (rdr.Read())

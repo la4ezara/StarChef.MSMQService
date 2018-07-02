@@ -12,7 +12,7 @@ using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
 
 namespace StarChef.Listener.Types
 {
-    abstract class EventValidator
+    public abstract class EventValidator
     {
         private string _lastError = string.Empty;
         protected readonly IDatabaseCommands _databaseCommands;

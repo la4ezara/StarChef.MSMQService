@@ -33,22 +33,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Fourth.Orchestration, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.SharedMemoryStub, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Model, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.Model.1.2.195\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.Model.1.2.201\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.195\lib\net452\Fourth.Orchestration.Storage.Azure.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.201\lib\net452\Fourth.Orchestration.Storage.Azure.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.15\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
@@ -134,6 +134,7 @@
     <Compile Include="Models\TransferObjects\AccountUpdatedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\AccountUpdateFailedTransferObject.cs" />
     <Compile Include="Models\TransferObjects\FailedTransferObject.cs" />
+    <Compile Include="Models\TransferObjects\FileUploadCompletedTransferObject.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="OrchestrateHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

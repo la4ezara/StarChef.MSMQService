@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Fourth.Import.Model.LookupValue" BaseTypeListCollapsed="true">
+    <Position X="1.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAIAAAAAAAAAAAAAAAAAAQAAA=</HashCode>
+      <FileName>LookupValue.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Fourth.Import.Model.MappingColumn">
+    <Position X="4" Y="3.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>BBAAAAAAAAAAAIAAgAQAAAAAAABggAAAAAgCAQAAAAA=</HashCode>
+      <FileName>MappingColumn.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="LookupType" />
+      <Property Name="Datatype" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="LookupValues" />
+      <Property Name="ValidationRules" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="Fourth.Import.Model.MappingTable">
+    <Position X="3.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAgAAAAAAAAAAACAAAAAAAAAAAAAQACAAA=</HashCode>
+      <FileName>MappingTable.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="MappingColumns" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="Fourth.Import.Model.ValidationRules">
+    <Position X="4" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAAAAAEAEQAAAAAQAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ValidationRules.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Fourth.Import.Exceptions.ImportDataException">
+    <Position X="12.5" Y="2" Width="1.75" />
+    <TypeIdentifier />
+    <ShowAsAssociation>
+      <Property Name="ExceptionType" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Fourth.Import.Model.ProcessedImportRow">
+    <Position X="12.5" Y="5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAgAAAAAAAAAAgAAACAAABAAAAA=</HashCode>
+      <FileName>ProcessedImportRow.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="ImportDataExceptions" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Enum Name="Fourth.Import.Model.Datatype">
+    <Position X="6.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAABSAAAAAACAAAAAAQAAAAAAAAAAAA=</HashCode>
+      <FileName>Datatype.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Fourth.Import.Model.LookupType">
+    <Position X="6.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAgAAAAIAAAQAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>LookupType.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Fourth.Import.Exceptions.ExceptionType">
+    <Position X="9.25" Y="2.25" Width="1.75" />
+    <TypeIdentifier />
+  </Enum>
+  <Enum Name="Fourth.Import.Model.ImportStatus">
+    <Position X="6.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAAAAAAAAAEACAAAAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>ImportStatus.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Tahoma" Size="8.25" />
+</ClassDiagram>

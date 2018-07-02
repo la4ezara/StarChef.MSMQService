@@ -11,6 +11,8 @@ using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
 using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountStatusChanged;
 using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.AccountStatusChangeFailed;
+using FileUploadCompleted = Fourth.Orchestration.Model.StarChef.Events.FileUploadCompleted;
+
 using System.Threading.Tasks;
 using log4net;
 using StarChef.Orchestrate.Models.TransferObjects;
@@ -76,7 +78,12 @@ namespace StarChef.Listener
                 var validator = new AccountStatusChangeFailedValidator(dbCommands);
                 return new AccountStatusChangeFailedEventHandler(dbCommands, validator, messagingLogger);
             }
-
+            if (typeof(T) == typeof(FileUploadCompleted))
+            {
+                var validator = new FileUploadEventValidator(dbCommands);
+                return new FileUploadCompletedHandler(dbCommands, validator, messagingLogger);
+            }
+            
             throw new NotSupportedMessageException(string.Format("Message type {0} is not supported.", typeof(T).Name));
         }
 
