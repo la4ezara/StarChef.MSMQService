@@ -14,21 +14,56 @@ namespace Fourth.Import.Process
             }
 
             int? starchefKeyOrdinal = mappingTable.ColumnOrdinalOf("product_id");
+            int? supplierNameOrdinal = mappingTable.ColumnOrdinalOf("supplier_id");
+            int? supplierCodeOrdinal = mappingTable.ColumnOrdinalOf("supplier_code");
 
-            string starchefKey=string.Empty;
-            
-            if(starchefKeyOrdinal.HasValue)
+            string starchefKey = string.Empty;
+            string supplierName = string.Empty;
+            string supplierCode = string.Empty;
+
+            if (starchefKeyOrdinal.HasValue)
             {
-                starchefKey = row[(int) starchefKeyOrdinal].ToString();
+                starchefKey = row[starchefKeyOrdinal.Value].ToString();
             }
+            if (supplierNameOrdinal.HasValue)
+            {
+                supplierName = row[supplierNameOrdinal.Value].ToString();
+            }
+            if (supplierCodeOrdinal.HasValue)
+            {
+                supplierCode = row[supplierCodeOrdinal.Value].ToString();
+            }
+
             if (string.IsNullOrWhiteSpace(starchefKey))
             {
                 starchefKey = "0";
             }
 
-            return string.Format(@"select @product_id = product_id,@ingredient_id = i.ingredient_id 
-                                from ingredient i 
-                                where i.product_id = {0}", starchefKey);
+            if (string.IsNullOrEmpty(supplierName))
+            {
+                supplierName = string.Empty;
+            }
+
+            if (string.IsNullOrEmpty(supplierCode))
+            {
+                supplierCode = "|=============|"; // this should never match with the database
+            }
+
+            return string.Format(@"IF(EXISTS(SELECT 1 FROM ingredient i where i.product_id = {0}))
+            	                        BEGIN
+            	                            select @product_id = product_id,@ingredient_id = i.ingredient_id
+                                            from ingredient i
+                                            where i.product_id = {0}
+            	                        END
+                                    ELSE
+                                        BEGIN
+                                            select top 1 @product_id = product_id,@ingredient_id = i.ingredient_id
+                                            from ingredient i
+                                            JOIN supplier s ON s.supplier_id = i.supplier_id
+                                            where s.supplier_name = {1} AND i.supplier_code = {2}
+                                            order by i.product_id
+                                        END",
+                                starchefKey, supplierName.WithSqlSyntax(Datatype.String), supplierCode.WithSqlSyntax(Datatype.String));
         }
 
         public static string SupImportQueryForProductId(MappingTable mappingTable, DataRow row)
@@ -40,15 +75,15 @@ namespace Fourth.Import.Process
 
             string supplierCode = string.Empty;
 
- 
-            
+
+
             if (supplierCodeOrdinal != null)
             {
                 supplierCode = row[(int)supplierCodeOrdinal].ToString();
             }
 
- 
-            
+
+
             if (string.IsNullOrWhiteSpace(supplierCode))
             {
                 supplierCode = "|=============|"; // this should never match with the database
@@ -68,7 +103,7 @@ namespace Fourth.Import.Process
             if (mappingTable.TableName.ToUpperInvariant() != "PRODUCT_PBAND")
                 return null;
 
-            
+
             int? pbandKeyOrdinal = mappingTable.ColumnOrdinalOf("pband_id");
 
             string pbandName = string.Empty;
@@ -77,8 +112,8 @@ namespace Fourth.Import.Process
                 pbandName = row[(int)pbandKeyOrdinal].ToString();
             }
 
-            return string.Format(@"select @pband_id = pband_id FROM pband WHERE pband_name like {0}", pbandName.WithSqlSyntax(Datatype.String));  
+            return string.Format(@"select @pband_id = pband_id FROM pband WHERE pband_name like {0}", pbandName.WithSqlSyntax(Datatype.String));
         }
-       
+
     }
 }
