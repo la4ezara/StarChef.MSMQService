@@ -36,8 +36,12 @@
                         try
                         {
                             fileUpload = Mapper.Map<FileUploadCompletedTransferObject>(payload);
-                            importService.ImportFileUploaded(fileUpload.FilePath, fileUpload.SourceLogin.ToString());
-                                                       
+                            var result = importService.ImportFileUploaded(fileUpload.FilePath, fileUpload.SourceLogin.ToString());
+                            if (!result)
+                            {
+                                throw new ListenerException($"File not exist {fileUpload.FilePath}");
+                            }
+
                             await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);
                             _logger.Processed(trackingId, payload);
                         }

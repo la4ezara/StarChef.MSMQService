@@ -36,7 +36,7 @@ namespace Fourth.Import.Process
             }
         }
 
-        public void ImportFileUploaded(string filePath, string sourceLogin)
+        public bool ImportFileUploaded(string filePath, string sourceLogin)
         {
             EventLog myLog = new EventLog();
             myLog.Source = "Fourth Import";
@@ -44,7 +44,16 @@ namespace Fourth.Import.Process
 
 
             FileInfo file = new FileInfo(filePath);
-            AddFileToQueue(file, sourceLogin);
+            if (file.Exists)
+            {
+                AddFileToQueue(file, sourceLogin);
+                return true;
+            }
+            else {
+                return false;
+            }
+
+            
         }
 
         private static void AddFileToQueue(FileInfo fileInfo, string sourceLogin)
