@@ -79,22 +79,56 @@ namespace Fourth.Import.Process
         {
             if (mappingTable.TableName.ToUpperInvariant() != "INGREDIENT")
                 return null;
-            
+
             int? starchefKeyOrdinal = mappingTable.ColumnOrdinalOf("product_id");
-            
+            int? supplierNameOrdinal = mappingTable.ColumnOrdinalOf("supplier_id");
+            int? supplierCodeOrdinal = mappingTable.ColumnOrdinalOf("supplier_code");
+
             string starchefKey = null;
-            
+            string supplierName = string.Empty;
+            string supplierCode = string.Empty;
+
             if (starchefKeyOrdinal != null)
             {
-                starchefKey = row[(int) starchefKeyOrdinal].ToString().Trim();
+                starchefKey = row[(int)starchefKeyOrdinal].ToString().Trim();
             }
-            
+
+            if (supplierNameOrdinal != null)
+            {
+                supplierName = row[(int)supplierNameOrdinal].ToString();
+            }
+            if (supplierCodeOrdinal != null)
+            {
+                supplierCode = row[(int)supplierCodeOrdinal].ToString();
+            }
+
+            if (string.IsNullOrWhiteSpace(supplierName))
+            {
+                supplierName = "";
+            }
+            if (string.IsNullOrWhiteSpace(supplierCode))
+            {
+                supplierCode = "|=============|"; // this should never match with the database	
+            }
+
             using (var ipService = new ImportProductService(_config.TargetConnectionString))
             {
-                if (string.IsNullOrWhiteSpace(starchefKey) || !ipService.Valid(starchefKey))
+                if (!string.IsNullOrWhiteSpace(starchefKey) && !ipService.Valid(starchefKey))
                 {
                     string columnName = mappingTable.ColumnNameOf("product_id");
                     string mappingName = mappingTable.MappingNameOf("product_id");
+                    return new ImportDataException
+                    {
+                        ExceptionType = ExceptionType.NoRecordExistForUpdate,
+                        TemplateColumnName = columnName,
+                        IsValid = false,
+                        TemplateMappingColumn = mappingName
+                    };
+                }
+                else if (string.IsNullOrWhiteSpace(starchefKey) && !ipService.Valid(supplierName, supplierCode))
+                {
+                    string columnName = mappingTable.ColumnNameOf("supplier_id") + " or " + mappingTable.ColumnNameOf("supplier_code");
+                    string mappingName = mappingTable.MappingNameOf("supplier_id") + mappingTable.MappingNameOf("supplier_code");
                     return new ImportDataException
                     {
                         ExceptionType = ExceptionType.NoRecordExistForUpdate,
