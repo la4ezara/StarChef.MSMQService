@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
+using Fourth.StarChef.Invariables;
 
 namespace StarChef.Listener.Commands.Impl
 {
@@ -130,20 +131,15 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@db_database_id", orgId);
                 p.AddWithValue("@user_id", userId);
                 p.AddWithValue("@db_role_id", values["db_role_id"]);
-                p.AddWithValue("@login_password", RandomString(16));
+                var pwd = Fourth.StarChef.Invariables.Security.PasswordGenerator.RandomSsoGuidPassword();
+                pwd = new Fourth.StarChef.Invariables.Security.CustomEncryption().Encrypt(pwd);
+                p.AddWithValue("@login_password", pwd);
                 p.AddWithValue("@login_config", userConfig);
                 p.AddWithValue("@is_enabled", isEnabled);
                 p.AddWithValue("@is_deleted", isDeleted);
                 p.AddWithValue("@external_login_id", user.ExternalLoginId);
             });
             return Convert.ToInt32(dbLoginId.Value);
-        }
-
-        private static readonly Random _random = new Random();
-        public static string RandomString(int length)
-        {
-            const string CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            return new string(Enumerable.Repeat(CHARS, length).Select(s => s[_random.Next(s.Length)]).ToArray());
         }
 
         /// <exception cref="ConnectionStringNotFoundException">Some connection string is not found</exception>
