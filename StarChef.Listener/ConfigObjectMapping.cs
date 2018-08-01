@@ -36,6 +36,7 @@ namespace StarChef.Listener
                                         .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
                                         .ForMember(dest => dest.Username, o => o.MapFrom(src => src.Username))
                                         .ForMember(dest => dest.ExternalCustomerId, o => o.MapFrom(src => src.CustomerCanonicalId))
+                                        .ForMember(dest => dest.PermissionSets, o => o.MapFrom(src => src.PermissionSetsList))
                                         .ForAllOtherMembers(m => m.Ignore());
                         #endregion
 
@@ -54,6 +55,7 @@ namespace StarChef.Listener
                                         .ForMember(dest => dest.LastName, o => o.MapFrom(src => src.LastName))
                                         .ForMember(dest => dest.EmailAddress, o => o.MapFrom(src => src.EmailAddress))
                                         .ForMember(dest => dest.ExternalLoginId, o => o.MapFrom(src => src.ExternalId))
+                                        .ForMember(dest => dest.PermissionSets, o => o.MapFrom(src => src.PermissionSetsList))
                                         .ForAllOtherMembers(m => m.Ignore());
                         #endregion
 

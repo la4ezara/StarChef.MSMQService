@@ -97,8 +97,10 @@ namespace StarChef.Listener.Commands.Impl
             var orgId = dbDetails.Item1;
             var connectionString = dbDetails.Item2;
             var applicationsToAdd = string.Empty;
-            if (user.PermissionSets.Count() > 0)
+            if (user.PermissionSets.Any())
+            {
                 applicationsToAdd = String.Join(",", user.PermissionSets.ToArray());
+            }
 
             var dbUserId = new SqlParameter("@user_id", SqlDbType.Int) {Direction = ParameterDirection.Output};
             await Exec(connectionString, "sc_admin_save_preferences", p =>
@@ -159,8 +161,10 @@ namespace StarChef.Listener.Commands.Impl
             var userId = ids.Item2;
 
             var applicationsToAdd = string.Empty;
-            if(permissionSets.Count() > 0)
+            if (permissionSets.Any())
+            {
                 applicationsToAdd = String.Join(",", permissionSets.ToArray());
+            }
 
             var connectionString = await _csProvider.GetCustomerDb(loginId, loginDbConnectionString);
             if (string.IsNullOrEmpty(connectionString))
