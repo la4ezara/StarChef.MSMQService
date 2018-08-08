@@ -5,7 +5,6 @@ namespace Fourth.Import.Process
     using log4net;
     using System;
     using System.Configuration;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -38,11 +37,6 @@ namespace Fourth.Import.Process
 
         public bool ImportFileUploaded(string filePath, string sourceLogin)
         {
-            EventLog myLog = new EventLog();
-            myLog.Source = "Fourth Import";
-            myLog.WriteEntry("watcher triggered.");
-
-
             FileInfo file = new FileInfo(filePath);
             if (file.Exists)
             {
