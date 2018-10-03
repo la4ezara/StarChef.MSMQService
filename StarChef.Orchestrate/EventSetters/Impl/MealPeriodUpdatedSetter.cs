@@ -1,3 +1,4 @@
+using System;
 using System.Data.SqlClient;
 using Fourth.Orchestration.Model.Menus;
 using StarChef.Common;
@@ -28,16 +29,17 @@ namespace StarChef.Orchestrate
 
             var dbManager = new DatabaseManager();
 
-            var reader = dbManager.ExecuteReader(connectionString,
-                "sc_event_mealperiod",
-                new SqlParameter("@entity_id", entityId));
+            var reader = dbManager.ExecuteReader(connectionString, "sc_event_mealperiod", new SqlParameter("@entity_id", entityId));
+
             if (reader.Read())
             {
                 builder.SetCustomerId(cust.ExternalId)
                     .SetCustomerName(cust.Name)
-                    .SetExternalId(reader[1].ToString())
-                    .SetMealPeriodName(reader[2].ToString())
-                    .SetIsEnabled(reader.GetValueOrDefault<bool>(3));
+                    .SetExternalId(reader.GetValue<string>("meal_period_guid")) 
+                    .SetMealPeriodName(reader.GetValue<string>("meal_period_name")) 
+                    .SetIsEnabled(reader.GetValueOrDefault<bool>("is_enabled"))
+                    .SetStartTime(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>("start_time")))
+                    .SetEndTime(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>("end_time")));
             }
 
             return true;

@@ -36,7 +36,7 @@ namespace StarChef.Listener.Handlers
         public async Task<MessageHandlerResult> HandleAsync(AccountCreated payload, string trackingId)
         {
             ThreadContext.Properties[INTERNAL_ID] = payload.InternalId;
-
+            
             try
             {
                 if (Validator.IsAllowedEvent(payload))
