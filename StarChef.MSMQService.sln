@@ -60,6 +60,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Import.Sql", "Fourth
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fourth.Import.UI", "Fourth.Import.UI\Fourth.Import.UI.csproj", "{B1FDB629-ADFF-44AA-9497-401A2785980A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Engine.Runner", "StarChef.Engine.Runner\StarChef.Engine.Runner.csproj", "{48D42FD9-214E-4343-B642-79E1D4682AE9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -244,6 +246,14 @@ Global
 		{B1FDB629-ADFF-44AA-9497-401A2785980A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B1FDB629-ADFF-44AA-9497-401A2785980A}.Release|x86.ActiveCfg = Release|x86
 		{B1FDB629-ADFF-44AA-9497-401A2785980A}.Release|x86.Build.0 = Release|x86
+		{48D42FD9-214E-4343-B642-79E1D4682AE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48D42FD9-214E-4343-B642-79E1D4682AE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48D42FD9-214E-4343-B642-79E1D4682AE9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{48D42FD9-214E-4343-B642-79E1D4682AE9}.Debug|x86.Build.0 = Debug|Any CPU
+		{48D42FD9-214E-4343-B642-79E1D4682AE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48D42FD9-214E-4343-B642-79E1D4682AE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48D42FD9-214E-4343-B642-79E1D4682AE9}.Release|x86.ActiveCfg = Release|Any CPU
+		{48D42FD9-214E-4343-B642-79E1D4682AE9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
