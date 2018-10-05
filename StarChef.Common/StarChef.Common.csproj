@@ -66,9 +66,11 @@
     <Compile Include="Model\GroupProductPriceItem.cs" />
     <Compile Include="Model\GroupProducts.cs" />
     <Compile Include="Model\IngredientItem.cs" />
+    <Compile Include="Model\ProductConvertionRatio.cs" />
     <Compile Include="Model\ProductItem.cs" />
     <Compile Include="Model\ProductPartItem.cs" />
     <Compile Include="Engine\PriceEngine.cs" />
+    <Compile Include="Model\ProductPsetItem.cs" />
     <Compile Include="Repository\IPricingRepository.cs" />
     <Compile Include="Repository\PricingRepository.cs" />
     <Compile Include="Types\ImportTypeSettings.cs" />

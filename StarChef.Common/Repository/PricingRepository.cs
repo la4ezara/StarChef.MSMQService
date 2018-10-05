@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
 using System.Linq;
+using Microsoft.SqlServer.Server;
 
 namespace StarChef.Common.Repository
 {
@@ -172,6 +173,98 @@ namespace StarChef.Common.Repository
             var connection = new SqlConnection(cs);
             connection.Open();
             return connection;
+        }
+
+        public IEnumerable<ProductPsetItem> GetPsetProducts(int psetId)
+        {
+            var param = new
+            {
+                pset_id = psetId
+            };
+
+            var cmd = @"SELECT DISTINCT product_id, 0 as is_choise 
+                        FROM product_pset WITH(NOLOCK) 
+                        WHERE pset_id = @pset_id";
+            using (var connection = GetOpenConnection())
+            {
+                var result = Query<ProductPsetItem>(connection, cmd, param, CommandType.Text);
+                return result;
+            }
+        }
+
+        public IEnumerable<ProductPsetItem> GetPsetGroupProducts(int pbandId)
+        {
+            var param = new
+            {
+                pband_id = pbandId
+            };
+
+            var cmd = @"SELECT	DISTINCT pps.product_id, 0 as is_choise 
+                        FROM product_pset pps with(nolock)
+                        INNER JOIN group_set_link gsl with(nolock) ON pps.pset_id = gsl.set_id
+                        WHERE gsl.pband_id = @pband_id";
+            using (var connection = GetOpenConnection())
+            {
+                var result = Query<ProductPsetItem>(connection, cmd, param, CommandType.Text);
+                return result;
+            }
+        }
+
+        public IEnumerable<ProductConvertionRatio> GetProductConvertionRatio(IEnumerable<ProductConvertionRatio> products)
+        {
+            var param = new
+            {
+                productConvertion = ToSqlDataRecords(products).AsTableValuedParameter("udt_product_convertion_ratio")
+            };
+
+            var cmd = @"CREATE TABLE #ConversionRatio
+	                    (
+		                    ProductID INT,
+		                    SourceUnitID SMALLINT,
+		                    TargetUnitID SMALLINT,
+		                    Ratio DECIMAL(30,14)
+	                    )
+
+	                    INSERT INTO #ConversionRatio(ProductID,SourceUnitID,TargetUnitID)
+	                    SELECT DISTINCT 
+		                    Product_id, 
+		                    Source_unit_id, 
+		                    Target_unit_id 
+		                    FROM @productConvertion
+
+                        CREATE INDEX IDX_ConverstionRatio ON #ConversionRatio(ProductID)
+
+                        UPDATE #ConversionRatio
+		                SET Ratio = dbo.fn_ConversionGetRatioEx(ProductID, SourceUnitID, TargetUnitID)	
+                        Select ProductID as Product_id, SourceUnitID as Source_unit_id, TargetUnitID as Target_unit_id, Ratio FROM #ConversionRatio
+                        
+                        DROP TABLE #ConversionRatio";
+            using (var connection = GetOpenConnection())
+            {
+                var result = Query<ProductConvertionRatio>(connection, cmd, param, CommandType.Text);
+                return result;
+            }
+        }
+
+        public static IEnumerable<SqlDataRecord> ToSqlDataRecords(IEnumerable<ProductConvertionRatio> filters)
+        {
+            var metaData = new[]
+            {
+                new SqlMetaData("Product_id", SqlDbType.Int),
+                new SqlMetaData("Source_unit_id", SqlDbType.SmallInt),
+                new SqlMetaData("Target_unit_id", SqlDbType.SmallInt),
+                new SqlMetaData("Ratio", SqlDbType.Decimal, 30, 14)
+            };
+
+            foreach (var filter in filters)
+            {
+                var record = new SqlDataRecord(metaData);
+                record.SetInt32(0, filter.ProductId);
+                record.SetInt16(1, filter.SourceUnitId);
+                record.SetInt16(2, filter.TargetUnitId);
+                //record.SetInt16(3, filter.SourceUnitId);
+                yield return record;
+            }
         }
     }
 }

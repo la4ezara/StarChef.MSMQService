@@ -27,6 +27,12 @@ namespace StarChef.Common.Repository
         IEnumerable<ProductPartItem> GetProductParts();
         IEnumerable<DishItem> GetDishes();
         IEnumerable<IngredientItem> GetIngredients();
+
+        IEnumerable<ProductPsetItem> GetPsetProducts(int psetId);
+        IEnumerable<ProductPsetItem> GetPsetGroupProducts(int pbandId);
+
+        IEnumerable<ProductConvertionRatio> GetProductConvertionRatio(IEnumerable<ProductConvertionRatio> products);
+
         bool UpdatePrices(IEnumerable<GroupProductPriceItem> prices);
     }
 }

@@ -8,7 +8,6 @@ namespace StarChef.Common.Model
     /// </summary>
     public class ProductItem
     {
-
         [Description("product_id")]
         public int ProductId { get; set; }
         [Description("number")]
