@@ -35,8 +35,8 @@ namespace StarChef.Orchestrate
             {
                 builder.SetCustomerId(cust.ExternalId)
                     .SetCustomerName(cust.Name)
-                    .SetExternalId(reader.GetValue<string>("meal_period_guid")) 
-                    .SetMealPeriodName(reader.GetValue<string>("meal_period_name")) 
+                    .SetExternalId(reader.GetValue<Guid>("meal_period_guid").ToString())
+                    .SetMealPeriodName(reader.GetValue<string>("meal_period_name"))
                     .SetIsEnabled(reader.GetValueOrDefault<bool>("is_enabled"))
                     .SetStartTime(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>("start_time")))
                     .SetEndTime(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>("end_time")));
