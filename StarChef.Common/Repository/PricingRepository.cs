@@ -124,12 +124,26 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public IEnumerable<GroupProductPriceItem> GetPrices()
+        public IEnumerable<DbPrice> GetPrices()
         {
             var cmd = "SELECT product_id, group_id, product_price FROM db_product_calc WITH(NOLOCK)";
             using (var connection = GetOpenConnection())
             {
-                var result = Query<GroupProductPriceItem>(connection, cmd, null, CommandType.Text);
+                var result = Query<DbPrice>(connection, cmd, null, CommandType.Text);
+                return result;
+            }
+        }
+
+        public IEnumerable<DbPrice> GetPrices(int groupId)
+        {
+            var param = new
+            {
+                group_id = groupId
+            };
+            var cmd = "SELECT product_id, group_id, product_price FROM db_product_calc WITH(NOLOCK) WHERE group_id = @group_id";
+            using (var connection = GetOpenConnection())
+            {
+                var result = Query<DbPrice>(connection, cmd, param, CommandType.Text);
                 return result;
             }
         }

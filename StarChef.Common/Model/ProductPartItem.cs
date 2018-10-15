@@ -15,10 +15,10 @@ namespace StarChef.Common.Model
         [Description("sub_product_id")]
         public int SubProductId { get; set; }
         [Description("quantity")]
-        public float Quantity { get; set; }
+        public decimal Quantity { get; set; }
         [Description("unit_id")]
         public int UnitId { get; set; }
-        [Description("is_choise")]
+        [Description("is_choice")]
         public bool IsChoise { get; set; }
         [Description("portion_type_id")]
         public PortionType PortionTypeId { get; set; }

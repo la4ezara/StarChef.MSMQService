@@ -11,9 +11,9 @@ namespace StarChef.Common.Model
         [Description("product_id")]
         public int ProductId { get; set; }
         [Description("number")]
-        public float Number { get; set; }
+        public decimal Number { get; set; }
         [Description("quantity")]
-        public float Quantity { get; set; }
+        public decimal Quantity { get; set; }
         [Description("unit_id")]
         public int UnitId { get; set; }
         [Description("product_type_id")]

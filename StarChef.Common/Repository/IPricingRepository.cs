@@ -22,7 +22,7 @@ namespace StarChef.Common.Repository
         /// <param name="groupId"></param>
         /// <returns></returns>
         IEnumerable<GroupProducts> GetGroupProductPricesByGroup(int groupId);
-        IEnumerable<GroupProductPriceItem> GetPrices();
+        IEnumerable<DbPrice> GetPrices();
         IEnumerable<ProductItem> GetProducts();
         IEnumerable<ProductPartItem> GetProductParts();
         IEnumerable<DishItem> GetDishes();
@@ -30,6 +30,8 @@ namespace StarChef.Common.Repository
 
         IEnumerable<ProductPsetItem> GetPsetProducts(int psetId);
         IEnumerable<ProductPsetItem> GetPsetGroupProducts(int pbandId);
+
+        IEnumerable<DbPrice> GetPrices(int groupId);
 
         IEnumerable<ProductConvertionRatio> GetProductConvertionRatio(IEnumerable<ProductConvertionRatio> products);
 
