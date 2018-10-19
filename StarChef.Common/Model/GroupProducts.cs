@@ -12,6 +12,6 @@ namespace StarChef.Common.Model
         [Description("group_id")]
         public int GroupId { get; set; }
         [Description("price")]
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
     }
 }

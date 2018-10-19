@@ -1,4 +1,5 @@
 ﻿using StarChef.Common.Engine;
+using StarChef.Engine.IntegrationTests;
 using System.Linq;
 
 namespace StarChef.Engine.Runner
@@ -11,15 +12,21 @@ namespace StarChef.Engine.Runner
             //var cnStr = "Initial Catalog=SCNET_trg;Data Source=ie1scqaidb01.northeurope.cloudapp.azure.com;User ID=sl_web_user; Password=reddevil;";
             //var cnStr = "Initial Catalog=SCNET_marstons;Data Source=ie1scqaidb01.northeurope.cloudapp.azure.com;User ID=sl_web_user; Password=reddevil;";
             var cnStr = "Initial Catalog=SCNET_trg;Data Source=.\\sqlexpress;User ID=sl_web_user; Password=reddevil;";
+            
+            //var t = new RecalculationTests(cnStr);
+            //t.RecipePriceRecalculations();
+            //return;
+
             Common.Repository.PricingRepository pr = new Common.Repository.PricingRepository(cnStr, 360);
             
             //var groupPrices2 = pr.GetGroupProductPricesByProduct(0, 455751, 0, 0, 0);
             //var prices = pr.GetPrices();
             IPriceEngine engine = new PriceEngine(pr);
-            //engine.CalculatePrices(0, 1, 0, 0, 0, DateTime.Now);
+            //var prices = engine.CalculatePrices(0, 152596, 0, 0, 0);
+            var prices = engine.CalculatePrices(1, 0, 0, 0, 0);
 
-            var prices = engine.CalculatePrices(0, 0, 0, 0, 0).ToList();
-            
+            //var prices = engine.CalculatePrices(0, 0, 0, 0, 0).ToList();
+
             var dbPrices = pr.GetPrices().OrderBy(x => x.ProductId).ToList();
             
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();

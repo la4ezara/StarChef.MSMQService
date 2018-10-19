@@ -31,10 +31,11 @@ namespace StarChef.Common.Repository
         IEnumerable<ProductPsetItem> GetPsetProducts(int psetId);
         IEnumerable<ProductPsetItem> GetPsetGroupProducts(int pbandId);
 
-        IEnumerable<DbPrice> GetPrices(int groupId);
+        IEnumerable<DbPrice> GetPrices(int groupId, int productId);
 
         IEnumerable<ProductConvertionRatio> GetProductConvertionRatio(IEnumerable<ProductConvertionRatio> products);
 
         bool UpdatePrices(IEnumerable<GroupProductPriceItem> prices);
+        bool IsOwnGroup(int groupId);
     }
 }

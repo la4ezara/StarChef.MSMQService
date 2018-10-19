@@ -6,6 +6,9 @@ namespace StarChef.Common.Model
 {
     public class DbPrice : IEqualityComparer<DbPrice>
     {
+        public readonly int Rounding = 6;
+        public readonly decimal Delta;
+
         [Description("product_id")]
         public int ProductId { get; set; }
         [Description("group_id")]
@@ -19,7 +22,7 @@ namespace StarChef.Common.Model
                 return _price;
             }
             set {
-                _price = decimal.Round(value, 8);
+                _price = decimal.Round(value, Rounding);
             }
         }
 
@@ -30,7 +33,7 @@ namespace StarChef.Common.Model
             {
                 if (!x.Price.Equals(y.Price)) {
                     var ss = decimal.Subtract(x.Price, y.Price);
-                    if (Math.Abs(ss) > 0.00000001m)
+                    if (Math.Abs(ss) > Delta)
                     {
                         return false;
                     }
@@ -42,9 +45,39 @@ namespace StarChef.Common.Model
             return false;
         }
 
+        public override bool Equals(object obj)
+        {
+            var x = this;
+            DbPrice y = obj as DbPrice;
+            if (y != null) {
+                if (x.ProductId.Equals(y.ProductId)
+                    && x.GroupId.Equals(y.GroupId))
+                {
+                    if (!x.Price.Equals(y.Price))
+                    {
+                        var ss = decimal.Subtract(x.Price, y.Price);
+                        if (Math.Abs(ss) > Delta)
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+
         public int GetHashCode(DbPrice obj)
         {
             return obj.ProductId.GetHashCode() ^ obj.GroupId.GetHashCode() ^ obj.Price.GetHashCode();
+        }
+
+        
+
+        public DbPrice() {
+            Delta = 5 * (decimal)Math.Pow(10, -1 * Rounding);
         }
     }
 }

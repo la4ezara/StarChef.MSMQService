@@ -27,7 +27,6 @@ namespace StarChef.Common.Engine
 
         public IEnumerable<DbPrice> ComparePrices(IEnumerable<DbPrice> existingPrices, IEnumerable<DbPrice> newPrices)
         {
-            List<DbPrice> result = new List<DbPrice>();
             ConcurrentBag<DbPrice> bag = new ConcurrentBag<DbPrice>();
             
             var comparedItem = newPrices.Except(existingPrices, new DbPrice()).ToList();
@@ -48,14 +47,17 @@ namespace StarChef.Common.Engine
                         if (lookup.ContainsKey(p.ProductId))
                         {
                             var target = lookup[p.ProductId];
-                            if (!target.Price.Equals(p.Price))
-                            {
-                                var ss = decimal.Subtract(target.Price, p.Price);
-                                if (Math.Abs(ss) > 0.00000001m)
-                                {
-                                    bag.Add(p);
-                                }
+                            if (!target.Equals(p)) {
+                                bag.Add(p);
                             }
+                            //if (!target.Price.Equals(p.Price))
+                            //{
+                            //    var ss = decimal.Subtract(target.Price, p.Price);
+                            //    if (Math.Abs(ss) > target.Delta)
+                            //    {
+                            //        bag.Add(p);
+                            //    }
+                            //}
                         }
                         else
                         {
@@ -65,7 +67,7 @@ namespace StarChef.Common.Engine
                 }
             });
 
-            result = bag.Distinct().ToList();
+            IEnumerable<DbPrice> result = bag.Distinct().ToList();
             return result;
         }
 
@@ -76,95 +78,96 @@ namespace StarChef.Common.Engine
             _convertions_dict.Clear();
             var globalRecalc = false;
 
+            bool isOwnGroup = false;
+            if (groupId > 0) {
+                isOwnGroup = _pricingRepo.IsOwnGroup(groupId);
+            }
+
             //if ((groupId > 0 && productId == 0 && pbandId == 0 && unitId == 0 && psetId == 0) ||
             if ((groupId == 0 && productId == 0 && pbandId > 0 && unitId == 0 && psetId == 0) ||
-                (groupId == 0 && productId == 0 && pbandId == 0 && unitId == 0 && psetId == 0)
-                )
+                (groupId == 0 && productId == 0 && pbandId == 0 && unitId == 0 && psetId == 0) ||
+                (groupId > 0 && isOwnGroup))
             {
                 globalRecalc = true;
             }
-            System.Diagnostics.Trace.WriteLine("Load Initial Data");
-            System.Diagnostics.Trace.WriteLine(DateTime.Now);
+            
             var tmp_dish = _pricingRepo.GetDishes();
             var tmp_ingredient = _pricingRepo.GetIngredients();
             var tmp_product = _pricingRepo.GetProducts();
             var tmp_product_part = _pricingRepo.GetProductParts();
-
-            System.Diagnostics.Trace.WriteLine("Load Initial Data End");
-            System.Diagnostics.Trace.WriteLine(DateTime.Now);
 
             IEnumerable<Parts> parts = null;
             //load all temp data required for all recalculations
             IEnumerable<GroupProducts> group_products = new List<GroupProducts>();
             if (globalRecalc)
             {
-                System.Diagnostics.Trace.WriteLine("GetGroupProductPricesByGroup");
-                System.Diagnostics.Trace.WriteLine(DateTime.Now);
-                group_products = _pricingRepo.GetGroupProductPricesByGroup(groupId);
+                System.Diagnostics.Trace.WriteLine($"GetGroupProductPricesByGroup {DateTime.Now}");
+                group_products = _pricingRepo.GetGroupProductPricesByGroup(0);
             }
             else
             {
-                System.Diagnostics.Trace.WriteLine("GetGroupProductPricesByProduct - "+ DateTime.Now);
+                System.Diagnostics.Trace.WriteLine($"GetGroupProductPricesByProduct - {DateTime.Now}");
                 group_products = _pricingRepo.GetGroupProductPricesByProduct(groupId, productId, psetId, pbandId, unitId);
 
-                System.Diagnostics.Trace.WriteLine("GetParts - " + DateTime.Now);
+                System.Diagnostics.Trace.WriteLine($"GetParts - {DateTime.Now}");
+                
                 parts = GetParts(tmp_product, tmp_product_part, productId, unitId, psetId, pbandId);
+                if (!parts.Any()) {
+                    parts = GetParts(group_products, tmp_product, tmp_product_part);
+                }
             }
-
-            System.Diagnostics.Trace.WriteLine("GetPrices - " + DateTime.Now);
-
+            System.Diagnostics.Trace.WriteLine($"GetPrices - {DateTime.Now}");
             var prices = new List<DbPrice>();
             
             var groups = group_products.GroupBy(gp => gp.GroupId).OrderBy(g => g.Key).ToList();
 
             IEnumerable<DbPrice> existingDbPrices = new List<DbPrice>();
-            //if (groupId > 0)
-            //{
-            //    existingDbPrices = _pricingRepo.GetPrices(groupId);
-            //}
-            //else
-            //{
-            //    existingDbPrices = _pricingRepo.GetPrices();
-            //}
 
-            Parallel.ForEach(groups, new ParallelOptions() { MaxDegreeOfParallelism = _maxDegreeOfParallelism }, gp=>{
-            
-                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                sw.Start();
-                var gpItems = gp.ToList();
-                List<Parts> processingParts = new List<Parts>();
-                if (globalRecalc)
+            Parallel.ForEach(groups, new ParallelOptions() { MaxDegreeOfParallelism = _maxDegreeOfParallelism }, gp =>
                 {
-                    System.Diagnostics.Trace.WriteLine($"GetParts - {DateTime.Now}");
-                    processingParts = GetParts(gpItems, tmp_product, tmp_product_part).ToList();
-                }
-                else
-                {
-                    if (parts.Any())
+
+                    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                    sw.Start();
+                    var gpItems = gp.ToList();
+                    List<Parts> processingParts = new List<Parts>();
+                    if (globalRecalc)
                     {
-                        processingParts = parts.ToList();
+                        System.Diagnostics.Trace.WriteLine($"GetParts - {DateTime.Now}");
+                        processingParts = GetParts(gpItems, tmp_product, tmp_product_part).ToList();
                     }
-                }
+                    else
+                    {
+                        if (parts.Any())
+                        {
+                            parts.ToList().ForEach(p =>
+                            {
+                                processingParts.Add(new Parts(p));
+                            });
+                        }
+                    }
 
-                var newPrices = GetPrices(gpItems, processingParts, tmp_product, tmp_product_part, tmp_dish, tmp_ingredient, existingDbPrices).ToList();
+                    var newPrices = GetPrices(gpItems, processingParts, tmp_product, tmp_product_part, tmp_dish, tmp_ingredient, existingDbPrices, globalRecalc).ToList();
 
-                if (newPrices.Any())
-                {
-                    sw.Stop();
-                    System.Diagnostics.Trace.WriteLine($"Group {gp.Key } prices - {newPrices.Count} total time seconds { sw.Elapsed.TotalSeconds}");
-                    prices.AddRange(newPrices);
-                    System.Diagnostics.Trace.WriteLine($"Adding {newPrices.Count } prices - " + DateTime.Now);
-                }
-                else {
-                    System.Diagnostics.Trace.WriteLine($"Adding {gpItems } prices - " + DateTime.Now);
-                    gpItems.ForEach(gpi => {
-                        var x = new DbPrice() { GroupId = gpi.GroupId, ProductId = gpi.ProductId, Price = gpi.Price };
-                        prices.Add(x);
-                    });
-                    sw.Stop();
-                    System.Diagnostics.Trace.WriteLine($"Group {gp.Key } prices - {newPrices.Count} total time seconds { sw.Elapsed.TotalSeconds}");
-                }
-            });
+                    if (newPrices.Any())
+                    {
+                        sw.Stop();
+                        System.Diagnostics.Trace.WriteLine($"Group {gp.Key } prices - {newPrices.Count} total time seconds { sw.Elapsed.TotalSeconds}");
+                        prices.AddRange(newPrices);
+                        System.Diagnostics.Trace.WriteLine($"Adding {newPrices.Count } prices - " + DateTime.Now);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Trace.WriteLine($"Adding {gpItems.Count} prices - " + DateTime.Now);
+                        gpItems.Where(gpi => gpi.Price.HasValue).ToList().ForEach(gpi =>
+                             {
+                                 var x = new DbPrice() { GroupId = gpi.GroupId, ProductId = gpi.ProductId, Price = gpi.Price.Value };
+                                 prices.Add(x);
+                             });
+                        sw.Stop();
+                        System.Diagnostics.Trace.WriteLine($"Group {gp.Key } prices - {newPrices.Count} total time seconds { sw.Elapsed.TotalSeconds}");
+                    }
+                });
+            
 
             swGlobal.Stop();
             System.Diagnostics.Trace.WriteLine($"Total Time - {swGlobal.Elapsed.TotalSeconds}");
@@ -178,13 +181,9 @@ namespace StarChef.Common.Engine
             var affectedProducts = groupProducts.Select(gp => gp.ProductId).Distinct();
             var apz = affectedProducts.ToDictionary(x => x);
             var subProductIds = tmp_product_part.Where(pp=> apz.ContainsKey(pp.ProductId)).Select(pp => pp.SubProductId).Distinct().ToList();
-            //subProductIds = subProductIds.Intersect(affectedProducts).ToList();
-
-            //var topLevelItems = affectedProducts.Except(subProductIds).ToList();
 
             var parts = (from ap in affectedProducts
                          join p in tmp_product on ap equals p.ProductId
-                         //where !topLevelItems.Contains(ap)
                          where !subProductIds.Contains(ap)
                          select new Parts()
                          {
@@ -208,30 +207,31 @@ namespace StarChef.Common.Engine
                 var tmpUsages = (from p in tmp_product
                                  where (p.ProductId == productId && productId > 0)
                                  || (p.UnitId == unitId && unitId > 0)
-                                 select new TmpUsageItem() { IngredientId = p.ProductId }).Distinct();
+                                 select new TmpUsageItem() { IngredientId = p.ProductId }).Distinct(new TmpUsageItem()).ToList();
                 tmpUsageList.AddRange(tmpUsages);
 
                 tmpUsages = (from pp in tmp_product_part
                              where pp.UnitId == unitId && unitId > 0
-                             select new TmpUsageItem() { IngredientId = pp.SubProductId, IsChoise = pp.IsChoise }).Distinct();
+                             select new TmpUsageItem() { IngredientId = pp.SubProductId, IsChoise = pp.IsChoise }).Distinct(new TmpUsageItem()).ToList();
 
                 tmpUsageList.AddRange(tmpUsages);
+                tmpUsageList = tmpUsageList.Distinct().ToList();
             }
 
             if (psetId > 0)
             {
                 var list = _pricingRepo.GetPsetProducts(psetId);
-                tmpUsageList.AddRange(list.Select(x => new TmpUsageItem() { IngredientId = x.ProductId }));
+                tmpUsageList.AddRange(list.Select(x => new TmpUsageItem() { IngredientId = x.ProductId }).Distinct(new TmpUsageItem()).ToList());
             }
 
             if (pbandId > 0)
             {
                 var list = _pricingRepo.GetPsetGroupProducts(pbandId);
-                tmpUsageList.AddRange(list.Select(x => new TmpUsageItem() { IngredientId = x.ProductId }));
+                tmpUsageList.AddRange(list.Select(x => new TmpUsageItem() { IngredientId = x.ProductId }).Distinct(new TmpUsageItem()).ToList());
             }
 
             int level = 1;
-            var usageList = tmpUsageList.Select(x => new UsageItem() { IngredientId = x.IngredientId, DishId = x.IngredientId, Level = level, IsChoise = x.IsChoise }).ToList();
+            var usageList = tmpUsageList.Select(x => new UsageItem() { IngredientId = x.IngredientId, DishId = x.IngredientId, Level = level, IsChoise = x.IsChoise }).Distinct(new UsageItem()).ToList();
 
             while (usageList.Any(x => x.Level == level && !x.IsProcessed))
             {
@@ -240,14 +240,14 @@ namespace StarChef.Common.Engine
 
                 var targetItem = (from u in usageList
                                   join pp in tmp_product_part on u.DishId equals pp.SubProductId
-                                  select u).Distinct().ToList();
+                                  select u).Distinct(new UsageItem()).ToList();
 
                 targetItem.ForEach(u => u.IsProcessed = true);
 
                 var targetItem2 = (from u in usageList
                                    join pp in tmp_product_part on u.DishId equals pp.SubProductId
                                    where u.Level == level
-                                   select new UsageItem() { IngredientId = u.IngredientId, DishId = pp.ProductId, Level = level + 1, IsChoise = pp.IsChoise }).Distinct(new UsageItem());
+                                   select new UsageItem() { IngredientId = u.IngredientId, DishId = pp.ProductId, Level = level + 1, IsChoise = pp.IsChoise }).Distinct(new UsageItem()).ToList();
 
 
                 usageList = usageList.Where(u => !u.IsProcessed).ToList();
@@ -267,30 +267,28 @@ namespace StarChef.Common.Engine
                              PartId = 0,
                              RecipeTypeId = 0,
                              IsChoise = u.IsChoise
-                         }).Distinct().ToList();
+                         }).Distinct(new Parts()).ToList();
 
             return parts;
         }
 
-        public IEnumerable<DbPrice> GetPrices(IEnumerable<GroupProducts> groupProductPrice, List<Parts> parts, IEnumerable<ProductItem> tmp_product, IEnumerable<ProductPartItem> tmp_product_part, IEnumerable<DishItem> tmp_dish, IEnumerable<IngredientItem> tmp_ingredient, IEnumerable<DbPrice> existingGroupProductPrices)
+        public IEnumerable<DbPrice> GetPrices(IEnumerable<GroupProducts> groupProductPrice, List<Parts> parts, IEnumerable<ProductItem> tmp_product, IEnumerable<ProductPartItem> tmp_product_part, IEnumerable<DishItem> tmp_dish, IEnumerable<IngredientItem> tmp_ingredient, IEnumerable<DbPrice> existingGroupProductPrices, bool globalRecalc)
         {
             var affectedProducts = groupProductPrice.Select(gp => gp.ProductId).Distinct().ToList();
             Dictionary<int, RecipeType> tmp_dish_dic = tmp_dish.ToDictionary(x => x.ProductId, y => y.RecipeTypeId);
             int level = 1;
-
             System.Diagnostics.Trace.WriteLine($"Update parts - {DateTime.Now}");
-            
             var itemsToUpdate = tmp_product_part.Select(pp => pp.ProductId).Distinct().Intersect(affectedProducts).ToList();
 
             while (parts.Any(p => p.Level == level && p.Processed == 0))
             {
                 System.Diagnostics.Trace.WriteLine($"Level {level}");
-                
+
                 parts.ForEach(p => p.Processed = 1);
 
                 var partsToUpdate = (from p in parts
-                                     join x in itemsToUpdate on p.IngredientId equals x
-                                     select p).ToList();
+                                         join x in itemsToUpdate on p.IngredientId equals x
+                                         select p).ToList();
 
                 //get counts
 
@@ -299,7 +297,7 @@ namespace StarChef.Common.Engine
                 //add next nexted level from top to bottom
                 var nextLevelParts = (from p in parts
                                       join pp in tmp_product_part on p.IngredientId equals pp.ProductId
-                                      where p.Level == level && p.Processed == 2
+                                      where p.Level == level && ((p.Processed == 2 && globalRecalc) || !globalRecalc)
                                       select new Parts()
                                       {
                                           EndDishId = p.EndDishId,
@@ -314,7 +312,6 @@ namespace StarChef.Common.Engine
                                       }).Distinct(new Parts()).ToList();
 
                 parts.AddRange(nextLevelParts);
-                //System.Diagnostics.Trace.WriteLine($"Parts {parts.Count}");
                 level++;
             }
 
@@ -323,19 +320,15 @@ namespace StarChef.Common.Engine
             System.Diagnostics.Trace.WriteLine("LINQ 3 - " + DateTime.Now);
 
             var itemsToDeleteIngredients = parts.Where(p => p.EndDishId != p.IngredientId).Select(p => p.DishId).Distinct().ToList();
-
             System.Diagnostics.Trace.WriteLine("LINQ 4 - " + DateTime.Now);
 
             var deletePartItems = parts.Where(p => p.EndDishId == p.IngredientId && 
             itemsToDeleteIngredients.Contains(p.IngredientId)).ToList();
-
             System.Diagnostics.Trace.WriteLine("LINQ 5 - " + DateTime.Now);
-
             parts = parts.Except(deletePartItems).ToList();
 
             /////////////////////////////////////////////////////////////////////////
             ///update recipe type
-            
             System.Diagnostics.Trace.WriteLine("LINQ 7 - " + DateTime.Now);
 
             parts.ForEach(p =>
@@ -435,7 +428,6 @@ namespace StarChef.Common.Engine
                     var x = "1";
                 }
             }
-
             System.Diagnostics.Trace.WriteLine($"LINQ 10 - {DateTime.Now}");
 
             /////////////////////////////////////////////////////////////////////////
@@ -452,13 +444,12 @@ namespace StarChef.Common.Engine
                        by new { p.ProductId, g.GroupId, g.Price, i.Wastage } into itemPrices
                        select itemPrices
              ).ToList();
-
             System.Diagnostics.Trace.WriteLine($"LINQ 11 - {DateTime.Now}");
 
             res.ForEach(g =>
             {
-                decimal epPrice = 0;
-                if (g.Key.Wastage <= 100)
+                decimal? epPrice = 0;
+                if (g.Key.Wastage <= 100 && g.Key.Price.HasValue)
                 {
                     epPrice = g.Key.Price * 100.0m / (100.0m - g.Key.Wastage);
                 }
@@ -474,7 +465,6 @@ namespace StarChef.Common.Engine
             });
 
             res.Clear();
-
             System.Diagnostics.Trace.WriteLine($"LINQ 12 - {DateTime.Now}");
 
             var res2 = (from p in tmp_product
@@ -487,9 +477,7 @@ namespace StarChef.Common.Engine
                         by new { p.ProductId, g.GroupId, dpc.Price } into itemPrices
                         select itemPrices
              ).ToList();
-
             System.Diagnostics.Trace.WriteLine($"LINQ 13 - {DateTime.Now}");
-
             res2.ForEach(g =>
             {
                 var wastage = tmp_ingredient.FirstOrDefault(i => i.ProductId == g.Key.ProductId);
@@ -510,9 +498,7 @@ namespace StarChef.Common.Engine
             });
 
             res2.Clear();
-
             System.Diagnostics.Trace.WriteLine($"LINQ 14 - {DateTime.Now}");
-
             var productPartsProductIds = tmp_product_part.Select(pp => pp.ProductId).Distinct().ToList();
 
             var res3 = (from p in tmp_product
@@ -524,9 +510,7 @@ namespace StarChef.Common.Engine
                         select new ProductPrice() { EndDishId = p.ProductId, ProductId = p.ProductId, GroupId = g.GroupId , ApPrice = 0, EpPrice = 0 }
 
              ).ToList();
-
             System.Diagnostics.Trace.WriteLine($"LINQ 15 - {DateTime.Now}");
-
             pricing.AddRange(res3);
             res3.Clear();
             /////////////////////////////////////////////////////////////////////////
@@ -546,16 +530,8 @@ namespace StarChef.Common.Engine
                 {
                     var levelParts = partsDictionary[maxLevel];
                     List<TmpItem> tmp = new List<TmpItem>();
-
                     System.Diagnostics.Trace.WriteLine($"maxLevel - {maxLevel} {DateTime.Now}");
-                    //System.Diagnostics.Trace.WriteLine($"calculatedPriceItems - {DateTime.Now}");
                     System.Diagnostics.Trace.WriteLine($"calculatedPriceItems2 - {DateTime.Now}");
-                    //System.Diagnostics.Trace.WriteLine($"levelParts - {levelParts.Count}");
-                    //System.Diagnostics.Trace.WriteLine($"tmp_product_part - {tmp_product_part.Count()}");
-                    //System.Diagnostics.Trace.WriteLine($"tmp_product - {tmp_product.Count()}");
-                    //System.Diagnostics.Trace.WriteLine($"groupProductPrice - {groupProductPrice.Count()}");
-                    //System.Diagnostics.Trace.WriteLine($"pricing - {pricing.Count}");
-
                     //items with prices
                     var calculatedPriceItems2 = //(from pa in parts
                         (from pa in levelParts
@@ -587,7 +563,9 @@ namespace StarChef.Common.Engine
                              Price = finalPrice
                          }
                          into items
-                         select items).ToList();
+                         select items).ToArray();
+
+                    var zzzz2 = calculatedPriceItems2.ToList();
                     System.Diagnostics.Trace.WriteLine($"leftJoin - {DateTime.Now}");
                     var leftJoin = //(from pa in parts
                         (from pa in levelParts
@@ -600,9 +578,8 @@ namespace StarChef.Common.Engine
 
                     tmp.AddRange(leftJoin);
 
-                    //System.Diagnostics.Trace.WriteLine("TmpPriceItems_all each- " + DateTime.Now);
                     System.Diagnostics.Trace.WriteLine($"calculatedPriceItems2 foreach - {DateTime.Now}");
-                    calculatedPriceItems2.ForEach(x =>
+                    zzzz2.ForEach(x =>
                     {
                         var xx = x.FirstOrDefault();
 
@@ -628,10 +605,8 @@ namespace StarChef.Common.Engine
 
                     //check total tmp item on each loop
                     System.Diagnostics.Trace.WriteLine($"tmp_product_dict - {DateTime.Now}");
-
                     var tmp_product_dict = tmp.GroupBy(t => t.ProductId).ToDictionary(key => key.Key, value => value.ToList());
                     tmp = new List<TmpItem>();
-
                     System.Diagnostics.Trace.WriteLine($"levelParts_product_dict - {DateTime.Now}");
                     var levelParts_product_dict = levelParts.GroupBy(lp => lp.DishId).ToDictionary(key => key.Key, value => value.ToList());
                     levelParts.Clear();
@@ -672,7 +647,6 @@ namespace StarChef.Common.Engine
                     //System.Diagnostics.Trace.WriteLine($"pricing count - {pricing.Count}");
 
                     levelParts_product_dict.Clear();
-
                     System.Diagnostics.Trace.WriteLine($"set 0 to pricing- {DateTime.Now}");
                     var filteredParts = parts.Where(p => p.RecipeTypeId == 4 && p.Level <= maxLevel).ToDictionary(key => key.DishId, value => value);
                     //System.Diagnostics.Trace.WriteLine("pricing foreach- " + DateTime.Now);
@@ -690,7 +664,6 @@ namespace StarChef.Common.Engine
 
                     maxLevel--;
                 }
-                
                 System.Diagnostics.Trace.WriteLine($"Clear group for private/draft - {DateTime.Now}");
                 //create dictionary to reduce calls
 
@@ -705,16 +678,8 @@ namespace StarChef.Common.Engine
                     }
                 }
             }
-            System.Diagnostics.Trace.WriteLine($"filter affectedProducts - {DateTime.Now}");
 
-            ////var ccc1 = pricing.Count(p => affectedProducts.Contains(p.ProductId));
-            //var ccc2 = pricing.Count(p => affectedProducts.Contains(p.ProductId) && p.ApPrice.HasValue && p.ApPrice == 0);
-            ////this should not be null apPrices
-            //var ccc3 = pricing.Count(p => affectedProducts.Contains(p.ProductId) && !p.ApPrice.HasValue);
-            //var ccc4 = pricing.Count(p => affectedProducts.Contains(p.ProductId) && p.ApPrice.HasValue);
-            
-            ////OK
-            //var ccc5 = pricing.Where(p => affectedProducts.Contains(p.ProductId) && p.ApPrice.HasValue && p.ApPrice != 0).Select(p => new DbPrice() { GroupId = p.GroupId, ProductId = p.ProductId, Price = p.ApPrice.Value }).Distinct(new DbPrice()).ToList();
+            System.Diagnostics.Trace.WriteLine($"filter affectedProducts - {DateTime.Now}");
 
             //final result
             var result = pricing.Where(p => affectedProducts.Contains(p.ProductId) && p.ApPrice.HasValue).Select(p=> new DbPrice() { GroupId = p.GroupId, ProductId = p.ProductId, Price = p.ApPrice.Value }).Distinct(new DbPrice()).ToList();
@@ -759,10 +724,26 @@ namespace StarChef.Common.Engine
         }
     }
 
-    public class TmpUsageItem {
+    public class TmpUsageItem: IEqualityComparer<TmpUsageItem> {
         public int IngredientId { get; set; }
         public bool IsChoise { get; set; }
+
+    public bool Equals(TmpUsageItem x, TmpUsageItem y)
+    {
+        if (x.IngredientId.Equals(y.IngredientId) && x.IsChoise.Equals(y.IsChoise)
+            )
+        {
+            return true;
+        }
+
+        return false;
     }
+
+    public int GetHashCode(TmpUsageItem obj)
+    {
+        return obj.IngredientId.GetHashCode() ^ obj.IsChoise.GetHashCode();
+    }
+}
 
     public class TmpItem {
         public int ProductId { get; set; }

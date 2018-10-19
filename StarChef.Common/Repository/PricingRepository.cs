@@ -134,13 +134,14 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public IEnumerable<DbPrice> GetPrices(int groupId)
+        public IEnumerable<DbPrice> GetPrices(int groupId, int productId)
         {
             var param = new
             {
-                group_id = groupId
+                group_id = groupId,
+                product_id = productId
             };
-            var cmd = "SELECT product_id, group_id, product_price FROM db_product_calc WITH(NOLOCK) WHERE group_id = @group_id";
+            var cmd = "SELECT product_id, group_id, product_price FROM db_product_calc WITH(NOLOCK) WHERE (@group_id = 0 OR group_id = @group_id) AND (@product_id = 0 OR product_id = @product_id)";
             using (var connection = GetOpenConnection())
             {
                 var result = Query<DbPrice>(connection, cmd, param, CommandType.Text);
@@ -224,8 +225,33 @@ namespace StarChef.Common.Repository
             }
         }
 
+        public bool IsOwnGroup(int groupId)
+        {
+            var param = new
+            {
+                group_id = groupId
+            };
+
+            var cmd = @"select 1 from [group] with (nolock) 
+                where own_group_id = @group_id
+                group by own_group_id";
+            using (var connection = GetOpenConnection())
+            {
+                var result = base.ExecuteScalar<int>(connection, cmd, param, CommandType.Text);
+                if (result > 0)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
         public IEnumerable<ProductConvertionRatio> GetProductConvertionRatio(IEnumerable<ProductConvertionRatio> products)
         {
+            if (!products.Any()) {
+                return new List<ProductConvertionRatio>();
+            }
+
             var param = new
             {
                 productConvertion = ToSqlDataRecords(products).AsTableValuedParameter("udt_product_convertion_ratio")
@@ -276,7 +302,6 @@ namespace StarChef.Common.Repository
                 record.SetInt32(0, filter.ProductId);
                 record.SetInt16(1, filter.SourceUnitId);
                 record.SetInt16(2, filter.TargetUnitId);
-                //record.SetInt16(3, filter.SourceUnitId);
                 yield return record;
             }
         }
