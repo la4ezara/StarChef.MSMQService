@@ -16,9 +16,15 @@ namespace StarChef.Engine.IntegrationTests
         private readonly CustomerDbRepository _customerDbRepository;
         private readonly PricingRepository _pricingRepository;
 
+        public RecalculationTests()
+        {
+            var cnStr = TestConfiguration.Instance.ConnectionString;
+            _customerDbRepository = new CustomerDbRepository(cnStr, 7200);
+            _pricingRepository = new PricingRepository(cnStr, 7200);
+        }
+
         public RecalculationTests(string connectionString)
         {
-
             var cnStr = TestConfiguration.Instance.ConnectionString;
             if (!string.IsNullOrEmpty(connectionString))
             {

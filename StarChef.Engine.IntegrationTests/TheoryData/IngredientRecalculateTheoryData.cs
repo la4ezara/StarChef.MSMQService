@@ -9,6 +9,8 @@ namespace StarChef.Engine.IntegrationTests.TheoryData
     {
         public IngredientRecalculateTheoryData()
         {
+            //Add(new PriceRecalculationRequest() { ProductId = 63183 });
+            //return;
             CustomerDbRepository customerDbRepository = new CustomerDbRepository(TestConfiguration.Instance.ConnectionString, TestConfiguration.Instance.TimeOut);
             var items = customerDbRepository.GetIngredients().ToList();
 

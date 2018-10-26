@@ -77,7 +77,7 @@ namespace StarChef.Common.Model
         
 
         public DbPrice() {
-            Delta = 5 * (decimal)Math.Pow(10, -1 * Rounding);
+            Delta = 25 * (decimal)Math.Pow(10, -1 * Rounding);
         }
     }
 }

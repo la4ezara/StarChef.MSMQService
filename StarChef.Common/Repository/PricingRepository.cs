@@ -151,7 +151,23 @@ namespace StarChef.Common.Repository
 
         public IEnumerable<ProductPartItem> GetProductParts()
         {
-            var cmd = "SELECT product_part_id,portion_type_id,product_id,sub_product_id,quantity,unit_id,is_choice FROM product_part WITH(NOLOCK)";
+            var cmd = @"
+                CREATE TABLE #convetion(product_id INT, source_unit_id INT, target_unit_id INT, ratio DECIMAL(30,14))
+
+                INSERT INTO #convetion(product_id, source_unit_id, target_unit_id)
+                select DISTINCT pp.sub_product_id, p.unit_id, pp.unit_id
+                from product_part as pp WITH (NOLOCK)
+                JOIN product as p ON pp.sub_product_id = p.product_id
+
+                UPDATE #convetion
+                SET ratio = dbo.fn_ConversionGetRatioEx(product_id, source_unit_id, target_unit_id) 
+                
+                SELECT DISTINCT pp.product_part_id,pp.portion_type_id,pp.product_id,pp.sub_product_id,pp.quantity,pp.unit_id,pp.is_choice, p.product_type_id,
+                c.ratio as ratio 
+                FROM product_part as pp WITH(NOLOCK)
+                JOIN product as p WITH(NOLOCK) ON pp.sub_product_id = p.product_id
+                JOIN #convetion as c ON c.product_id = pp.sub_product_id AND c.source_unit_id = p.unit_id AND c.target_unit_id = pp.unit_id
+                DROP TABLE #convetion";
             using (var connection = GetOpenConnection())
             {
                 var result = Query<ProductPartItem>(connection, cmd, null, CommandType.Text);

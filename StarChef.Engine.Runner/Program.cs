@@ -11,8 +11,9 @@ namespace StarChef.Engine.Runner
             //var cnStr = "Initial Catalog=SCNET_Tish_Price_Test;Data Source=ie1scqaidb01.northeurope.cloudapp.azure.com;User ID=sl_web_user; Password=reddevil;";
             //var cnStr = "Initial Catalog=SCNET_trg;Data Source=ie1scqaidb01.northeurope.cloudapp.azure.com;User ID=sl_web_user; Password=reddevil;";
             //var cnStr = "Initial Catalog=SCNET_marstons;Data Source=ie1scqaidb01.northeurope.cloudapp.azure.com;User ID=sl_web_user; Password=reddevil;";
-            var cnStr = "Initial Catalog=SCNET_trg;Data Source=.\\sqlexpress;User ID=sl_web_user; Password=reddevil;";
-            
+            //var cnStr = "Initial Catalog=SCNET_trg;Data Source=.\\sqlexpress;User ID=sl_web_user; Password=reddevil;";
+            var cnStr = "Initial Catalog=SCNET_marstons;Data Source=.\\sqlexpress;User ID=sl_web_user; Password=reddevil;";
+
             //var t = new RecalculationTests(cnStr);
             //t.RecipePriceRecalculations();
             //return;
@@ -23,7 +24,9 @@ namespace StarChef.Engine.Runner
             //var prices = pr.GetPrices();
             IPriceEngine engine = new PriceEngine(pr);
             //var prices = engine.CalculatePrices(0, 152596, 0, 0, 0);
-            var prices = engine.CalculatePrices(1, 0, 0, 0, 0);
+            //var prices = engine.CalculatePrices(0, 0, 0, 1, 0);
+            //var prices = engine.CalculatePrices(0, 0, 0, 0, 369);
+            var prices = engine.CalculatePrices(0, 104316, 0, 0, 0);
 
             //var prices = engine.CalculatePrices(0, 0, 0, 0, 0).ToList();
 

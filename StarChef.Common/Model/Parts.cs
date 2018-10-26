@@ -8,7 +8,9 @@ namespace StarChef.Common.Model
     /// </summary>
     public class Parts : IEqualityComparer<Parts>
     {
-        public Parts() { }
+        public Parts() {
+            Ratio = 1;
+        }
         public Parts(Parts parts)
         {
             EndDishId = parts.EndDishId;

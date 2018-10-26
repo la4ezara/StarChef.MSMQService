@@ -21,14 +21,19 @@ namespace StarChef.Engine.IntegrationTests
     {
         private readonly ITestOutputHelper output;
 
-        public PriceRecalculationTests(ITestOutputHelper output) : base("Initial Catalog=SCNET_trg;Data Source=.\\sqlexpress;User ID=sl_web_user; Password=reddevil;") {
+        public PriceRecalculationTests(ITestOutputHelper output) : base() {
             this.output = output;
         }
             
         [Fact]
         public override void GlobalPriceRecalculation()
         {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
             base.GlobalPriceRecalculation();
+            sw.Stop();
+            output.WriteLine($"Total time: {sw.Elapsed.TotalSeconds}");
+
         }
 
         [Theory]

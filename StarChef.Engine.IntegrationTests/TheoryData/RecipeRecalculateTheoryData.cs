@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace StarChef.Engine.IntegrationTests.TheoryData
 {
-
     public class RecipeRecalculateTheoryData : TheoryPriceData<PriceRecalculationRequest>
     {
         public RecipeRecalculateTheoryData()
@@ -24,7 +23,6 @@ namespace StarChef.Engine.IntegrationTests.TheoryData
             }
             else
             {
-
                 foreach (var recipe in recipes)
                 {
                     Add(recipe);

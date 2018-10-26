@@ -22,5 +22,9 @@ namespace StarChef.Common.Model
         public bool IsChoise { get; set; }
         [Description("portion_type_id")]
         public PortionType PortionTypeId { get; set; }
+        [Description("product_type_id")]
+        public ProductType ProductTypeId { get; set; }
+        [Description("ratio")]
+        public decimal Ratio { get; set; }
     }
 }

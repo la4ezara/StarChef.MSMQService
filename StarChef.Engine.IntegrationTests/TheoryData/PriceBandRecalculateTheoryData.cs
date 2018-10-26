@@ -13,7 +13,7 @@ namespace StarChef.Engine.IntegrationTests.TheoryData
             CustomerDbRepository customerDbRepository = new CustomerDbRepository(TestConfiguration.Instance.ConnectionString, TestConfiguration.Instance.TimeOut);
             var items = customerDbRepository.GetPriceBands().ToList();
             //List<int> excludeItems = new List<int>() { 1, 110, 236, 149 };
-            List<int> excludeItems = new List<int>();
+            //List<int> excludeItems = new List<int>();
             var max = TestConfiguration.Instance.MaxTestsAmount;
             if (max != 0 && max < items.Count)
             {
@@ -28,7 +28,7 @@ namespace StarChef.Engine.IntegrationTests.TheoryData
             {
                 foreach (var item in items)
                 {
-                    if(!excludeItems.Contains(item.GroupId))
+                    //if(!excludeItems.Contains(item.GroupId))
                         Add(item);
                 }
             }
