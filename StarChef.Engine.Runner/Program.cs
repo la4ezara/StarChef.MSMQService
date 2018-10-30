@@ -26,7 +26,7 @@ namespace StarChef.Engine.Runner
             //var prices = engine.CalculatePrices(0, 152596, 0, 0, 0);
             //var prices = engine.CalculatePrices(0, 0, 0, 1, 0);
             //var prices = engine.CalculatePrices(0, 0, 0, 0, 369);
-            var prices = engine.CalculatePrices(0, 104316, 0, 0, 0);
+            var prices = engine.GlobalRecalculation();
 
             //var prices = engine.CalculatePrices(0, 0, 0, 0, 0).ToList();
 

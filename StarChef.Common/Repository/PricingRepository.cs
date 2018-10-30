@@ -23,7 +23,7 @@ namespace StarChef.Common.Repository
         public PricingRepository(string connectionString)
         {
             connectionStr = connectionString;
-            var types = Assembly.GetAssembly(typeof(DishItem)).GetTypes().Where(t => t.Namespace == "StarChef.Common.Model").ToList();
+            var types = Assembly.GetAssembly(typeof(DbPrice)).GetTypes().Where(t => t.Namespace == "StarChef.Common.Model").ToList();
             foreach (var type in types)
             {
                 SetTypeMap(type);
@@ -42,16 +42,6 @@ namespace StarChef.Common.Repository
             if (member == null) return null;
             var attrib = (DescriptionAttribute)Attribute.GetCustomAttribute(member, typeof(DescriptionAttribute), false);
             return attrib?.Description;
-        }
-
-        public IEnumerable<DishItem> GetDishes()
-        {
-            var cmd = "SELECT product_id, recipe_type_id FROM Dish WITH(NOLOCK)";
-            using (var connection = GetOpenConnection())
-            {
-                var result = Query<DishItem>(connection, cmd, null, CommandType.Text);
-                return result;
-            }
         }
 
         public IEnumerable<GroupProducts> GetGroupProductPricesByGroup(int groupId)
@@ -79,51 +69,6 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public IEnumerable<GroupProducts> GetGroupProductPricesByProduct(int groupId, int productId, int psetId, int pbandId, int unitId)
-        {
-            var param = new
-            {
-                group_id = groupId,
-                include_descendants = 1,
-                product_id = productId,
-                pset_id = psetId,
-                pband_id = pbandId,
-                unit_id = unitId
-            };
-            var cmd = @"CREATE TABLE #group_products
-                (
-                    group_id        INT,
-                    product_id      INT,
-                    price           decimal(25, 13)
-                )
-                exec upfast_sc_GetAvailableProductsWithIngredientPrices2
-				@group_id,
-				@include_descendants,
-				@product_id,
-				@pset_id,
-				@pband_id,
-				@unit_id
-
-                SELECT DISTINCT product_id, group_id, price FROM #group_products
-                DROP TABLE #group_products
-                ";
-            using (var connection = GetOpenConnection())
-            {
-                var result = Query<GroupProducts>(connection, cmd, param, CommandType.Text);
-                return result;
-            }
-        }
-
-        public IEnumerable<IngredientItem> GetIngredients()
-        {
-            var cmd = "SELECT product_id, ingredient_id, wastage FROM ingredient WITH(NOLOCK)";
-            using (var connection = GetOpenConnection())
-            {
-                var result = Query<IngredientItem>(connection, cmd, null, CommandType.Text);
-                return result;
-            }
-        }
-
         public IEnumerable<DbPrice> GetPrices()
         {
             var cmd = "SELECT product_id, group_id, product_price FROM db_product_calc WITH(NOLOCK)";
@@ -134,22 +79,7 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public IEnumerable<DbPrice> GetPrices(int groupId, int productId)
-        {
-            var param = new
-            {
-                group_id = groupId,
-                product_id = productId
-            };
-            var cmd = "SELECT product_id, group_id, product_price FROM db_product_calc WITH(NOLOCK) WHERE (@group_id = 0 OR group_id = @group_id) AND (@product_id = 0 OR product_id = @product_id)";
-            using (var connection = GetOpenConnection())
-            {
-                var result = Query<DbPrice>(connection, cmd, param, CommandType.Text);
-                return result;
-            }
-        }
-
-        public IEnumerable<ProductPartItem> GetProductParts()
+        public IEnumerable<ProductPart> GetProductParts()
         {
             var cmd = @"
                 CREATE TABLE #convetion(product_id INT, source_unit_id INT, target_unit_id INT, ratio DECIMAL(30,14))
@@ -166,26 +96,29 @@ namespace StarChef.Common.Repository
                 c.ratio as ratio 
                 FROM product_part as pp WITH(NOLOCK)
                 JOIN product as p WITH(NOLOCK) ON pp.sub_product_id = p.product_id
-                JOIN #convetion as c ON c.product_id = pp.sub_product_id AND c.source_unit_id = p.unit_id AND c.target_unit_id = pp.unit_id
+                JOIN #convetion as c ON c.product_id = pp.sub_product_id AND ISNULL(c.source_unit_id, 0) = ISNULL(p.unit_id,0) AND ISNULL(c.target_unit_id, 0) = ISNULL(pp.unit_id,0)
                 DROP TABLE #convetion";
             using (var connection = GetOpenConnection())
             {
-                var result = Query<ProductPartItem>(connection, cmd, null, CommandType.Text);
+                var result = Query<ProductPart>(connection, cmd, null, CommandType.Text);
                 return result;
             }
         }
 
-        public IEnumerable<ProductItem> GetProducts()
+        public IEnumerable<Product> GetProducts()
         {
-            var cmd = "SELECT product_id, number, quantity, unit_id, product_type_id, scope_id FROM product WITH(NOLOCK)";
+            var cmd = @"SELECT p.product_id, p.number, p.quantity, p.unit_id, p.product_type_id, p.scope_id, i.wastage, d.recipe_type_id 
+                    FROM product as p WITH(NOLOCK)
+                    LEFT JOIN ingredient as i WITH(NOLOCK) on i.product_id = p.product_id
+                    LEFT JOIN dish as d WITH(NOLOCK) on d.product_id = p.product_id";
             using (var connection = GetOpenConnection())
             {
-                var result = Query<ProductItem>(connection, cmd, null, CommandType.Text);
+                var result = Query<Product>(connection, cmd, null, CommandType.Text);
                 return result;
             }
         }
 
-        public bool UpdatePrices(IEnumerable<GroupProductPriceItem> prices)
+        public bool UpdatePrices(IEnumerable<GroupProducts> prices)
         {
             throw new NotImplementedException();
         }
@@ -206,120 +139,24 @@ namespace StarChef.Common.Repository
             return connection;
         }
 
-        public IEnumerable<ProductPsetItem> GetPsetProducts(int psetId)
-        {
-            var param = new
-            {
-                pset_id = psetId
-            };
+        //public static IEnumerable<SqlDataRecord> ToSqlDataRecords(IEnumerable<ProductConvertionRatio> filters)
+        //{
+        //    var metaData = new[]
+        //    {
+        //        new SqlMetaData("Product_id", SqlDbType.Int),
+        //        new SqlMetaData("Source_unit_id", SqlDbType.SmallInt),
+        //        new SqlMetaData("Target_unit_id", SqlDbType.SmallInt),
+        //        new SqlMetaData("Ratio", SqlDbType.Decimal, 30, 14)
+        //    };
 
-            var cmd = @"SELECT DISTINCT product_id, 0 as is_choise 
-                        FROM product_pset WITH(NOLOCK) 
-                        WHERE pset_id = @pset_id";
-            using (var connection = GetOpenConnection())
-            {
-                var result = Query<ProductPsetItem>(connection, cmd, param, CommandType.Text);
-                return result;
-            }
-        }
-
-        public IEnumerable<ProductPsetItem> GetPsetGroupProducts(int pbandId)
-        {
-            var param = new
-            {
-                pband_id = pbandId
-            };
-
-            var cmd = @"SELECT	DISTINCT pps.product_id, 0 as is_choise 
-                        FROM product_pset pps with(nolock)
-                        INNER JOIN group_set_link gsl with(nolock) ON pps.pset_id = gsl.set_id
-                        WHERE gsl.pband_id = @pband_id";
-            using (var connection = GetOpenConnection())
-            {
-                var result = Query<ProductPsetItem>(connection, cmd, param, CommandType.Text);
-                return result;
-            }
-        }
-
-        public bool IsOwnGroup(int groupId)
-        {
-            var param = new
-            {
-                group_id = groupId
-            };
-
-            var cmd = @"select 1 from [group] with (nolock) 
-                where own_group_id = @group_id
-                group by own_group_id";
-            using (var connection = GetOpenConnection())
-            {
-                var result = base.ExecuteScalar<int>(connection, cmd, param, CommandType.Text);
-                if (result > 0)
-                {
-                    return true;
-                }
-                return false;
-            }
-        }
-
-        public IEnumerable<ProductConvertionRatio> GetProductConvertionRatio(IEnumerable<ProductConvertionRatio> products)
-        {
-            if (!products.Any()) {
-                return new List<ProductConvertionRatio>();
-            }
-
-            var param = new
-            {
-                productConvertion = ToSqlDataRecords(products).AsTableValuedParameter("udt_product_convertion_ratio")
-            };
-
-            var cmd = @"CREATE TABLE #ConversionRatio
-	                    (
-		                    ProductID INT,
-		                    SourceUnitID SMALLINT,
-		                    TargetUnitID SMALLINT,
-		                    Ratio DECIMAL(30,14)
-	                    )
-
-	                    INSERT INTO #ConversionRatio(ProductID,SourceUnitID,TargetUnitID)
-	                    SELECT DISTINCT 
-		                    Product_id, 
-		                    Source_unit_id, 
-		                    Target_unit_id 
-		                    FROM @productConvertion
-
-                        CREATE INDEX IDX_ConverstionRatio ON #ConversionRatio(ProductID)
-
-                        UPDATE #ConversionRatio
-		                SET Ratio = dbo.fn_ConversionGetRatioEx(ProductID, SourceUnitID, TargetUnitID)	
-                        Select ProductID as Product_id, SourceUnitID as Source_unit_id, TargetUnitID as Target_unit_id, Ratio FROM #ConversionRatio
-                        
-                        DROP TABLE #ConversionRatio";
-            using (var connection = GetOpenConnection())
-            {
-                var result = Query<ProductConvertionRatio>(connection, cmd, param, CommandType.Text);
-                return result;
-            }
-        }
-
-        public static IEnumerable<SqlDataRecord> ToSqlDataRecords(IEnumerable<ProductConvertionRatio> filters)
-        {
-            var metaData = new[]
-            {
-                new SqlMetaData("Product_id", SqlDbType.Int),
-                new SqlMetaData("Source_unit_id", SqlDbType.SmallInt),
-                new SqlMetaData("Target_unit_id", SqlDbType.SmallInt),
-                new SqlMetaData("Ratio", SqlDbType.Decimal, 30, 14)
-            };
-
-            foreach (var filter in filters)
-            {
-                var record = new SqlDataRecord(metaData);
-                record.SetInt32(0, filter.ProductId);
-                record.SetInt16(1, filter.SourceUnitId);
-                record.SetInt16(2, filter.TargetUnitId);
-                yield return record;
-            }
-        }
+        //    foreach (var filter in filters)
+        //    {
+        //        var record = new SqlDataRecord(metaData);
+        //        record.SetInt32(0, filter.ProductId);
+        //        record.SetInt16(1, filter.SourceUnitId);
+        //        record.SetInt16(2, filter.TargetUnitId);
+        //        yield return record;
+        //    }
+        //}
     }
 }

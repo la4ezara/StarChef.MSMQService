@@ -1,22 +1,9 @@
-﻿using StarChef.Common.Engine;
-using StarChef.Common.Repository;
-using StarChef.Engine.IntegrationTests.Model;
+﻿using StarChef.Engine.IntegrationTests.TheoryData;
 using Xunit;
-using System.Linq;
 using Xunit.Abstractions;
-using System.Collections.Generic;
-using StarChef.Engine.IntegrationTests.TheoryData;
 
 namespace StarChef.Engine.IntegrationTests
 {
-    
-
-    
-
-
-    
-
-
     public class PriceRecalculationTests : RecalculationTests
     {
         private readonly ITestOutputHelper output;
@@ -25,63 +12,47 @@ namespace StarChef.Engine.IntegrationTests
             this.output = output;
         }
             
-        [Fact]
-        public override void GlobalPriceRecalculation()
-        {
+        //[Fact]
+        //public void GlobalPriceRecalculation()
+        //{
+        //    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+        //    sw.Start();
+        //    base.GlobalPriceRecalculation(output);
+        //    sw.Stop();
+        //    output.WriteLine($"Total time: {sw.Elapsed.TotalSeconds}");
+
+        //}
+
+        [Theory]
+        [ClassData(typeof(GlobalRecalculateTheoryData))]
+        public void PriceRecalculation(string connStr) {
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            base.GlobalPriceRecalculation();
+            output.WriteLine($"Conn str : {connStr}");
+            var rt = new RecalculationTests(connStr);
+            rt.GlobalPriceRecalculation(output);
             sw.Stop();
             output.WriteLine($"Total time: {sw.Elapsed.TotalSeconds}");
-
+            sw.Reset();
         }
 
-        [Theory]
-        [ClassData(typeof(RecipeRecalculateTheoryData))]
-        public void RecipePriceRecalculationsTests(PriceRecalculationRequest request)
-        {
-            output.WriteLine(request.ToString());
-            base.SinglePriceRecalculation(request);
-        }
+        //[Fact]
+        //public void AllGlobalPriceRecalculation() {
+        //    var cnStr = TestConfiguration.Instance.SlLoginConnectionString;
+        //    SlLoginDbRepository repo = new SlLoginDbRepository(cnStr);
+        //    var connectionStrings = repo.GetConnectionStrings();
 
-        [Theory]
-        [ClassData(typeof(IngredientRecalculateTheoryData))]
-        public void IngredientsPriceRecalculationsTests(PriceRecalculationRequest request)
-        {
-            output.WriteLine(request.ToString());
-            base.SinglePriceRecalculation(request);
-        }
+        //    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
 
-        [Theory]
-        [ClassData(typeof(GroupRecalculateTheoryData))]
-        public void GroupPriceRecalculationsTests(PriceRecalculationRequest request)
-        {
-            output.WriteLine(request.ToString());
-            base.SinglePriceRecalculation(request);
-        }
-
-        [Theory]
-        [ClassData(typeof(SetRecalculateTheoryData))]
-        public void SetPriceRecalculationsTests(PriceRecalculationRequest request)
-        {
-            output.WriteLine(request.ToString());
-            base.SinglePriceRecalculation(request);
-        }
-
-        [Theory]
-        [ClassData(typeof(PriceBandRecalculateTheoryData))]
-        public void PriceBandPriceRecalculationsTests(PriceRecalculationRequest request)
-        {
-            output.WriteLine(request.ToString());
-            base.SinglePriceRecalculation(request);
-        }
-
-        [Theory]
-        [ClassData(typeof(UnitRecalculateTheoryData))]
-        public void UnitPriceRecalculationsTests(PriceRecalculationRequest request)
-        {
-            output.WriteLine(request.ToString());
-            base.SinglePriceRecalculation(request);
-        }
+        //    foreach (var connStr in connectionStrings) {
+        //        sw.Start();
+        //        output.WriteLine($"Conn str : {connStr}");
+        //        var rt = new RecalculationTests(connStr);
+        //        rt.GlobalPriceRecalculation();
+        //        sw.Stop();
+        //        output.WriteLine($"Total time: {sw.Elapsed.TotalSeconds}");
+        //        sw.Reset();
+        //    }
+        //}
     }
 }

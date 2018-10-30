@@ -1,18 +1,15 @@
-﻿using StarChef.Engine.IntegrationTests.Model;
-using System;
+﻿using System;
 using System.Linq;
 
 namespace StarChef.Engine.IntegrationTests.TheoryData
 {
 
-    public class IngredientRecalculateTheoryData : TheoryPriceData<PriceRecalculationRequest>
+    public class GlobalRecalculateTheoryData : TheoryPriceData<string>
     {
-        public IngredientRecalculateTheoryData()
+        public GlobalRecalculateTheoryData()
         {
-            //Add(new PriceRecalculationRequest() { ProductId = 63183 });
-            //return;
-            CustomerDbRepository customerDbRepository = new CustomerDbRepository(TestConfiguration.Instance.ConnectionString, TestConfiguration.Instance.TimeOut);
-            var items = customerDbRepository.GetIngredients().ToList();
+            SlLoginDbRepository repo = new SlLoginDbRepository(TestConfiguration.Instance.SlLoginConnectionString);
+            var items = repo.GetConnectionStrings().ToList();
 
             var max = TestConfiguration.Instance.MaxTestsAmount;
             if (max != 0 && max < items.Count)
@@ -26,7 +23,6 @@ namespace StarChef.Engine.IntegrationTests.TheoryData
             }
             else
             {
-
                 foreach (var item in items)
                 {
                     Add(item);

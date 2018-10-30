@@ -72,14 +72,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CustomerDbRepository.cs" />
-    <Compile Include="Model\PriceRecalculationRequest.cs" />
-    <Compile Include="TheoryData\UnitRecalculateTheoryData.cs" />
-    <Compile Include="TheoryData\SetRecalculateTheoryData.cs" />
-    <Compile Include="TheoryData\PriceBandRecalculateTheoryData.cs" />
-    <Compile Include="TheoryData\IngredientRecalculateTheoryData.cs" />
+    <Compile Include="SlLoginDbRepository.cs" />
+    <Compile Include="TheoryData\GlobalRecalculateTheoryData.cs" />
     <Compile Include="RecalculationTests.cs" />
-    <Compile Include="TheoryData\GroupRecalculateTheoryData.cs" />
-    <Compile Include="TheoryData\RecipeRecalculateTheoryData.cs" />
     <Compile Include="PriceRecalculationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TheoryData\TheoryPriceData.cs" />
