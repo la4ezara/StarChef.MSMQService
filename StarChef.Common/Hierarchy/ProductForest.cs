@@ -77,11 +77,13 @@ namespace StarChef.Common.Hierarchy
         {
             foreach (var part in childParts)
             {
-                ProductNode node = new ProductNode(part.SubProductId, part.UnitId, part.Quantity, part.ProductTypeId, part.Ratio, part.PortionTypeId);
+                ProductNode node = new ProductNode(part.SubProductId, part.UnitId.HasValue  ? part.UnitId.Value: 0, part.Quantity.HasValue ? part.Quantity.Value : 0, part.ProductTypeId, part.Ratio, part.PortionTypeId);
+                if (!part.Quantity.HasValue || !part.UnitId.HasValue) {
+                    node.IsBroken = true;
+                }
 
                 if (part.ProductTypeId == ProductType.Dish)
                 {
-
                     node.RecipeKind = _products_dict[part.SubProductId].RecipeTypeId;
                 }
 

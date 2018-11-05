@@ -1,19 +1,16 @@
 ﻿using StarChef.Common.Model;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StarChef.Common.Repository
 {
     public interface IPricingRepository
     {
-        /// <summary>
-        /// sc_costing_populate_group_products_full from sc_calculate_dish_pricing_v3_1
-        /// </summary>
-        /// <param name="groupId"></param>
-        /// <returns></returns>
-        IEnumerable<GroupProducts> GetGroupProductPricesByGroup(int groupId);
-        IEnumerable<DbPrice> GetPrices();
-        IEnumerable<Product> GetProducts();
-        IEnumerable<ProductPart> GetProductParts();
+        Task<IEnumerable<GroupProducts>> GetGroupProductPricesByGroup(int groupId);
+        Task<IEnumerable<DbPrice>> GetPrices();
+        Task<IEnumerable<DbPrice>> GetPrices(int groupId);
+        Task<IEnumerable<Product>> GetProducts();
+        Task<IEnumerable<ProductPart>> GetProductParts();
 
         bool UpdatePrices(IEnumerable<GroupProducts> prices);
     }

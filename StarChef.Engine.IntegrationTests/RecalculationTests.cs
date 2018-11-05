@@ -15,8 +15,8 @@ namespace StarChef.Engine.IntegrationTests
         public RecalculationTests()
         {
             var cnStr = TestConfiguration.Instance.ConnectionString;
-            _customerDbRepository = new CustomerDbRepository(cnStr, 7200);
-            _pricingRepository = new PricingRepository(cnStr, 7200);
+            _customerDbRepository = new CustomerDbRepository(cnStr, 72000);
+            _pricingRepository = new PricingRepository(cnStr, 72000);
         }
 
         public RecalculationTests(string connectionString)
@@ -26,32 +26,33 @@ namespace StarChef.Engine.IntegrationTests
             {
                 cnStr = connectionString;
             }
-            _customerDbRepository = new CustomerDbRepository(cnStr, 7200);
-            _pricingRepository = new PricingRepository(cnStr, 7200);
+            _customerDbRepository = new CustomerDbRepository(cnStr, 72000);
+            _pricingRepository = new PricingRepository(cnStr, 72000);
         }
 
-        public virtual void GlobalPriceRecalculation(ITestOutputHelper output)
+        public async virtual void GlobalPriceRecalculation(ITestOutputHelper output)
         {
             IPriceEngine engine = new PriceEngine(_pricingRepository);
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             //act
-            _customerDbRepository.ClearPrices();
-
-            //var result = _pricingRepository.GetPrices();
-            var result = _customerDbRepository.ExecutePriceRecalculation(0, 0, 0, 0, 0);
+            var prices = await engine.GlobalRecalculation();
             sw.Stop();
-            output.WriteLine($"Old price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
-
+            output.WriteLine($"New price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
+            
             //var result = _pricingRepository.GetPrices().Where(g => g.GroupId == 225);
             //var prices = engine.GlobalRecalculation().Where(g => g.GroupId == 225).ToList();
             sw.Restart();
-            var prices = engine.GlobalRecalculation().ToList();
-            output.WriteLine($"New price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
+            _customerDbRepository.ClearPrices();
+
+            //var result = await _pricingRepository.GetPrices();
+            var result = _customerDbRepository.ExecutePriceRecalculation(0, 0, 0, 0, 0);
+            sw.Stop();
+            output.WriteLine($"Old price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
             //acknoledge
 
             var dbPrices = result.ToList();
-            //Assert.Equal(dbPrices.Count, prices.Count);
+            Assert.Equal(dbPrices.Count, prices.Count());
 
             var priceToUpdate = engine.ComparePrices(dbPrices, prices).ToList();
             Assert.Empty(priceToUpdate);

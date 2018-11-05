@@ -20,16 +20,16 @@ namespace StarChef.Common.Engine
             _maxDegreeOfParallelism = 3;
         }
 
-        public IEnumerable<DbPrice> GlobalRecalculation()
+        public async Task<IEnumerable<DbPrice>> GlobalRecalculation()
         {
-            var products = _pricingRepo.GetProducts().ToList();
-            var parts = _pricingRepo.GetProductParts().ToList();
+            var products = await _pricingRepo.GetProducts();
+            var parts = await _pricingRepo.GetProductParts();
 
-            ProductForest pf = new ProductForest(products, parts);
+            ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
             pf.BuildForest();
 
-            var groupPrices = _pricingRepo.GetGroupProductPricesByGroup(0).ToList();
-            Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices);
+            var groupPrices = await _pricingRepo.GetGroupProductPricesByGroup(0);
+            Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices.ToList());
             List<DbPrice> prices = new List<DbPrice>();
             foreach (var group in result)
             {

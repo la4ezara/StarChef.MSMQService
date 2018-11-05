@@ -1,5 +1,6 @@
 ﻿using StarChef.Common.Model;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StarChef.Common.Engine
 {
@@ -7,6 +8,6 @@ namespace StarChef.Common.Engine
     {
         IEnumerable<DbPrice> ComparePrices(IEnumerable<DbPrice> existingPrices, IEnumerable<DbPrice> newPrices);
 
-        IEnumerable<DbPrice> GlobalRecalculation();
+        Task<IEnumerable<DbPrice>> GlobalRecalculation();
     }
 }

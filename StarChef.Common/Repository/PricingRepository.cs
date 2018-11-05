@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Reflection;
 using System.Linq;
 using Microsoft.SqlServer.Server;
+using System.Threading.Tasks;
 
 namespace StarChef.Common.Repository
 {
@@ -44,7 +45,7 @@ namespace StarChef.Common.Repository
             return attrib?.Description;
         }
 
-        public IEnumerable<GroupProducts> GetGroupProductPricesByGroup(int groupId)
+        public async Task<IEnumerable<GroupProducts>> GetGroupProductPricesByGroup(int groupId)
         {
             var param = new
             {
@@ -62,24 +63,51 @@ namespace StarChef.Common.Repository
                 SELECT DISTINCT product_id, group_id, price FROM #group_products
                 DROP TABLE #group_products
                 ";
-            using (var connection = GetOpenConnection())
+            IEnumerable<GroupProducts> result = await Task.Run(() =>
             {
-                var result = Query<GroupProducts>(connection, cmd, param, CommandType.Text);
-                return result;
-            }
+                using (var connection = GetOpenConnection())
+                {
+                    var res = Query<GroupProducts>(connection, cmd, param, CommandType.Text);
+                    return res;
+                }
+            });
+            return result;
         }
 
-        public IEnumerable<DbPrice> GetPrices()
+        public async Task<IEnumerable<DbPrice>> GetPrices()
         {
             var cmd = "SELECT product_id, group_id, product_price FROM db_product_calc WITH(NOLOCK)";
             using (var connection = GetOpenConnection())
             {
-                var result = Query<DbPrice>(connection, cmd, null, CommandType.Text);
+                IEnumerable<DbPrice> result = await Task.Run(() =>
+                {
+                    var res = Query<DbPrice>(connection, cmd, null, CommandType.Text);
+                    return res;
+                });
                 return result;
             }
         }
 
-        public IEnumerable<ProductPart> GetProductParts()
+        public async Task<IEnumerable<DbPrice>> GetPrices(int groupId)
+        {
+            var param = new
+            {
+                group_id = groupId
+            };
+
+            var cmd = "SELECT product_id, group_id, product_price FROM db_product_calc WITH(NOLOCK) where group_id = @group_id";
+            using (var connection = GetOpenConnection())
+            {
+                IEnumerable<DbPrice> result = await Task.Run(() =>
+                {
+                    var res = Query<DbPrice>(connection, cmd, param, CommandType.Text);
+                    return res;
+                });
+                return result;
+            }
+        }
+
+        public async Task<IEnumerable<ProductPart>> GetProductParts()
         {
             var cmd = @"
                 CREATE TABLE #convetion(product_id INT, source_unit_id INT, target_unit_id INT, ratio DECIMAL(30,14))
@@ -100,12 +128,12 @@ namespace StarChef.Common.Repository
                 DROP TABLE #convetion";
             using (var connection = GetOpenConnection())
             {
-                var result = Query<ProductPart>(connection, cmd, null, CommandType.Text);
+                IEnumerable<ProductPart> result = await Task.Run(()=>{ return Query<ProductPart>(connection, cmd, null, CommandType.Text); });
                 return result;
             }
         }
 
-        public IEnumerable<Product> GetProducts()
+        public async Task<IEnumerable<Product>> GetProducts()
         {
             var cmd = @"SELECT p.product_id, p.number, p.quantity, p.unit_id, p.product_type_id, p.scope_id, i.wastage, d.recipe_type_id 
                     FROM product as p WITH(NOLOCK)
@@ -113,7 +141,7 @@ namespace StarChef.Common.Repository
                     LEFT JOIN dish as d WITH(NOLOCK) on d.product_id = p.product_id";
             using (var connection = GetOpenConnection())
             {
-                var result = Query<Product>(connection, cmd, null, CommandType.Text);
+                IEnumerable<Product> result = await Task.Run(()=> { return Query<Product>(connection, cmd, null, CommandType.Text); });
                 return result;
             }
         }

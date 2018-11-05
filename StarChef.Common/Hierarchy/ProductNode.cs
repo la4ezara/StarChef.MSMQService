@@ -16,6 +16,7 @@ namespace StarChef.Common.Hierarchy
         public readonly ProductType NodeType;
         public RecipeType? RecipeKind;
         public bool IsChoise;
+        public bool IsBroken;
         public decimal? EpPrice { get; set; }
         public decimal? ApPrice { get; set; }
 
@@ -37,7 +38,7 @@ namespace StarChef.Common.Hierarchy
 
         public decimal? GetPrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products, HashSet<int> accessList)
         {
-            if (!accessList.Contains(ProductId))
+            if (!accessList.Contains(ProductId) || IsBroken)
             {
                 return null;
             }
@@ -71,7 +72,7 @@ namespace StarChef.Common.Hierarchy
                                 decimal price = 0;
 
                                 //check access of child product 
-                                if (!accessList.Contains(child.ProductId))
+                                if (!accessList.Contains(child.ProductId) || child.IsBroken)
                                 {
                                     total = null;
                                     break;
@@ -85,12 +86,6 @@ namespace StarChef.Common.Hierarchy
 
                                     if (child.NodeType == ProductType.Ingredient)
                                     {
-                                        //check access of child product 
-                                        if (!accessList.Contains(child.ProductId))
-                                        {
-                                            total = null;
-                                            break;
-                                        }
                                         if (RecipeKind != RecipeType.Choice || child.IsChoise)
                                         {
                                             var baseIngredientPrice = priceStorage[child.ProductId];
