@@ -1,6 +1,7 @@
 ﻿using StarChef.Common.Hierarchy;
 using StarChef.Common.Model;
 using StarChef.Common.Repository;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,19 +18,51 @@ namespace StarChef.Common.Engine
         public PriceEngine(IPricingRepository pricingRepo)
         {
             _pricingRepo = pricingRepo;
-            _maxDegreeOfParallelism = 3;
+            _maxDegreeOfParallelism = 1;
         }
 
-        public async Task<IEnumerable<DbPrice>> GlobalRecalculation()
-        {
+        public async Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices) {
+            throw new NotImplementedException();
+            DateTime dt = DateTime.UtcNow;
+
             var products = await _pricingRepo.GetProducts();
             var parts = await _pricingRepo.GetProductParts();
 
             ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
             pf.BuildForest();
 
+        }
+
+        public async Task<IEnumerable<DbPrice>> GlobalRecalculation(bool storePrices)
+        {
+            DateTime dt = DateTime.UtcNow;
+
+            var products = await _pricingRepo.GetProducts();
+            var parts = await _pricingRepo.GetProductParts();
+            
+            ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
+            pf.BuildForest();
+
             var groupPrices = await _pricingRepo.GetGroupProductPricesByGroup(0);
             Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices.ToList());
+
+            if (storePrices)
+            {
+                await _pricingRepo.ClearPrices();
+                var logId = await _pricingRepo.CreateMsmqLog("Global Price Recalculation", dt);
+
+                bool isSuccess = true;
+                foreach (var group in result)
+                {
+                    bool saveResult = _pricingRepo.InsertPrices(group.Value, group.Key == 0 ? new Nullable<int>() : group.Key, logId, dt);
+                    if (!saveResult) {
+                        isSuccess = false;
+                    }
+                }
+
+                await _pricingRepo.UpdateMsmqLog(DateTime.UtcNow, logId, isSuccess);
+            }
+
             List<DbPrice> prices = new List<DbPrice>();
             foreach (var group in result)
             {

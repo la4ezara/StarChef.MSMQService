@@ -9,7 +9,7 @@ namespace StarChef.Engine.IntegrationTests.TheoryData
         public GlobalRecalculateTheoryData()
         {
             SlLoginDbRepository repo = new SlLoginDbRepository(TestConfiguration.Instance.SlLoginConnectionString);
-            var items = repo.GetConnectionStrings().ToList();
+            var items = repo.GetConnectionStrings().OrderBy(c=> c).ToList();
 
             var max = TestConfiguration.Instance.MaxTestsAmount;
             if (max != 0 && max < items.Count)

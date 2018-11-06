@@ -8,6 +8,8 @@ namespace StarChef.Common.Engine
     {
         IEnumerable<DbPrice> ComparePrices(IEnumerable<DbPrice> existingPrices, IEnumerable<DbPrice> newPrices);
 
-        Task<IEnumerable<DbPrice>> GlobalRecalculation();
+        Task<IEnumerable<DbPrice>> GlobalRecalculation(bool storePrices);
+
+        Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices);
     }
 }

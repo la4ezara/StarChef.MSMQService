@@ -11,17 +11,6 @@ namespace StarChef.Engine.IntegrationTests
         public PriceRecalculationTests(ITestOutputHelper output) : base() {
             this.output = output;
         }
-            
-        //[Fact]
-        //public void GlobalPriceRecalculation()
-        //{
-        //    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-        //    sw.Start();
-        //    base.GlobalPriceRecalculation(output);
-        //    sw.Stop();
-        //    output.WriteLine($"Total time: {sw.Elapsed.TotalSeconds}");
-
-        //}
 
         [Theory]
         [ClassData(typeof(GlobalRecalculateTheoryData))]
@@ -36,23 +25,22 @@ namespace StarChef.Engine.IntegrationTests
             sw.Reset();
         }
 
-        //[Fact]
-        //public void AllGlobalPriceRecalculation() {
-        //    var cnStr = TestConfiguration.Instance.SlLoginConnectionString;
-        //    SlLoginDbRepository repo = new SlLoginDbRepository(cnStr);
-        //    var connectionStrings = repo.GetConnectionStrings();
+        [Theory]
+        [ClassData(typeof(GlobalRecalculateTheoryData))]
+        public void PriceRecalculationStorage(string connStr)
+        {
+            output.WriteLine($"Conn str : {connStr}");
+            var rt = new RecalculationTests(connStr);
+            rt.GlobalPriceRecalculationStorage(output);
+        }
 
-        //    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-
-        //    foreach (var connStr in connectionStrings) {
-        //        sw.Start();
-        //        output.WriteLine($"Conn str : {connStr}");
-        //        var rt = new RecalculationTests(connStr);
-        //        rt.GlobalPriceRecalculation();
-        //        sw.Stop();
-        //        output.WriteLine($"Total time: {sw.Elapsed.TotalSeconds}");
-        //        sw.Reset();
-        //    }
-        //}
+        [Theory]
+        [ClassData(typeof(GlobalRecalculateTheoryData))]
+        public void PriceRecalculationNoStorage(string connStr)
+        {
+            output.WriteLine($"Conn str : {connStr}");
+            var rt = new RecalculationTests(connStr);
+            rt.GlobalPriceRecalculationNoStorage(output);
+        }
     }
 }

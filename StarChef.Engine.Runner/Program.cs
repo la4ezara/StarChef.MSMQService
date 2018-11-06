@@ -26,11 +26,11 @@ namespace StarChef.Engine.Runner
             //var prices = engine.CalculatePrices(0, 152596, 0, 0, 0);
             //var prices = engine.CalculatePrices(0, 0, 0, 1, 0);
             //var prices = engine.CalculatePrices(0, 0, 0, 0, 369);
-            var prices = engine.GlobalRecalculation();
+            var prices = engine.GlobalRecalculation(false).Result;
 
             //var prices = engine.CalculatePrices(0, 0, 0, 0, 0).ToList();
-
-            var dbPrices = pr.GetPrices().OrderBy(x => x.ProductId).ToList();
+            var taskPrices = pr.GetPrices().Result;
+            var dbPrices = taskPrices.OrderBy(x => x.ProductId).ToList();
             
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();

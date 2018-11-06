@@ -28,9 +28,8 @@ namespace StarChef.Common.Hierarchy
         {
             Forest.Clear();
             AddNonBlackRecipes();
-            AddBlankRecipes();
             //add recipes which are empty
-
+            AddBlankRecipes();
         }
 
         private void AddBlankRecipes()
@@ -181,5 +180,43 @@ namespace StarChef.Common.Hierarchy
             return groupCalculatedPrices;
         }
 
+        public Dictionary<int, ProductNode> GetAffectedCuts(int productId) {
+            Dictionary<int, ProductNode> cuts = new Dictionary<int, ProductNode>();
+            foreach (var node in Forest.Values)
+            {
+                GetAffectedCuts(productId, node, cuts);
+            }
+
+            return cuts;
+        }
+
+        private bool GetAffectedCuts(int productId, ProductNode node, Dictionary<int, ProductNode> cuts)
+        {
+            if (node.ProductId == productId)
+            {
+                if (!cuts.ContainsKey(productId))
+                {
+                    cuts.Add(productId, node);
+                }
+                return true;
+            }
+            else
+            {
+                if (node.Childs.Any()) {
+                    foreach (var child in node.Childs) {
+                        var result = GetAffectedCuts(productId, child, cuts);
+                        if (result) {
+                            if (!cuts.ContainsKey(child.ProductId))
+                            {
+                                cuts.Add(child.ProductId, child);
+                            }
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }

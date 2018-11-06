@@ -88,6 +88,20 @@ namespace StarChef.Common.Repository
             }
         }
 
+        public async Task<int> GetPricesCount()
+        {
+            var cmd = "SELECT COUNT(*) FROM db_product_calc WITH(NOLOCK)";
+            using (var connection = GetOpenConnection())
+            {
+                int result = await Task.Run(() =>
+                {
+                    var res = ExecuteScalar<int>(connection, cmd, null, CommandType.Text);
+                    return res;
+                });
+                return result;
+            }
+        }
+
         public async Task<IEnumerable<DbPrice>> GetPrices(int groupId)
         {
             var param = new
@@ -146,9 +160,71 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public bool UpdatePrices(IEnumerable<GroupProducts> prices)
+        public async Task<int> CreateMsmqLog(string action, DateTime logDate) {
+            var param = new
+            {
+                action = action
+            };
+
+            var cmd = @"INSERT INTO msmq_update_log (calc_type, group_id, product_id, pset_id, pband_id, unit_id)
+                    VALUES (@action, 0, 0, 0, 0, 0)
+                    SELECT SCOPE_IDENTITY()";
+            using (var connection = GetOpenConnection())
+            {
+                int result = await Task.Run(() => { return ExecuteScalar<int>(connection, cmd, param, CommandType.Text); });
+                return result;
+            }
+        }
+
+        public async Task<int> UpdateMsmqLog(DateTime logDate, int logId, bool isSuccess)
         {
-            throw new NotImplementedException();
+            var param = new
+            {
+                updateTime = logDate,
+                logid = logId,
+                return_value = isSuccess ? 0 : 1
+            };
+
+            var cmd = @"UPDATE msmq_update_log
+                        SET [update_end_time] = @updateTime,
+                        return_value = @return_value
+                        WHERE log_id = @logid";
+            using (var connection = GetOpenConnection())
+            {
+                int result = await Task.Run(() => { return Execute(connection, cmd, param, CommandType.Text); });
+                return result;
+            }
+        }
+
+        public async Task ClearPrices()
+        {
+            using (var connection = GetOpenConnection())
+            {
+                var cmd = "truncate table db_product_calc";
+
+                await Task.Run(() => { base.Execute(connection, cmd, null, CommandType.Text); });
+            }
+        }
+
+        public bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate)
+        {
+            if (!prices.Any())
+                return true;
+
+            var param = new
+            {
+                udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price"),
+                group_id = groupId,
+                logid = logId,
+                updateDate = logDate
+            };
+
+            var cmd = @"sc_insert_prices";
+            using (var connection = GetOpenConnection())
+            {
+                int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
+                return result == 0 ? true : false;
+            }
         }
 
         private SqlConnection GetOpenConnection(bool mars = false)
@@ -167,24 +243,21 @@ namespace StarChef.Common.Repository
             return connection;
         }
 
-        //public static IEnumerable<SqlDataRecord> ToSqlDataRecords(IEnumerable<ProductConvertionRatio> filters)
-        //{
-        //    var metaData = new[]
-        //    {
-        //        new SqlMetaData("Product_id", SqlDbType.Int),
-        //        new SqlMetaData("Source_unit_id", SqlDbType.SmallInt),
-        //        new SqlMetaData("Target_unit_id", SqlDbType.SmallInt),
-        //        new SqlMetaData("Ratio", SqlDbType.Decimal, 30, 14)
-        //    };
+        public static IEnumerable<SqlDataRecord> ToSqlDataRecords(Dictionary<int, decimal> filters)
+        {
+            var metaData = new[]
+            {
+                new SqlMetaData("product_id", SqlDbType.Int),
+                new SqlMetaData("price", SqlDbType.Decimal, 18, 9)
+            };
 
-        //    foreach (var filter in filters)
-        //    {
-        //        var record = new SqlDataRecord(metaData);
-        //        record.SetInt32(0, filter.ProductId);
-        //        record.SetInt16(1, filter.SourceUnitId);
-        //        record.SetInt16(2, filter.TargetUnitId);
-        //        yield return record;
-        //    }
-        //}
+            foreach (var filter in filters)
+            {
+                var record = new SqlDataRecord(metaData);
+                record.SetInt32(0, filter.Key);
+                record.SetDecimal(1, filter.Value);
+                yield return record;
+            }
+        }
     }
 }

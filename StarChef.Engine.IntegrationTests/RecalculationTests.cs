@@ -35,14 +35,10 @@ namespace StarChef.Engine.IntegrationTests
             IPriceEngine engine = new PriceEngine(_pricingRepository);
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            //act
-            var prices = await engine.GlobalRecalculation();
-            sw.Stop();
-            output.WriteLine($"New price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
             
             //var result = _pricingRepository.GetPrices().Where(g => g.GroupId == 225);
             //var prices = engine.GlobalRecalculation().Where(g => g.GroupId == 225).ToList();
-            sw.Restart();
+            
             _customerDbRepository.ClearPrices();
 
             //var result = await _pricingRepository.GetPrices();
@@ -50,14 +46,57 @@ namespace StarChef.Engine.IntegrationTests
             sw.Stop();
             output.WriteLine($"Old price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
             //acknoledge
-
+            sw.Restart();
             var dbPrices = result.ToList();
+
+            //act
+            var prices = await engine.GlobalRecalculation(false);
+            sw.Stop();
+            output.WriteLine($"New price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
+
             Assert.Equal(dbPrices.Count, prices.Count());
 
             var priceToUpdate = engine.ComparePrices(dbPrices, prices).ToList();
             Assert.Empty(priceToUpdate);
             var pricesToDelete = engine.ComparePrices(prices, dbPrices).ToList();
             Assert.Empty(pricesToDelete);
+
+            output.WriteLine($"Total Prices {prices.Count() }");
+        }
+
+        public async virtual void GlobalPriceRecalculationStorage(ITestOutputHelper output)
+        {
+            IPriceEngine engine = new PriceEngine(_pricingRepository);
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+
+            _customerDbRepository.ClearPrices();
+
+            //act
+            var prices = await engine.GlobalRecalculation(true);
+            var dbCount = await _pricingRepository.GetPricesCount();
+
+            sw.Stop();
+            //assert
+            Assert.Equal(dbCount, prices.Count());
+            output.WriteLine($"Total Prices {prices.Count() }");
+            output.WriteLine($"Total Seconds {sw.Elapsed.TotalSeconds }");
+        }
+
+        public async virtual void GlobalPriceRecalculationNoStorage(ITestOutputHelper output)
+        {
+            IPriceEngine engine = new PriceEngine(_pricingRepository);
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+
+            _customerDbRepository.ClearPrices();
+
+            //act
+            var prices = await engine.GlobalRecalculation(false);
+
+            sw.Stop();
+            output.WriteLine($"Total Prices {prices.Count() }");
+            output.WriteLine($"Total Seconds {sw.Elapsed.TotalSeconds }");
         }
     }
 }

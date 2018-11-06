@@ -83,7 +83,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CustomerDbIntegrationTests.cs" />
     <Compile Include="CustomerDbRepository.cs" />
     <Compile Include="DataAttribute .cs" />
     <Compile Include="Model\PriceRecalculationRequest.cs" />
