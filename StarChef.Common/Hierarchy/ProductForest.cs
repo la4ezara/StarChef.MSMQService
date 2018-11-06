@@ -180,6 +180,15 @@ namespace StarChef.Common.Hierarchy
             return groupCalculatedPrices;
         }
 
+        public void ReAssignForest(Dictionary<int, ProductNode> newNodes)
+        {
+            Forest.Clear();
+            foreach (var node in newNodes)
+            {
+                Forest.Add(node.Key, node.Value);
+            }
+        }
+
         public Dictionary<int, ProductNode> GetAffectedCuts(int productId) {
             Dictionary<int, ProductNode> cuts = new Dictionary<int, ProductNode>();
             foreach (var node in Forest.Values)

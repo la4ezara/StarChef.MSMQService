@@ -30,7 +30,24 @@ namespace StarChef.Common.Engine
 
             ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
             pf.BuildForest();
+            var forestCuts = pf.GetAffectedCuts(productId);
+            pf.ReAssignForest(forestCuts);
 
+            var groupPrices = await _pricingRepo.GetGroupProductPricesByProduct(productId);
+            Dictionary<int, Dictionary<int, decimal>> newProductPrices = pf.CalculatePrice(groupPrices.ToList());
+            var logId = await _pricingRepo.CreateMsmqLog("Partial Pricing Calculation", productId, dt);
+
+            bool isSuccess = true;
+            foreach (var group in newProductPrices)
+            {
+                bool saveResult = _pricingRepo.UpdatePrices(group.Value, group.Key == 0 ? new Nullable<int>() : group.Key, logId, dt);
+                if (!saveResult)
+                {
+                    isSuccess = false;
+                }
+            }
+
+            await _pricingRepo.UpdateMsmqLog(DateTime.UtcNow, logId, isSuccess);
         }
 
         public async Task<IEnumerable<DbPrice>> GlobalRecalculation(bool storePrices)
@@ -49,7 +66,7 @@ namespace StarChef.Common.Engine
             if (storePrices)
             {
                 await _pricingRepo.ClearPrices();
-                var logId = await _pricingRepo.CreateMsmqLog("Global Price Recalculation", dt);
+                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation",0, dt);
 
                 bool isSuccess = true;
                 foreach (var group in result)

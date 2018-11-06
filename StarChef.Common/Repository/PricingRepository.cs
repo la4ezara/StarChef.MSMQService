@@ -45,6 +45,33 @@ namespace StarChef.Common.Repository
             return attrib?.Description;
         }
 
+        public async Task<IEnumerable<GroupProducts>> GetGroupProductPricesByProduct(int productId) {
+            var param = new
+            {
+                product_id = productId
+            };
+
+            var cmd = @"CREATE TABLE #group_products
+                (
+                    group_id        INT,
+                    product_id      INT,
+                    price           decimal(25, 13)
+                )
+                EXEC upfast_sc_GetAvailableProductsWithIngredientPrices2 0, 1, @product_id, 0, 0, 0
+
+                SELECT DISTINCT product_id, group_id, price FROM #group_products
+                DROP TABLE #group_products";
+            IEnumerable<GroupProducts> result = await Task.Run(() =>
+            {
+                using (var connection = GetOpenConnection())
+                {
+                    var res = Query<GroupProducts>(connection, cmd, param, CommandType.Text);
+                    return res;
+                }
+            });
+            return result;
+        }
+
         public async Task<IEnumerable<GroupProducts>> GetGroupProductPricesByGroup(int groupId)
         {
             var param = new
@@ -160,14 +187,15 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public async Task<int> CreateMsmqLog(string action, DateTime logDate) {
+        public async Task<int> CreateMsmqLog(string action, int productId, DateTime logDate) {
             var param = new
             {
-                action = action
+                action = action,
+                product_id = productId
             };
 
             var cmd = @"INSERT INTO msmq_update_log (calc_type, group_id, product_id, pset_id, pband_id, unit_id)
-                    VALUES (@action, 0, 0, 0, 0, 0)
+                    VALUES (@action, 0, @product_id, 0, 0, 0)
                     SELECT SCOPE_IDENTITY()";
             using (var connection = GetOpenConnection())
             {
@@ -220,6 +248,27 @@ namespace StarChef.Common.Repository
             };
 
             var cmd = @"sc_insert_prices";
+            using (var connection = GetOpenConnection())
+            {
+                int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
+                return result == 0 ? true : false;
+            }
+        }
+
+        public bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate) {
+            throw new NotImplementedException();
+            if (!prices.Any())
+                return true;
+
+            var param = new
+            {
+                udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price"),
+                group_id = groupId,
+                logid = logId,
+                updateDate = logDate
+            };
+
+            var cmd = @"sc_update_prices";
             using (var connection = GetOpenConnection())
             {
                 int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
