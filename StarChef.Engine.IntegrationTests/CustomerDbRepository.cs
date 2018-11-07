@@ -1,13 +1,8 @@
-﻿using Dapper;
-using Fourth.StarChef.Invariables;
+﻿using Fourth.StarChef.Invariables;
 using StarChef.Common.Model;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Reflection;
 
 namespace StarChef.Engine.IntegrationTests
 {
@@ -68,6 +63,18 @@ namespace StarChef.Engine.IntegrationTests
                 var cmd = "truncate table db_product_calc";
 
                 var result = base.Execute(connection, cmd, null, CommandType.Text);
+            }
+        }
+
+        public IEnumerable<int> GetProducts() {
+            var cmd = @"select TOP 5 p.product_id from product as p
+                join product_part as pp on p.product_id = pp.product_id
+                join dish as d on p.product_id = d.product_id
+                ORDER BY NEWID()";
+            using (var connection = GetOpenConnection())
+            {
+                var result = Query<int>(connection, cmd, null, CommandType.Text);
+                return result;
             }
         }
     }

@@ -279,6 +279,16 @@ namespace StarChef.SqlQueue.Service
                                                 Logger.Error($"Not supported entity type: DatabaseId {entityMessage.DatabaseID} : EntityId {entityMessage.ProductID} : EntityTypeId {entityMessage.EntityTypeId}");
                                             }
                                             break;
+                                        case Constants.MessageActionType.UpdatedProductCost:
+                                            Common.Repository.IPricingRepository repo = new Common.Repository.PricingRepository(connectionString);
+                                            Common.Engine.PriceEngine engine = new Common.Engine.PriceEngine(repo);
+                                            var enabled = engine.IsEngineEnabled().Result;
+                                            Console.WriteLine($"Processing UpdatedProductCost DataBase {userDatabase.DatabaseId}");
+                                            if (enabled) {
+                                                Console.WriteLine($"Run global price recalculation DataBase {userDatabase.DatabaseId}");
+                                                var result = engine.GlobalRecalculation(true, DateTime.UtcNow).Result;
+                                            }
+                                            break;
                                         default:
                                             if ((Constants.EntityType)entityTypeId == Constants.EntityType.User)
                                             {

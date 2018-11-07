@@ -204,6 +204,18 @@ namespace StarChef.Common.Repository
             }
         }
 
+        public async Task<DateTime?> GetLastMsmqStartTime()
+        {
+
+            var cmd = @"SELECT top 1 update_start_time FROM msmq_update_log
+                        order by log_id desc";
+            using (var connection = GetOpenConnection())
+            {
+                DateTime? result = await Task.Run(() => { return ExecuteScalar<DateTime?>(connection, cmd, null, CommandType.Text); });
+                return result;
+            }
+        }
+
         public async Task<int> UpdateMsmqLog(DateTime logDate, int logId, bool isSuccess)
         {
             var param = new
@@ -234,6 +246,32 @@ namespace StarChef.Common.Repository
             }
         }
 
+        public async Task<IEnumerable<GroupSets>> GetGroupSets(int groupId, int includeDescendants) {
+            var param = new
+            {
+                group_id = groupId,
+                include_descendants = includeDescendants
+            };
+
+            var cmd = @"sc_GetAvailableSetsForGroup";
+            using (var connection = GetOpenConnection())
+            {
+                var result = Query<GroupSets>(connection, cmd, param, CommandType.StoredProcedure);
+                return result;
+            }
+        }
+
+        public async Task<IEnumerable<ProductPset>> GetProductPsets() {
+            var cmd = @"SELECT DISTINCT pps.product_id, pps.pset_id FROM product_pset as pps
+                        JOIN product as p ON pps.product_id = p.product_id
+                        WHERE p.status_id = 1";
+            using (var connection = GetOpenConnection())
+            {
+                var result = Query<ProductPset>(connection, cmd, null, CommandType.StoredProcedure);
+                return result;
+            }
+        }
+
         public bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate)
         {
             if (!prices.Any())
@@ -252,6 +290,21 @@ namespace StarChef.Common.Repository
             {
                 int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
                 return result == 0 ? true : false;
+            }
+        }
+
+        public async Task<string> GetDbSetting(string settingName) {
+            var param = new
+            {
+                setting_name = settingName
+            };
+
+            var cmd = @"select TOP 1 db_setting_value from db_setting where
+                is_deleted = 0 AND db_setting_name like '@setting_name'";
+            using (var connection = GetOpenConnection())
+            {
+                string result = await Task.Run(() => { return ExecuteScalar<string>(connection, cmd, param, CommandType.Text); });
+                return result;
             }
         }
 

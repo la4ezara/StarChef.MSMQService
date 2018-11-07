@@ -48,46 +48,75 @@ namespace StarChef.Common.Engine
             }
 
             await _pricingRepo.UpdateMsmqLog(DateTime.UtcNow, logId, isSuccess);
-        }
-
-        public async Task<IEnumerable<DbPrice>> GlobalRecalculation(bool storePrices)
-        {
-            DateTime dt = DateTime.UtcNow;
-
-            var products = await _pricingRepo.GetProducts();
-            var parts = await _pricingRepo.GetProductParts();
-            
-            ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
-            pf.BuildForest();
-
-            var groupPrices = await _pricingRepo.GetGroupProductPricesByGroup(0);
-            Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices.ToList());
-
-            if (storePrices)
-            {
-                await _pricingRepo.ClearPrices();
-                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation",0, dt);
-
-                bool isSuccess = true;
-                foreach (var group in result)
-                {
-                    bool saveResult = _pricingRepo.InsertPrices(group.Value, group.Key == 0 ? new Nullable<int>() : group.Key, logId, dt);
-                    if (!saveResult) {
-                        isSuccess = false;
-                    }
-                }
-
-                await _pricingRepo.UpdateMsmqLog(DateTime.UtcNow, logId, isSuccess);
-            }
 
             List<DbPrice> prices = new List<DbPrice>();
-            foreach (var group in result)
+            foreach (var group in newProductPrices)
             {
-                foreach (var productPrice in group.Value) {
+                foreach (var productPrice in group.Value)
+                {
                     prices.Add(new DbPrice() { GroupId = group.Key, ProductId = productPrice.Key, Price = productPrice.Value });
                 }
             }
 
+            return prices;
+        }
+
+        public async Task<IEnumerable<DbPrice>> GlobalRecalculation(bool storePrices, DateTime? arrivedTime)
+        {
+            List<DbPrice> prices = new List<DbPrice>();
+            DateTime dt = DateTime.UtcNow;
+            if (arrivedTime.HasValue)
+            {
+                dt = arrivedTime.Value;
+            }
+            bool executeRecalculation = true;
+            var lastRecalculationTime = await _pricingRepo.GetLastMsmqStartTime();
+
+            //validate is it last recalculation more actual that current request date
+            if (lastRecalculationTime.HasValue && lastRecalculationTime.Value > dt)
+            {
+                executeRecalculation = false;
+                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation Skipped", 0, dt);
+                await _pricingRepo.UpdateMsmqLog(dt, logId, true);
+            }
+
+            if (executeRecalculation)
+            {
+                var products = await _pricingRepo.GetProducts();
+                var parts = await _pricingRepo.GetProductParts();
+
+                ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
+                pf.BuildForest();
+
+                var groupPrices = await _pricingRepo.GetGroupProductPricesByGroup(0);
+                Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices.ToList());
+
+                if (storePrices)
+                {
+                    await _pricingRepo.ClearPrices();
+                    var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", 0, dt);
+
+                    bool isSuccess = true;
+                    foreach (var group in result)
+                    {
+                        bool saveResult = _pricingRepo.InsertPrices(group.Value, group.Key == 0 ? new Nullable<int>() : group.Key, logId, dt);
+                        if (!saveResult)
+                        {
+                            isSuccess = false;
+                        }
+                    }
+
+                    await _pricingRepo.UpdateMsmqLog(DateTime.UtcNow, logId, isSuccess);
+                }
+
+                foreach (var group in result)
+                {
+                    foreach (var productPrice in group.Value)
+                    {
+                        prices.Add(new DbPrice() { GroupId = group.Key, ProductId = productPrice.Key, Price = productPrice.Value });
+                    }
+                }
+            }
             return prices;
         }
 
@@ -126,6 +155,16 @@ namespace StarChef.Common.Engine
             });
 
             IEnumerable<DbPrice> result = bag.Distinct().ToList();
+            return result;
+        }
+
+        public async Task<bool> IsEngineEnabled() {
+            bool result = false;
+
+            var dbSetting = await _pricingRepo.GetDbSetting(Fourth.StarChef.Invariables.Constants.CONFIG_PRICE_RECALC_CODE_ENGINE);
+            if (!string.IsNullOrWhiteSpace(dbSetting) && dbSetting.Equals("1")) {
+                result = true;
+            }
             return result;
         }
     }

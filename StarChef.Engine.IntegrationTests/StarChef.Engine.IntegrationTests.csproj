@@ -50,7 +50,7 @@
       <HintPath>..\packages\Dapper.1.50.5\lib\net451\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.20\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
+      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.21\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="CustomerDbRepository.cs" />
     <Compile Include="SlLoginDbRepository.cs" />
+    <Compile Include="TheoryData\ProductRecalculateTheoryData.cs" />
     <Compile Include="TheoryData\GlobalRecalculateTheoryData.cs" />
     <Compile Include="RecalculationTests.cs" />
     <Compile Include="PriceRecalculationTests.cs" />

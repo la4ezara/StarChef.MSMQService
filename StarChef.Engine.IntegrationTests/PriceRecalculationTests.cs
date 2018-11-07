@@ -42,5 +42,14 @@ namespace StarChef.Engine.IntegrationTests
             var rt = new RecalculationTests(connStr);
             rt.GlobalPriceRecalculationNoStorage(output);
         }
+
+        //[Theory]
+        //[ClassData(typeof(ProductRecalculateTheoryData))]
+        //public void ProductRecalculationNoStorage(string connStr, int productId)
+        //{
+        //    output.WriteLine($"Conn str : {connStr}, ProductId : {productId}");
+        //    var rt = new RecalculationTests(connStr);
+        //    rt.ProductPriceRecalculation(output, productId);
+        //}
     }
 }

@@ -50,7 +50,7 @@ namespace StarChef.Engine.IntegrationTests
             var dbPrices = result.ToList();
 
             //act
-            var prices = await engine.GlobalRecalculation(false);
+            var prices = await engine.GlobalRecalculation(false, System.DateTime.UtcNow);
             sw.Stop();
             output.WriteLine($"New price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
 
@@ -73,7 +73,7 @@ namespace StarChef.Engine.IntegrationTests
             _customerDbRepository.ClearPrices();
 
             //act
-            var prices = await engine.GlobalRecalculation(true);
+            var prices = await engine.GlobalRecalculation(true, System.DateTime.UtcNow);
             var dbCount = await _pricingRepository.GetPricesCount();
 
             sw.Stop();
@@ -92,11 +92,39 @@ namespace StarChef.Engine.IntegrationTests
             _customerDbRepository.ClearPrices();
 
             //act
-            var prices = await engine.GlobalRecalculation(false);
+            var prices = await engine.GlobalRecalculation(false, System.DateTime.UtcNow);
 
             sw.Stop();
             output.WriteLine($"Total Prices {prices.Count() }");
             output.WriteLine($"Total Seconds {sw.Elapsed.TotalSeconds }");
+        }
+
+        public async virtual void ProductPriceRecalculation(ITestOutputHelper output, int productId)
+        {
+            IPriceEngine engine = new PriceEngine(_pricingRepository);
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+
+            var result = _customerDbRepository.ExecutePriceRecalculation(productId, 0, 0, 0, 0);
+            sw.Stop();
+            output.WriteLine($"Old price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
+            //acknoledge
+            sw.Restart();
+            var dbPrices = result.ToList();
+
+            //act
+            var prices = await engine.Recalculation(productId,false);
+            sw.Stop();
+            output.WriteLine($"New price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
+
+            //Assert.Equal(dbPrices.Count, prices.Count());
+
+            var priceToUpdate = engine.ComparePrices(dbPrices, prices).ToList();
+            Assert.Empty(priceToUpdate);
+            var pricesToDelete = engine.ComparePrices(prices, dbPrices).ToList();
+            Assert.Empty(pricesToDelete);
+
+            output.WriteLine($"Total Prices {prices.Count() }");
         }
     }
 }

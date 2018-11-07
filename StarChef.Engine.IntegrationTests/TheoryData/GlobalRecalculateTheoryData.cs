@@ -4,7 +4,7 @@ using System.Linq;
 namespace StarChef.Engine.IntegrationTests.TheoryData
 {
 
-    public class GlobalRecalculateTheoryData : TheoryPriceData<string>
+    public class GlobalRecalculateTheoryData : Xunit.TheoryData
     {
         public GlobalRecalculateTheoryData()
         {
@@ -28,6 +28,11 @@ namespace StarChef.Engine.IntegrationTests.TheoryData
                     Add(item);
                 }
             }
+        }
+
+        public void Add(string conn)
+        {
+            AddRow(conn);
         }
     }
 }

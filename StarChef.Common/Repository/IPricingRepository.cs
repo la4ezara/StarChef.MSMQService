@@ -15,10 +15,15 @@ namespace StarChef.Common.Repository
         Task<int> GetPricesCount();
         Task<IEnumerable<Product>> GetProducts();
         Task<IEnumerable<ProductPart>> GetProductParts();
+        Task<IEnumerable<GroupSets>> GetGroupSets(int groupId, int includeDescendants);
+        Task<IEnumerable<ProductPset>> GetProductPsets();
+
+        Task<string> GetDbSetting(string settingName);
 
         Task ClearPrices();
         Task<int> CreateMsmqLog(string action, int productId, DateTime logDate);
         Task<int> UpdateMsmqLog(DateTime logDate, int logId, bool isSuccess);
+        Task<DateTime?> GetLastMsmqStartTime();
         bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
         bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
     }
