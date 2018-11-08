@@ -283,10 +283,15 @@ namespace StarChef.SqlQueue.Service
                                             Common.Repository.IPricingRepository repo = new Common.Repository.PricingRepository(connectionString);
                                             Common.Engine.PriceEngine engine = new Common.Engine.PriceEngine(repo);
                                             var enabled = engine.IsEngineEnabled().Result;
-                                            Console.WriteLine($"Processing UpdatedProductCost DataBase {userDatabase.DatabaseId}");
-                                            if (enabled) {
-                                                Console.WriteLine($"Run global price recalculation DataBase {userDatabase.DatabaseId}");
+                                            Logger.Info($"Processing UpdatedProductCost DataBase {userDatabase.DatabaseId}");
+                                            if (enabled)
+                                            {
+                                                Logger.Info($"Run global price recalculation DataBase {userDatabase.DatabaseId}");
                                                 var result = engine.GlobalRecalculation(true, DateTime.UtcNow).Result;
+                                            }
+                                            else {
+                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.StatusId, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
+                                                Logger.Error($"Global price recalculation is not switch on DatabaseId {entityMessage.DatabaseID}");
                                             }
                                             break;
                                         default:

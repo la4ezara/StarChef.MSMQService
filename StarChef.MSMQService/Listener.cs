@@ -590,19 +590,29 @@ namespace StarChef.MSMQService
         private void ProcessPriceRecalculation(string dsn, int groupId, int productId, int psetId, int pbandId, int unitId, DateTime arrivedTime)
         {
             _logger.Info($"sc_calculate_dish_pricing @group_id = {groupId}, @product_id = {productId}, @pset_id = {psetId}, @pband_id = {pbandId}, @unit_id = {unitId}, @message_arrived_time = {arrivedTime.ToString()}");
-
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            
             var repo = new Common.Repository.PricingRepository(dsn);
             var engine = new Common.Engine.PriceEngine(repo);
             bool newPriceEngineOn = engine.IsEngineEnabled().Result;
-            if (newPriceEngineOn) {
+            bool runGlobalRecalculation = true;
+
+            if (productId > 0) {
+                runGlobalRecalculation = false;
+            }
+
+            //always run old algo for product price recalculation
+            if (newPriceEngineOn && runGlobalRecalculation) {
                 _logger.Info($"New engine is used");
-                
+                sw.Start();    
                 var result = engine.GlobalRecalculation(true, arrivedTime).Result;
-                _logger.Info($"New engine generate {result.Count()} prices");
+                sw.Stop();
+                _logger.Info($"New engine generate {result.Count()} prices for {sw.Elapsed.TotalSeconds}");
             }
             else
             {
                 _logger.Info($"Old engine is used");
+                sw.Start();
                 ExecuteStoredProc(dsn,
                     "sc_calculate_dish_pricing",
                     new SqlParameter("@group_id", groupId),
@@ -611,6 +621,8 @@ namespace StarChef.MSMQService
                     new SqlParameter("@pband_id", pbandId),
                     new SqlParameter("@unit_id", unitId),
                     new SqlParameter("@message_arrived_time", arrivedTime));
+                sw.Stop();
+                _logger.Info($"Old engine finish in {sw.Elapsed.TotalSeconds}");
             }
         }
     }
