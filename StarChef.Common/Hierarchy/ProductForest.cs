@@ -135,10 +135,13 @@ namespace StarChef.Common.Hierarchy
 
                 var groups = groupedGroupPrices[i].ToList();
                 var groupCalculatedPrices = CalculatePrice(groups, privatePrices);
-
-                allPrices.Add(groupedGroupPrices[i].Key, groupCalculatedPrices);
+                if (groupCalculatedPrices.Any())
+                {
+                    allPrices.Add(groupedGroupPrices[i].Key, groupCalculatedPrices);
+                }
             }
             allPrices.Add(0, privatePrices.ToDictionary(k => k.Key, v => v.Value));
+            
             return allPrices;
         }
 
@@ -215,11 +218,12 @@ namespace StarChef.Common.Hierarchy
                     foreach (var child in node.Childs) {
                         var result = GetAffectedCuts(productId, child, cuts);
                         if (result) {
-                            if (!cuts.ContainsKey(child.ProductId))
+
+                            if (!cuts.ContainsKey(node.ProductId))
                             {
-                                cuts.Add(child.ProductId, child);
+                                cuts.Add(node.ProductId, node);
                             }
-                            return false;
+                            return true;
                         }
                     }
                 }

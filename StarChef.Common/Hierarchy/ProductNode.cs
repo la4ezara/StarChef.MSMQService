@@ -17,8 +17,6 @@ namespace StarChef.Common.Hierarchy
         public RecipeType? RecipeKind;
         public bool IsChoise;
         public bool IsBroken;
-        public decimal? EpPrice { get; set; }
-        public decimal? ApPrice { get; set; }
 
         public ProductNode(int productId, int unitId, decimal quantity, ProductType productType) : this(productId, unitId, quantity, productType, 1, PortionType.NotSet)
         {
@@ -93,7 +91,7 @@ namespace StarChef.Common.Hierarchy
                                             if (child.Portion == PortionType.EP)
                                             {
                                                 decimal ingredientEpPrice = baseIngredientPrice;
-                                                if (product.Wastage.HasValue && product.Wastage <= 100)
+                                                if (product.Wastage.HasValue && product.Wastage <= 100 && product.Wastage > 0)
                                                 {
                                                     ingredientEpPrice = baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
                                                 }
