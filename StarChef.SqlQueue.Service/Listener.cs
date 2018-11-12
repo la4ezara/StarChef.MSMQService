@@ -94,15 +94,18 @@ namespace StarChef.SqlQueue.Service
 
         private void StartProcess(UserDatabase userDatabase)
         {
-            var count = _databaseManager.ExecuteScalar(userDatabase.ConnectionString, "sc_calculation_queue_count");
             var threadName = $"ThreadDbId{userDatabase.DatabaseId}";
+            var count = _databaseManager.ExecuteScalar(userDatabase.ConnectionString, "sc_calculation_queue_count");
+            Common.Repository.IPricingRepository repo = new Common.Repository.PricingRepository(userDatabase.ConnectionString);
+            Common.Engine.IPriceEngine engine = new Common.Engine.PriceEngine(repo);
+
             if (count > this._appConfiguration.NewThreadMessages)
             {
                 if (ActiveThreads.Count <= _appConfiguration.MaxThreadCount)
                 {
                     if (this.ActiveThreads.All(t => t.Name != threadName))
                     {
-                        var t = new Thread(() => Process(userDatabase, count)) { Name = threadName };
+                        var t = new Thread(() => Process(engine, userDatabase, count)) { Name = threadName };
                         t.Start();
                         ActiveThreads.Add(t);
                     }
@@ -110,7 +113,7 @@ namespace StarChef.SqlQueue.Service
             }
             else
             {
-                Process(userDatabase, count);
+                Process(engine, userDatabase, count);
             }
         }
 
@@ -160,7 +163,7 @@ namespace StarChef.SqlQueue.Service
         }
 
 
-        public void Process(UserDatabase userDatabase, int count)
+        public void Process(Common.Engine.IPriceEngine pEngine, UserDatabase userDatabase, int count)
         {
             Logger.Info($"Process started for db {userDatabase.DatabaseId}");
 
@@ -280,14 +283,12 @@ namespace StarChef.SqlQueue.Service
                                             }
                                             break;
                                         case Constants.MessageActionType.UpdatedProductCost:
-                                            Common.Repository.IPricingRepository repo = new Common.Repository.PricingRepository(connectionString);
-                                            Common.Engine.PriceEngine engine = new Common.Engine.PriceEngine(repo);
-                                            var enabled = engine.IsEngineEnabled().Result;
+                                            var enabled = pEngine.IsEngineEnabled().Result;
                                             Logger.Info($"Processing UpdatedProductCost DataBase {userDatabase.DatabaseId}");
                                             if (enabled)
                                             {
                                                 Logger.Info($"Run global price recalculation DataBase {userDatabase.DatabaseId}");
-                                                var result = engine.GlobalRecalculation(true, DateTime.UtcNow).Result;
+                                                var result = pEngine.GlobalRecalculation(true, DateTime.UtcNow).Result;
                                             }
                                             else {
                                                 Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.StatusId, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
