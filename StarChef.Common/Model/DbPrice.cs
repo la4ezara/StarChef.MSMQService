@@ -74,7 +74,12 @@ namespace StarChef.Common.Model
             return obj.ProductId.GetHashCode() ^ obj.GroupId.GetHashCode() ^ obj.Price.GetHashCode();
         }
 
-        
+        public override int GetHashCode()
+        {
+            return ProductId.GetHashCode() ^ GroupId.GetHashCode() ^ Price.GetHashCode();
+        }
+
+
 
         public DbPrice() {
             Delta = 25 * (decimal)Math.Pow(10, -1 * Rounding);

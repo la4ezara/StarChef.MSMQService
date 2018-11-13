@@ -11,17 +11,19 @@ namespace StarChef.Common.Hierarchy
         private readonly List<Product> _products;
         private readonly Dictionary<int, Product> _products_dict;
         private readonly List<ProductPart> _parts;
-        public readonly Dictionary<int, Product> PrivateProducts;
+        private readonly Dictionary<int, Product> _privateProducts;
 
         private readonly Dictionary<int, ProductNode> _forest;
 
         public Dictionary<int, ProductNode> Forest => _forest;
 
+        public Dictionary<int, Product> PrivateProducts => _privateProducts;
+
         public ProductForest(List<Product> products, List<ProductPart> parts)
         {
             _products = products;
             _products_dict = products.ToDictionary(key => key.ProductId, value => value);
-            PrivateProducts = products.Where(p => p.ScopeId > 1).ToDictionary(key => key.ProductId, value => value);
+            _privateProducts = products.Where(p => p.ScopeId > 1).ToDictionary(key => key.ProductId, value => value);
             _parts = parts;
             _forest = new Dictionary<int, ProductNode>();
         }
@@ -168,7 +170,7 @@ namespace StarChef.Common.Hierarchy
 
             ///calculate items for producrs which are in results but they are private
             ///remove them from list and add them to private list
-            foreach (int privateProductId in PrivateProducts.Keys)
+            foreach (int privateProductId in _privateProducts.Keys)
             {
                 if (groupCalculatedPrices.ContainsKey(privateProductId))
                 {

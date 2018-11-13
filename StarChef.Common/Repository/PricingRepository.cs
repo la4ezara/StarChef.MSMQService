@@ -256,7 +256,7 @@ namespace StarChef.Common.Repository
             var cmd = @"sc_GetAvailableSetsForGroup";
             using (var connection = GetOpenConnection())
             {
-                var result = Query<GroupSets>(connection, cmd, param, CommandType.StoredProcedure);
+                var result = await Task.Run(() => { return Query<GroupSets>(connection, cmd, param, CommandType.StoredProcedure); });
                 return result;
             }
         }
@@ -267,7 +267,7 @@ namespace StarChef.Common.Repository
                         WHERE p.status_id = 1";
             using (var connection = GetOpenConnection())
             {
-                var result = Query<ProductPset>(connection, cmd, null, CommandType.StoredProcedure);
+                var result = await Task.Run(() => { return Query<ProductPset>(connection, cmd, null, CommandType.StoredProcedure); });
                 return result;
             }
         }
@@ -289,7 +289,7 @@ namespace StarChef.Common.Repository
             using (var connection = GetOpenConnection())
             {
                 int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
-                return result == 0 ? true : false;
+                return result == 0;
             }
         }
 
@@ -325,7 +325,7 @@ namespace StarChef.Common.Repository
             using (var connection = GetOpenConnection())
             {
                 int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
-                return result == 0 ? true : false;
+                return result == 0;
             }
         }
 
