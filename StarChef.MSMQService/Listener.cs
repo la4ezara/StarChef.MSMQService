@@ -436,62 +436,27 @@ namespace StarChef.MSMQService
 
         private void ProcessUduUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN,
-                "sc_calculate_dish_pricing",
-                new SqlParameter("@group_id", 0),
-                new SqlParameter("@product_id", 0),
-                new SqlParameter("@pset_id", 0),
-                new SqlParameter("@pband_id", 0),
-                new SqlParameter("@unit_id", msg.ProductID),
-                new SqlParameter("@message_arrived_time", msg.ArrivedTime));
+            ProcessPriceRecalculation(msg.DSN, 0, 0, 0, 0, msg.ProductID, msg.ArrivedTime);
         }
 
         private void ProcessProductSetUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN,
-                "sc_calculate_dish_pricing",
-                new SqlParameter("@group_id", 0),
-                new SqlParameter("@product_id", 0),
-                new SqlParameter("@pset_id", msg.ProductID),
-                new SqlParameter("@pband_id", 0),
-                new SqlParameter("@unit_id", 0),
-                new SqlParameter("@message_arrived_time", msg.ArrivedTime));
+            ProcessPriceRecalculation(msg.DSN, 0, 0, msg.ProductID, 0, 0, msg.ArrivedTime);
         }
 
         private void ProcessPriceBandUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN,
-                "sc_calculate_dish_pricing",
-                new SqlParameter("@group_id", 0),
-                new SqlParameter("@product_id", 0),
-                new SqlParameter("@pset_id", 0),
-                new SqlParameter("@pband_id", msg.ProductID),
-                new SqlParameter("@unit_id", 0),
-                new SqlParameter("@message_arrived_time", msg.ArrivedTime));
+            ProcessPriceRecalculation(msg.DSN, 0, 0, 0, msg.ProductID, 0, msg.ArrivedTime);
         }
 
         private void ProcessGroupUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN,
-                "sc_calculate_dish_pricing",
-                new SqlParameter("@group_id", msg.GroupID),
-                new SqlParameter("@product_id", 0),
-                new SqlParameter("@pset_id", 0),
-                new SqlParameter("@pband_id", 0),
-                new SqlParameter("@unit_id", 0),
-                new SqlParameter("@message_arrived_time", msg.ArrivedTime));
+            ProcessPriceRecalculation(msg.DSN, msg.GroupID, 0, 0, 0, 0, msg.ArrivedTime);
         }
 
         private void ProcessProductCostUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN,
-                "sc_calculate_dish_pricing",
-                new SqlParameter("@group_id", 0),
-                new SqlParameter("@product_id", msg.ProductID),
-                new SqlParameter("@pset_id", 0),
-                new SqlParameter("@pband_id", 0),
-                new SqlParameter("@unit_id", 0),
-                new SqlParameter("@message_arrived_time", msg.ArrivedTime));
+            ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
         }
 
         private void ProcessProductNutrientUpdate(UpdateMessage msg)
@@ -517,28 +482,17 @@ namespace StarChef.MSMQService
 
         private void ProcessGlobalUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN,
-                "sc_calculate_dish_pricing",
-                new SqlParameter("@group_id", msg.GroupID),
-                new SqlParameter("@product_id", 0),
-                new SqlParameter("@pset_id", 0),
-                new SqlParameter("@pband_id", 0),
-                new SqlParameter("@unit_id", 0),
-                new SqlParameter("@message_arrived_time", msg.ArrivedTime));
+            ProcessPriceRecalculation(msg.DSN, msg.GroupID, 0, 0, 0, 0, msg.ArrivedTime);
         }
-
 
         private void ProcessGlobalUpdateBudgeted(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN,
-                "sc_calculate_dish_pricing_budgeted");
+            ExecuteStoredProc(msg.DSN, "sc_calculate_dish_pricing_budgeted");
         }
 
         private void ProcessAlternateIngredientUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN,
-                "sc_alternate_ingredient_update",
-                new SqlParameter("@product_id", msg.ProductID));
+            ExecuteStoredProc(msg.DSN, "sc_alternate_ingredient_update", new SqlParameter("@product_id", msg.ProductID));
         }
 
         private void ProcessStarChefEventsUpdated(UpdateMessage msg)
@@ -598,7 +552,6 @@ namespace StarChef.MSMQService
             if (!productIds.Any())
             {
                 _logger.Debug("enter send");
-
                 AddOrchestrationMessageToQueue(msg.DSN, entityId, entityTypeId, msg.ExternalId, (Constants.MessageActionType)msg.Action);
                 _logger.Debug("exit send");
             }
@@ -632,7 +585,45 @@ namespace StarChef.MSMQService
                 new SqlParameter("@DateCreated", DateTime.UtcNow),
                 new SqlParameter("@ExternalId", externalId),
                 new SqlParameter("@MessageActionTypeId", messageActionTypeId));
+        }
 
+        private void ProcessPriceRecalculation(string dsn, int groupId, int productId, int psetId, int pbandId, int unitId, DateTime arrivedTime)
+        {
+            _logger.Info($"sc_calculate_dish_pricing @group_id = {groupId}, @product_id = {productId}, @pset_id = {psetId}, @pband_id = {pbandId}, @unit_id = {unitId}, @message_arrived_time = {arrivedTime.ToString()}");
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            
+            var repo = new Common.Repository.PricingRepository(dsn);
+            var engine = new Common.Engine.PriceEngine(repo);
+            bool newPriceEngineOn = engine.IsEngineEnabled().Result;
+            bool runGlobalRecalculation = true;
+
+            if (productId > 0) {
+                runGlobalRecalculation = false;
+            }
+
+            //always run old algo for product price recalculation
+            if (newPriceEngineOn && runGlobalRecalculation) {
+                _logger.Info($"New engine is used");
+                sw.Start();    
+                var result = engine.GlobalRecalculation(true, arrivedTime).Result;
+                sw.Stop();
+                _logger.Info($"New engine generate {result.Count()} prices for {sw.Elapsed.TotalSeconds}");
+            }
+            else
+            {
+                _logger.Info($"Old engine is used");
+                sw.Start();
+                ExecuteStoredProc(dsn,
+                    "sc_calculate_dish_pricing",
+                    new SqlParameter("@group_id", groupId),
+                    new SqlParameter("@product_id", productId),
+                    new SqlParameter("@pset_id", psetId),
+                    new SqlParameter("@pband_id", pbandId),
+                    new SqlParameter("@unit_id", unitId),
+                    new SqlParameter("@message_arrived_time", arrivedTime));
+                sw.Stop();
+                _logger.Info($"Old engine finish in {sw.Elapsed.TotalSeconds}");
+            }
         }
     }
 }

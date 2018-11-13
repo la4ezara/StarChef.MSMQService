@@ -30,6 +30,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
         [InlineData(Constants.MessageActionType.UserActivated, Constants.EntityType.User)]
         [InlineData(Constants.MessageActionType.SalesForceUserCreated, Constants.EntityType.User)]
         [InlineData(Constants.MessageActionType.UpdatedGroup, Constants.EntityType.User)]
+        [InlineData(Constants.MessageActionType.UpdatedProductCost, Constants.EntityType.NotSet)]
         public void TestProcessingEventUpdateSuccess(Constants.MessageActionType messageActionType, Constants.EntityType entityType)
         {
 
@@ -69,7 +70,11 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
             obj.CanProcess = true;
             //act
 
-            obj.Process(ud, messagesToProcess.Count);
+            Mock<StarChef.Common.Engine.IPriceEngine> priceEngine = new Mock<StarChef.Common.Engine.IPriceEngine>();
+            priceEngine.Setup<Task<bool>>(x => x.IsEngineEnabled()).Returns(Task.FromResult(true));
+            priceEngine.Setup<Task<IEnumerable<Common.Model.DbPrice>>>(x => x.GlobalRecalculation(It.IsAny<bool>(), It.IsAny<DateTime?>())).Returns(Task.FromResult((new List<Common.Model.DbPrice>().AsEnumerable())));
+
+            obj.Process(priceEngine.Object, ud, messagesToProcess.Count);
             //assert results
             if (messageActionType == Constants.MessageActionType.StarChefEventsUpdated ||
                 messageActionType == Constants.MessageActionType.UserCreated ||
@@ -142,6 +147,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
         [InlineData(Constants.MessageActionType.UserCreated, Constants.EntityType.Dish)]
         [InlineData(Constants.MessageActionType.UserActivated, Constants.EntityType.Dish)]
         [InlineData(Constants.MessageActionType.SalesForceUserCreated, Constants.EntityType.Dish)]
+        [InlineData(Constants.MessageActionType.UpdatedProductCost, Constants.EntityType.NotSet)]
         public void TestProcessingEventUpdateNotSent(Constants.MessageActionType messageActionType, Constants.EntityType entityType)
         {
 
@@ -183,13 +189,17 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
             obj.CanProcess = true;
             //act
 
-            obj.Process(ud, messagesToProcess.Count);
+            Mock<StarChef.Common.Engine.IPriceEngine> priceEngine = new Mock<StarChef.Common.Engine.IPriceEngine>();
+            priceEngine.Setup<Task<bool>>(x => x.IsEngineEnabled()).Returns(Task.FromResult(false));
+            priceEngine.Setup<Task<IEnumerable<Common.Model.DbPrice>>>(x => x.GlobalRecalculation(It.IsAny<bool>(), It.IsAny<DateTime?>())).Returns(Task.FromResult((new List<Common.Model.DbPrice>().AsEnumerable())));
+
+            obj.Process(priceEngine.Object, ud, messagesToProcess.Count);
 
             //assert results
             if (messageActionType == Constants.MessageActionType.StarChefEventsUpdated ||
                 messageActionType == Constants.MessageActionType.UserCreated ||
                 messageActionType == Constants.MessageActionType.UserActivated ||
-                messageActionType == Constants.MessageActionType.SalesForceUserCreated)
+                messageActionType == Constants.MessageActionType.SalesForceUserCreated || messageActionType == Constants.MessageActionType.UpdatedProductCost)
             {
                 Assert.Equal(messagesToProcess.Count, enqueueCount);
                 Assert.Empty(sendMessages);
