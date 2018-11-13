@@ -300,7 +300,7 @@ namespace StarChef.Common.Repository
             };
 
             var cmd = @"select TOP 1 db_setting_value from db_setting where
-                is_deleted = 0 AND db_setting_name like '@setting_name'";
+                is_deleted = 0 AND db_setting_name like @setting_name";
             using (var connection = GetOpenConnection())
             {
                 string result = await Task.Run(() => { return ExecuteScalar<string>(connection, cmd, param, CommandType.Text); });
