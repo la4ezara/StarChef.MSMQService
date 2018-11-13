@@ -13,6 +13,8 @@
         public int SleepMinutes { get; private set; }
         public int NewThreadMessages { get; private set; }
         public int MaxThreadCount { get; private set; }
+
+        public int CacheInterval { get; private set; }
         public AppConfiguration()
         {
             this.UserDSN = ConfigurationManager.AppSettings["DSN"];
@@ -21,6 +23,14 @@
             this.SleepMinutes = int.Parse(ConfigurationManager.AppSettings["sleepMinutes"]);
             this.NewThreadMessages = int.Parse(ConfigurationManager.AppSettings["newThreadMessages"]);
             this.MaxThreadCount = int.Parse(ConfigurationManager.AppSettings["maxThreadCount"]);
+            int cacheInterval;
+            if (int.TryParse(ConfigurationManager.AppSettings["cacheInterval"], out cacheInterval))
+            {
+                this.CacheInterval = cacheInterval;
+            }
+            else {
+                this.CacheInterval = 3;
+            }
         }
     }
 }

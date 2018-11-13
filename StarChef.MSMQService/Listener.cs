@@ -14,6 +14,7 @@ using System.Messaging;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using StarChef.Common.Engine;
 
 namespace StarChef.MSMQService
 {
@@ -32,7 +33,7 @@ namespace StarChef.MSMQService
         public event EventHandler<MessageProcessEventArgs> MessageProcessed;
         public event EventHandler<MessageProcessEventArgs> MessageNotProcessing;
 
-        public bool CanProcess { get; set; }
+        public virtual bool CanProcess { get; set; }
 
         public Listener(IAppConfiguration appConfiguration, IDatabaseManager databaseManager)
         {
@@ -587,13 +588,19 @@ namespace StarChef.MSMQService
                 new SqlParameter("@MessageActionTypeId", messageActionTypeId));
         }
 
+        public virtual IPriceEngine GetPriceEngine(string dsn)
+        {
+            var repo = new Common.Repository.PricingRepository(dsn);
+            var engine = new PriceEngine(repo);
+            return engine;
+        }
+
         private void ProcessPriceRecalculation(string dsn, int groupId, int productId, int psetId, int pbandId, int unitId, DateTime arrivedTime)
         {
             _logger.Info($"sc_calculate_dish_pricing @group_id = {groupId}, @product_id = {productId}, @pset_id = {psetId}, @pband_id = {pbandId}, @unit_id = {unitId}, @message_arrived_time = {arrivedTime.ToString()}");
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             
-            var repo = new Common.Repository.PricingRepository(dsn);
-            var engine = new Common.Engine.PriceEngine(repo);
+            var engine = GetPriceEngine(dsn);
             bool newPriceEngineOn = engine.IsEngineEnabled().Result;
             bool runGlobalRecalculation = true;
 

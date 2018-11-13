@@ -31,6 +31,8 @@ namespace StarChef.SqlQueue.Service
 
         public async Task<bool> ExecuteAsync()
         {
+            int updateCacheCounter = 0;
+
             while (CanProcess)
             {
                 int dbId = default(int);
@@ -41,35 +43,28 @@ namespace StarChef.SqlQueue.Service
                     var timeSpan = TimeSpan.FromMinutes(_appConfiguration.SleepMinutes);
                     Thread.Sleep(timeSpan);
 
-                    this._userDatabases = _databaseManager.GetUserDatabases(this._appConfiguration.UserDSN);
-                    foreach (var userDatabase in _userDatabases)
+                    if (updateCacheCounter == 0)
                     {
-                        try
+                        Logger.Info($"Load databases and orchestration settings");
+                        this._userDatabases = _databaseManager.GetUserDatabases(this._appConfiguration.UserDSN);
+                        foreach (var userDatabase in _userDatabases)
                         {
-                            dbId = userDatabase.DatabaseId;
-                            var reader = _databaseManager.ExecuteReader(userDatabase.ConnectionString, "sc_get_orchestration_lookups");
-                            while (reader.Read())
-                            {
-                                var entityTypeId = reader.GetValue<int>("entity_type_id");
-                                var canPublish = reader.GetValue<bool>("can_publish");
-                                var lookup = new OrchestrationLookup(entityTypeId, canPublish);
-                                userDatabase.OrchestrationLookups.Add(lookup);
-                            }
+                            LoadOrchestrationSettings(dbForDeletion, userDatabase);
                         }
-                        catch (Exception ex)
+
+                        if (dbForDeletion.Any())
                         {
-                            dbForDeletion.Add(userDatabase.DatabaseId);
-                            var message = $"Database ID: { userDatabase.DatabaseId }";
-                            Logger.Error(message, ex);
+                            foreach (var db in dbForDeletion)
+                            {
+                                this._userDatabases.RemoveWhere(c => c.DatabaseId == db);
+                            }
                         }
                     }
 
-                    if (dbForDeletion.Any())
+                    updateCacheCounter++;
+                    if (updateCacheCounter == _appConfiguration.CacheInterval)
                     {
-                        foreach (var db  in dbForDeletion)
-                        {
-                            this._userDatabases.RemoveWhere(c => c.DatabaseId == db);
-                        }
+                        updateCacheCounter = 0;
                     }
 
                     for (int i = this.ActiveThreads.Count - 1; i >= 0; i--)
@@ -90,6 +85,27 @@ namespace StarChef.SqlQueue.Service
             }
 
             return await Task.FromResult<bool>(true);
+        }
+
+        private void LoadOrchestrationSettings(List<int> dbForDeletion, UserDatabase userDatabase)
+        {
+            try
+            {
+                var reader = _databaseManager.ExecuteReader(userDatabase.ConnectionString, "sc_get_orchestration_lookups");
+                while (reader.Read())
+                {
+                    var entityTypeId = reader.GetValue<int>("entity_type_id");
+                    var canPublish = reader.GetValue<bool>("can_publish");
+                    var lookup = new OrchestrationLookup(entityTypeId, canPublish);
+                    userDatabase.OrchestrationLookups.Add(lookup);
+                }
+            }
+            catch (Exception ex)
+            {
+                dbForDeletion.Add(userDatabase.DatabaseId);
+                var message = $"Database ID: { userDatabase.DatabaseId }";
+                Logger.Error(message, ex);
+            }
         }
 
         private void StartProcess(UserDatabase userDatabase)
@@ -184,7 +200,7 @@ namespace StarChef.SqlQueue.Service
                             var entityMessages = groupedMessage.ToList();
 
                             var isPublishEnabled = userDatabase.OrchestrationLookups.FirstOrDefault(c => c.EntityTypeId == entityTypeId);
-                            if (isPublishEnabled != null && isPublishEnabled.CanPublish)
+                            if ((isPublishEnabled != null && isPublishEnabled.CanPublish) || groupedMessage.Key == 0)
                             {
                                 EnumHelper.EntityTypeWrapper? entityTypeWrapper = null;
 

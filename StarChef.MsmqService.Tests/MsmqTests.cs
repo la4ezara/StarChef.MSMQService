@@ -2,6 +2,7 @@
 using Fourth.StarChef.Invariables;
 using Moq;
 using StarChef.Common;
+using StarChef.Common.Engine;
 using StarChef.Common.Types;
 using StarChef.MSMQService;
 using StarChef.MSMQService.Configuration;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Messaging;
+using System.Threading.Tasks;
 using Xunit;
 using static Messaging.MSMQ.Enums;
 
@@ -174,8 +176,15 @@ namespace StarChef.MsmqService.Tests
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
 
             listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
-            listener.MessageNotProcessing += delegate (System.Object o, MessageProcessEventArgs e)
-            { listener.CanProcess = false; };
+
+            var ml = new Mock<Listener>(new object[] { config.Object, dbManager.Object, messageManager.Object });
+            var ipe = new Mock<IPriceEngine>();
+            ipe.Setup(x => x.IsEngineEnabled()).Returns(Task.FromResult(false));
+
+            ml.Setup(x => x.GetPriceEngine(It.IsAny<string>())).Returns(ipe.Object);
+
+            ml.SetupSequence(x => x.CanProcess).Returns(true).Returns(false);
+            listener = ml.Object;
 
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();
@@ -190,9 +199,8 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().NotBeEmpty();
             normalQueue.Should().HaveCount(1, "single item send");
 
-            listener.CanProcess = true;
             listener.ExecuteAsync(activeDatabases, timestamps);
-
+           
             normalQueue.Should().BeEmpty();
 
             calledStoredProcedures.Should().NotBeEmpty();
