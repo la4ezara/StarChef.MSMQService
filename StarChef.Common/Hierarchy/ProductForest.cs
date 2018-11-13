@@ -27,7 +27,7 @@ namespace StarChef.Common.Hierarchy
         public void BuildForest()
         {
             Forest.Clear();
-            AddNonBlackRecipes();
+            AddNonBlankRecipes();
             //add recipes which are empty
             AddBlankRecipes();
         }
@@ -49,7 +49,7 @@ namespace StarChef.Common.Hierarchy
             }
         }
 
-        private void AddNonBlackRecipes()
+        private void AddNonBlankRecipes()
         {
             Dictionary<int, List<ProductPart>> product_parts_dict = _parts.GroupBy(g => g.ProductId).ToDictionary(key => key.Key, value => value.ToList());
 
@@ -126,7 +126,6 @@ namespace StarChef.Common.Hierarchy
         public Dictionary<int, Dictionary<int, decimal>> CalculatePrice(List<GroupProducts> groupPrices)
         {
             Dictionary<int, Dictionary<int, decimal>> allPrices = new Dictionary<int, Dictionary<int, decimal>>();
-            //Dictionary<int, decimal> privatePrices = new Dictionary<int, decimal>();
             ConcurrentDictionary<int, decimal> privatePrices = new ConcurrentDictionary<int, decimal>();
             var groupedGroupPrices = groupPrices.GroupBy(g => g.GroupId).OrderByDescending(g => g.Key).ToList();
             //possible to execure in parallel
@@ -174,7 +173,6 @@ namespace StarChef.Common.Hierarchy
                     if (!privatePrices.ContainsKey(privateProductId))
                     {
                         privatePrices.TryAdd(privateProductId, groupCalculatedPrices[privateProductId]);
-                        //privatePrices.Add(privateProductId, groupCalculatedPrices[privateProductId]);
                     }
 
                     groupCalculatedPrices.Remove(privateProductId);

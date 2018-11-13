@@ -87,23 +87,14 @@ namespace StarChef.Common.Hierarchy
                                         if (RecipeKind != RecipeType.Choice || child.IsChoise)
                                         {
                                             var baseIngredientPrice = priceStorage[child.ProductId];
-
-                                            if (child.Portion == PortionType.EP)
+                                            decimal ingredientEpPrice = baseIngredientPrice;
+                                            if (child.Portion == PortionType.EP && product.Wastage.HasValue && product.Wastage <= 100 && product.Wastage > 0)
                                             {
-                                                decimal ingredientEpPrice = baseIngredientPrice;
-                                                if (product.Wastage.HasValue && product.Wastage <= 100 && product.Wastage > 0)
-                                                {
-                                                    ingredientEpPrice = baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
-                                                }
+                                                ingredientEpPrice = baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
+                                            }
 
-                                                var epPrice = ingredientEpPrice * child.Quantity;
-                                                price = epPrice / convertion;
-                                            }
-                                            else
-                                            {
-                                                var apPrice = baseIngredientPrice * child.Quantity;
-                                                price = apPrice / convertion;
-                                            }
+                                            var apPrice = ingredientEpPrice * child.Quantity;
+                                            price = apPrice / convertion;
                                         }
                                     }
                                     else
@@ -113,9 +104,7 @@ namespace StarChef.Common.Hierarchy
                                         {
                                             if (RecipeKind != RecipeType.Choice || child.IsChoise)
                                             {
-                                                price = recipePrice.Value;
-
-                                                var apPrice = price * child.Quantity;
+                                                var apPrice = recipePrice.Value * child.Quantity;
                                                 price = apPrice / convertion;
                                             }
                                             //add non ingredient price
