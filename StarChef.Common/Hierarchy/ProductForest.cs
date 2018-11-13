@@ -13,7 +13,9 @@ namespace StarChef.Common.Hierarchy
         private readonly List<ProductPart> _parts;
         public readonly Dictionary<int, Product> PrivateProducts;
 
-        public readonly Dictionary<int, ProductNode> Forest;
+        private readonly Dictionary<int, ProductNode> _forest;
+
+        public Dictionary<int, ProductNode> Forest => _forest;
 
         public ProductForest(List<Product> products, List<ProductPart> parts)
         {
@@ -21,12 +23,12 @@ namespace StarChef.Common.Hierarchy
             _products_dict = products.ToDictionary(key => key.ProductId, value => value);
             PrivateProducts = products.Where(p => p.ScopeId > 1).ToDictionary(key => key.ProductId, value => value);
             _parts = parts;
-            Forest = new Dictionary<int, ProductNode>();
+            _forest = new Dictionary<int, ProductNode>();
         }
 
         public void BuildForest()
         {
-            Forest.Clear();
+            _forest.Clear();
             AddNonBlankRecipes();
             //add recipes which are empty
             AddBlankRecipes();
@@ -42,9 +44,9 @@ namespace StarChef.Common.Hierarchy
                 {
                     node.RecipeKind = product.RecipeTypeId;
                 }
-                if (!Forest.ContainsKey(node.ProductId))
+                if (!_forest.ContainsKey(node.ProductId))
                 {
-                    Forest.Add(node.ProductId, node);
+                    _forest.Add(node.ProductId, node);
                 }
             }
         }
@@ -64,10 +66,10 @@ namespace StarChef.Common.Hierarchy
                     node.RecipeKind = product.RecipeTypeId;
                 }
 
-                if (!Forest.ContainsKey(productId))
+                if (!_forest.ContainsKey(productId))
                 {
                     AddRecipeChild(node, product_parts_dict, childs);
-                    Forest.Add(node.ProductId, node);
+                    _forest.Add(node.ProductId, node);
                 }
             }
         }
@@ -92,9 +94,9 @@ namespace StarChef.Common.Hierarchy
 
                 if (part.ProductTypeId != ProductType.Ingredient)
                 {
-                    if (Forest.ContainsKey(node.ProductId))
+                    if (_forest.ContainsKey(node.ProductId))
                     {
-                        var existingItemStructure = Forest[node.ProductId];
+                        var existingItemStructure = _forest[node.ProductId];
                         //add existings 
                         node.Childs.AddRange(existingItemStructure.Childs);
                     }
@@ -112,7 +114,7 @@ namespace StarChef.Common.Hierarchy
                         AddRecipeChild(fNode, allParts, childs);
                         node.Childs.AddRange(fNode.Childs);
                         //build child structure
-                        Forest.Add(fNode.ProductId, node);
+                        _forest.Add(fNode.ProductId, node);
                     }
                 }
             }
@@ -157,11 +159,11 @@ namespace StarChef.Common.Hierarchy
             //get already existing prices
             Dictionary<int, decimal> groupCalculatedPrices = groups.Where(p => p.Price.HasValue && p.Price >= 0).ToDictionary(key => key.ProductId, value => value.Price.Value);
 
-            var keys = Forest.Keys.ToList();
+            var keys = _forest.Keys.ToList();
 
             for (var y = 0; y < keys.Count; y++)
             {
-                Forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList);
+                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList);
             }
 
             ///calculate items for producrs which are in results but they are private
@@ -183,16 +185,16 @@ namespace StarChef.Common.Hierarchy
 
         public void ReAssignForest(Dictionary<int, ProductNode> newNodes)
         {
-            Forest.Clear();
+            _forest.Clear();
             foreach (var node in newNodes)
             {
-                Forest.Add(node.Key, node.Value);
+                _forest.Add(node.Key, node.Value);
             }
         }
 
         public Dictionary<int, ProductNode> GetAffectedCuts(int productId) {
             Dictionary<int, ProductNode> cuts = new Dictionary<int, ProductNode>();
-            foreach (var node in Forest.Values)
+            foreach (var node in _forest.Values)
             {
                 GetAffectedCuts(productId, node, cuts);
             }

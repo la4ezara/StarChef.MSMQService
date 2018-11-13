@@ -7,16 +7,18 @@ namespace StarChef.Common.Hierarchy
 {
     public class ProductNode
     {
-        public readonly List<ProductNode> Childs;
+        private readonly List<ProductNode> _childs;
         public readonly int ProductId;
         public readonly decimal Quantity;
         public readonly int UnitId;
         public readonly decimal Ratio;
         public readonly PortionType? Portion;
         public readonly ProductType NodeType;
-        public RecipeType? RecipeKind;
-        public bool IsChoise;
-        public bool IsBroken;
+        public RecipeType? RecipeKind { get; set; }
+        public bool IsChoise { get; set; }
+        public bool IsBroken { get; set; }
+
+        public List<ProductNode> Childs => _childs;
 
         public ProductNode(int productId, int unitId, decimal quantity, ProductType productType) : this(productId, unitId, quantity, productType, 1, PortionType.NotSet)
         {
@@ -31,8 +33,10 @@ namespace StarChef.Common.Hierarchy
             NodeType = productType;
             Ratio = ratio;
             Portion = portionType;
-            Childs = new List<ProductNode>();
+            _childs = new List<ProductNode>();
         }
+
+        
 
         public decimal? GetPrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products, HashSet<int> accessList)
         {
