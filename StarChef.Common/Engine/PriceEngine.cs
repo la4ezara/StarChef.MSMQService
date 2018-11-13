@@ -161,7 +161,7 @@ namespace StarChef.Common.Engine
         public async Task<bool> IsEngineEnabled() {
             bool result = false;
 
-            var dbSetting = await _pricingRepo.GetDbSetting(Fourth.StarChef.Invariables.Constants.CONFIG_PRICE_RECALC_CODE_ENGINE);
+            var dbSetting = await _pricingRepo.GetDbSetting(Fourth.StarChef.Invariables.Constants.PRICE_RECALC_CODE_ENGINE);
             if (!string.IsNullOrWhiteSpace(dbSetting) && dbSetting.Equals("1")) {
                 result = true;
             }
