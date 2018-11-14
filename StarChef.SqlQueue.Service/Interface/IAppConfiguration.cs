@@ -8,5 +8,6 @@
         int SleepMinutes { get; }
         int NewThreadMessages { get; }
         int MaxThreadCount { get; }
+        int CacheInterval { get; }
     }
 }
