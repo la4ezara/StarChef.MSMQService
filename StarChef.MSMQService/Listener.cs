@@ -595,9 +595,26 @@ namespace StarChef.MSMQService
             return engine;
         }
 
+        public string GetCustomerFromDsn(string dsn) {
+            string result = string.Empty;
+            var dsnParts = dsn.ToLower().Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            var customer = dsnParts.FirstOrDefault(x => x.Contains("initial catalog"));
+            if (!string.IsNullOrEmpty(customer) && customer.Contains("="))
+            {
+                var segments = customer.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
+                if (segments.Length > 1)
+                {
+                    result = customer.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries).Last();
+                }
+            }
+            return result;
+        }
+
         private void ProcessPriceRecalculation(string dsn, int groupId, int productId, int psetId, int pbandId, int unitId, DateTime arrivedTime)
         {
-            _logger.Info($"sc_calculate_dish_pricing @group_id = {groupId}, @product_id = {productId}, @pset_id = {psetId}, @pband_id = {pbandId}, @unit_id = {unitId}, @message_arrived_time = {arrivedTime.ToString()}");
+            var customer = GetCustomerFromDsn(dsn);
+
+            _logger.Info($"{customer} sc_calculate_dish_pricing @group_id = {groupId}, @product_id = {productId}, @pset_id = {psetId}, @pband_id = {pbandId}, @unit_id = {unitId}, @message_arrived_time = {arrivedTime.ToString()}");
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             
             var engine = GetPriceEngine(dsn);
@@ -610,15 +627,15 @@ namespace StarChef.MSMQService
 
             //always run old algo for product price recalculation
             if (newPriceEngineOn && runGlobalRecalculation) {
-                _logger.Info($"New engine is used");
+                _logger.Info($"{customer} New engine is used");
                 sw.Start();    
                 var result = engine.GlobalRecalculation(true, arrivedTime).Result;
                 sw.Stop();
-                _logger.Info($"New engine generate {result.Count()} prices for {sw.Elapsed.TotalSeconds}");
+                _logger.Info($"{customer} New engine generate {result.Count()} prices for {sw.Elapsed.TotalSeconds}");
             }
             else
             {
-                _logger.Info($"Old engine is used");
+                _logger.Info($"{customer} Old engine is used");
                 sw.Start();
                 ExecuteStoredProc(dsn,
                     "sc_calculate_dish_pricing",
@@ -629,7 +646,7 @@ namespace StarChef.MSMQService
                     new SqlParameter("@unit_id", unitId),
                     new SqlParameter("@message_arrived_time", arrivedTime));
                 sw.Stop();
-                _logger.Info($"Old engine finish in {sw.Elapsed.TotalSeconds}");
+                _logger.Info($"{customer} Old engine finish in {sw.Elapsed.TotalSeconds}");
             }
         }
     }

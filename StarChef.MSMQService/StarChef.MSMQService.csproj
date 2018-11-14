@@ -115,22 +115,22 @@
       <HintPath>..\packages\Dapper.1.50.5\lib\net451\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.233\lib\net452\Fourth.Orchestration.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.251\lib\net452\Fourth.Orchestration.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.Azure, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.233\lib\net452\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.251\lib\net452\Fourth.Orchestration.Messaging.Azure.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.MsmqBuffer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.233\lib\net452\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.251\lib\net452\Fourth.Orchestration.Messaging.MsmqBuffer.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Messaging.SharedMemoryStub, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.233\lib\net452\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.251\lib\net452\Fourth.Orchestration.Messaging.SharedMemoryStub.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Model, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.Model.1.2.233\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.Model.1.2.251\lib\net452\Fourth.Orchestration.Model.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.Orchestration.Storage.Azure, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.Orchestration.1.2.233\lib\net452\Fourth.Orchestration.Storage.Azure.dll</HintPath>
+      <HintPath>..\packages\Fourth.Orchestration.1.2.251\lib\net452\Fourth.Orchestration.Storage.Azure.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.22\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
@@ -342,10 +342,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\MSBuild.VersionNumbers.1.5.33\build\MSBuild.VersionNumbers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.VersionNumbers.1.5.33\build\MSBuild.VersionNumbers.targets'))" />
-    <Error Condition="!Exists('..\packages\MSBuild.NugetPackaging.1.0.11\build\MSBuild.NuGetPackaging.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.NugetPackaging.1.0.11\build\MSBuild.NuGetPackaging.targets'))" />
     <Error Condition="!Exists('..\packages\OctoPack.3.6.3\build\OctoPack.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OctoPack.3.6.3\build\OctoPack.targets'))" />
+    <Error Condition="!Exists('..\packages\MSBuild.NugetPackaging.1.0.12\build\MSBuild.NuGetPackaging.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.NugetPackaging.1.0.12\build\MSBuild.NuGetPackaging.targets'))" />
   </Target>
-  <Import Project="..\packages\MSBuild.NugetPackaging.1.0.11\build\MSBuild.NuGetPackaging.targets" Condition="Exists('..\packages\MSBuild.NugetPackaging.1.0.11\build\MSBuild.NuGetPackaging.targets')" />
   <Import Project="..\packages\OctoPack.3.6.3\build\OctoPack.targets" Condition="Exists('..\packages\OctoPack.3.6.3\build\OctoPack.targets')" />
   <UsingTask TaskName="TransformXml" AssemblyFile="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Web\Microsoft.Web.Publishing.Tasks.dll" />
   <Target Name="AfterCompile" Condition="Exists('app.$(Configuration).config')">
@@ -367,4 +366,5 @@
     <!--Publish copies the untransformed App.config to deployment directory so overwrite it-->
     <Copy Condition="Exists('$(DeployedConfig)')" SourceFiles="$(IntermediateOutputPath)$(TargetFileName).config" DestinationFiles="$(DeployedConfig)" />
   </Target>
+  <Import Project="..\packages\MSBuild.NugetPackaging.1.0.12\build\MSBuild.NuGetPackaging.targets" Condition="Exists('..\packages\MSBuild.NugetPackaging.1.0.12\build\MSBuild.NuGetPackaging.targets')" />
 </Project>
