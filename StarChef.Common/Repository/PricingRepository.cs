@@ -191,11 +191,12 @@ namespace StarChef.Common.Repository
             var param = new
             {
                 action = action,
-                product_id = productId
+                product_id = productId,
+                updateDate = logDate
             };
 
-            var cmd = @"INSERT INTO msmq_update_log (calc_type, group_id, product_id, pset_id, pband_id, unit_id)
-                    VALUES (@action, 0, @product_id, 0, 0, 0)
+            var cmd = @"INSERT INTO msmq_update_log (calc_type, group_id, product_id, pset_id, pband_id, unit_id,update_start_time)
+                    VALUES (@action, 0, @product_id, 0, 0, 0, @updateDate)
                     SELECT SCOPE_IDENTITY()";
             using (var connection = GetOpenConnection())
             {

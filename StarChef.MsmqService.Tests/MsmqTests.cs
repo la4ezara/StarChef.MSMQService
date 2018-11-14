@@ -6,7 +6,6 @@ using StarChef.Common.Engine;
 using StarChef.Common.Types;
 using StarChef.MSMQService;
 using StarChef.MSMQService.Configuration;
-using StarChef.Orchestrate;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -208,6 +207,27 @@ namespace StarChef.MsmqService.Tests
             calledStoredProcedures.First().Should().Be("sc_calculate_dish_pricing");
         }
 
+        [Theory]
+        [InlineData("", "")]
+        [InlineData("test", "")]
+        [InlineData("test;data;", "")]
+        [InlineData("test=;data;", "")]
+        [InlineData("initial =;data;", "")]
+        [InlineData("initial catalog=;data;", "")]
+        [InlineData("initial catalog=scnet_qa;data;", "scnet_qa")]
+        [Trait("MSMQ Listener", "ProcessPoisonMesssag1e")]
+        public void GetCustomerByDsn(string dsn, string expectedResult)
+        {
+            var messageManager = new Mock<IMessageManager>();
+            var config = new Mock<IAppConfiguration>();
+            var dbManager = new Mock<IDatabaseManager>();
+
+            Listener listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
+
+            var result = listener.GetCustomerFromDsn(dsn);
+            Assert.Equal(expectedResult, result);
+        }
+
         [Fact(DisplayName = "MSMQ Listener process message to poison queue")]
         [Trait("MSMQ Listener", "ProcessPoisonMesssage")]
         public void ProcessPoisonMesssage()
@@ -328,7 +348,7 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().BeEmpty();
             poisonQueue.Should().BeEmpty();
             result.Should().NotBeNull();
-            result.Status.ShouldBeEquivalentTo<MessageProcessStatus>(MessageProcessStatus.ParallelDatabaseId);
+            result.Status.Should().BeEquivalentTo<MessageProcessStatus>(MessageProcessStatus.ParallelDatabaseId);
         }
 
         [Fact(DisplayName = "MSMQ Listener no message for processing")]
@@ -362,7 +382,7 @@ namespace StarChef.MsmqService.Tests
             
             //assert
             result.Should().NotBeNull();
-            result.Status.ShouldBeEquivalentTo<MessageProcessStatus>(MessageProcessStatus.NoMessage);
+            result.Status.Should().BeEquivalentTo<MessageProcessStatus>(MessageProcessStatus.NoMessage);
         }
 
         protected Mock<IMessageManager> GetMockMessageManager(Queue normalQueue, Queue poisonQueue, IListener listener)

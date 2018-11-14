@@ -76,8 +76,8 @@ namespace StarChef.MsmqService.IntegrationTests
 
             var items = queue.GetAllMessages();
             items.Should().NotBeEmpty();
-            items.Length.ShouldBeEquivalentTo<int>(maxMessageCount - halfQueueSize);
-            calledStoredProcedures.Count.ShouldBeEquivalentTo<int>(halfQueueSize);
+            items.Length.Should().Be(maxMessageCount - halfQueueSize);
+            calledStoredProcedures.Count.Should().Be(halfQueueSize);
 
             //try process another half
             listener.CanProcess = true;
@@ -85,7 +85,7 @@ namespace StarChef.MsmqService.IntegrationTests
 
             items = queue.GetAllMessages();
             items.Should().BeEmpty();
-            calledStoredProcedures.Count.ShouldBeEquivalentTo<int>(maxMessageCount);
+            calledStoredProcedures.Count.Should().Be(maxMessageCount);
         }
     }
 }
