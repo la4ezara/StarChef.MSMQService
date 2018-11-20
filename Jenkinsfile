@@ -105,7 +105,7 @@ node {
 	 	
 		}
 		
-		deletedir()
+		deleteDir()
 	 }catch (ex) {
 		def errorText = "$ex"
 		if (onReleaseBranch()) {
