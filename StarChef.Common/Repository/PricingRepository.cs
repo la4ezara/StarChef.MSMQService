@@ -45,7 +45,7 @@ namespace StarChef.Common.Repository
             return attrib?.Description;
         }
 
-        public async Task<IEnumerable<GroupProducts>> GetGroupProductPricesByProduct(int productId) {
+        public async Task<IEnumerable<ProductGroupPrice>> GetGroupProductPricesByProduct(int productId) {
             var param = new
             {
                 product_id = productId
@@ -61,18 +61,18 @@ namespace StarChef.Common.Repository
 
                 SELECT DISTINCT product_id, group_id, price FROM #group_products
                 DROP TABLE #group_products";
-            IEnumerable<GroupProducts> result = await Task.Run(() =>
+            IEnumerable<ProductGroupPrice> result = await Task.Run(() =>
             {
                 using (var connection = GetOpenConnection())
                 {
-                    var res = Query<GroupProducts>(connection, cmd, param, CommandType.Text);
+                    var res = Query<ProductGroupPrice>(connection, cmd, param, CommandType.Text);
                     return res;
                 }
             });
             return result;
         }
 
-        public async Task<IEnumerable<GroupProducts>> GetGroupProductPricesByGroup(int groupId)
+        public async Task<IEnumerable<ProductGroupPrice>> GetGroupProductPricesByGroup(int groupId)
         {
             var param = new
             {
@@ -90,11 +90,11 @@ namespace StarChef.Common.Repository
                 SELECT DISTINCT product_id, group_id, price FROM #group_products
                 DROP TABLE #group_products
                 ";
-            IEnumerable<GroupProducts> result = await Task.Run(() =>
+            IEnumerable<ProductGroupPrice> result = await Task.Run(() =>
             {
                 using (var connection = GetOpenConnection())
                 {
-                    var res = Query<GroupProducts>(connection, cmd, param, CommandType.Text);
+                    var res = Query<ProductGroupPrice>(connection, cmd, param, CommandType.Text);
                     return res;
                 }
             });

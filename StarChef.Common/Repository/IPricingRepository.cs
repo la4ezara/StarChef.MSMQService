@@ -7,9 +7,9 @@ namespace StarChef.Common.Repository
 {
     public interface IPricingRepository
     {
-        Task<IEnumerable<GroupProducts>> GetGroupProductPricesByGroup(int groupId);
+        Task<IEnumerable<ProductGroupPrice>> GetGroupProductPricesByGroup(int groupId);
 
-        Task<IEnumerable<GroupProducts>> GetGroupProductPricesByProduct(int productId);
+        Task<IEnumerable<ProductGroupPrice>> GetGroupProductPricesByProduct(int productId);
         Task<IEnumerable<DbPrice>> GetPrices();
         Task<IEnumerable<DbPrice>> GetPrices(int groupId);
         Task<int> GetPricesCount();

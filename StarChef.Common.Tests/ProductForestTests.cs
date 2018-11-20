@@ -190,7 +190,7 @@ namespace StarChef.Common.Tests
         }
 
         [Fact]
-        public void CalculaetPrices()
+        public void CalculatePrices()
         {
             var recipeProductId = 3;
             var nestedRecipeId = 4;
@@ -204,6 +204,7 @@ namespace StarChef.Common.Tests
             products.Add(new Product() { ProductId = secondRecipeId, Number = 1, Quantity = 1, ProductTypeId = Constants.ProductType.Dish, Wastage = 25, ScopeId = 1, UnitId = 2, RecipeTypeId = Constants.RecipeType.Option });
 
             products.Add(new Product() { ProductId = 6, Number = 1, Quantity = 1, ProductTypeId = Constants.ProductType.Ingredient, Wastage = 50, ScopeId = 3, UnitId = 1 });
+            products.Add(new Product() { ProductId = 7, Number = 1, Quantity = 1, ProductTypeId = Constants.ProductType.Dish, Wastage = 25, ScopeId = 1, UnitId = 2, RecipeTypeId = Constants.RecipeType.Batch });
             List<ProductPart> parts = new List<ProductPart>();
             parts.Add(new ProductPart() { ProductId = secondRecipeId, SubProductId = nestedRecipeId, IsChoise = false, PortionTypeId = Constants.PortionType.EP, ProductTypeId = Constants.ProductType.Dish, Quantity = 1, Ratio = 1, UnitId = 1 });
             parts.Add(new ProductPart() { ProductId = nestedRecipeId, SubProductId = 1, IsChoise = true, PortionTypeId = Constants.PortionType.AP, ProductTypeId = Constants.ProductType.Ingredient, Quantity = 1, Ratio = 1, UnitId = 1 });
@@ -214,21 +215,26 @@ namespace StarChef.Common.Tests
             forest.BuildForest();
 
             Assert.NotEmpty(forest.Forest);
-            Assert.Equal(3, forest.Forest.Count);
+            Assert.Equal(4, forest.Forest.Count);
             Assert.True(forest.Forest.ContainsKey(nestedRecipeId));
             Assert.True(forest.Forest.ContainsKey(recipeProductId));
             Assert.NotEmpty(forest.Forest[nestedRecipeId].Childs);
 
-            List<GroupProducts> groupPrices = new List<GroupProducts>();
-            groupPrices.Add(new GroupProducts() { GroupId = 1, Price = 1, ProductId = 1 });
-            groupPrices.Add(new GroupProducts() { GroupId = 1, Price = 1, ProductId = 2 });
-            groupPrices.Add(new GroupProducts() { GroupId = 1, ProductId = 3 });
-            groupPrices.Add(new GroupProducts() { GroupId = 1, ProductId = 4 });
-            groupPrices.Add(new GroupProducts() { GroupId = 1, ProductId = 5 });
-            groupPrices.Add(new GroupProducts() { GroupId = 0, ProductId = 6, Price = 1 });
+            List<ProductGroupPrice> groupPrices = new List<ProductGroupPrice>();
+            groupPrices.Add(new ProductGroupPrice() { GroupId = 1, Price = 1, ProductId = 1 });
+            groupPrices.Add(new ProductGroupPrice() { GroupId = 1, Price = 1, ProductId = 2 });
+            groupPrices.Add(new ProductGroupPrice() { GroupId = 1, ProductId = 3 });
+            groupPrices.Add(new ProductGroupPrice() { GroupId = 1, ProductId = 4 });
+            groupPrices.Add(new ProductGroupPrice() { GroupId = 1, ProductId = 5 });
+            groupPrices.Add(new ProductGroupPrice() { GroupId = 0, ProductId = 6, Price = 1 });
+            groupPrices.Add(new ProductGroupPrice() { ProductId = 7});
 
             var result = forest.CalculatePrice(groupPrices);
             Assert.NotEmpty(result);
+            Assert.True(result.ContainsKey(0));
+            //private and non group items = 2
+            Assert.True(result.ContainsKey(0));
+            Assert.Equal(2, result[0].Count);
         }
     }
 }

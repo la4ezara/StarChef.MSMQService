@@ -49,22 +49,9 @@ namespace StarChef.Common.Model
         {
             var x = this;
             DbPrice y = obj as DbPrice;
-            if (y != null) {
-                if (x.ProductId.Equals(y.ProductId)
-                    && x.GroupId.Equals(y.GroupId))
-                {
-                    if (!x.Price.Equals(y.Price))
-                    {
-                        var ss = decimal.Subtract(x.Price, y.Price);
-                        if (Math.Abs(ss) > Delta)
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                }
-                return false;
+            if (y != null)
+            {
+                return this.Equals(x, y);
             }
             return false;
         }
@@ -76,7 +63,7 @@ namespace StarChef.Common.Model
 
         public override int GetHashCode()
         {
-            return ProductId.GetHashCode() ^ GroupId.GetHashCode() ^ Price.GetHashCode();
+            return this.GetHashCode(this);
         }
 
 
