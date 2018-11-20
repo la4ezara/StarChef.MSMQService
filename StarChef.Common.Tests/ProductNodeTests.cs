@@ -7,7 +7,7 @@ using StarChef.Common.Model;
 namespace StarChef.Common.Tests
 {
     
-    public class ProductNodeTest
+    public class ProductNodeTests
     {
         [Fact]
         public void ConstructorTestOne()

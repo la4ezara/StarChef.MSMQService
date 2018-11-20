@@ -1,5 +1,6 @@
 ﻿using StarChef.Common.Model;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -14,5 +15,7 @@ namespace StarChef.Common.Engine
         Task<bool> IsEngineEnabled();
 
         Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices);
+
+        void GetPriceDifferences(Dictionary<int, List<DbPrice>> existingPrices_dict, ConcurrentBag<DbPrice> bag, int groupId, List<DbPrice> groupPrices);
     }
 }

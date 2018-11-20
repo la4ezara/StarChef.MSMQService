@@ -131,31 +131,36 @@ namespace StarChef.Common.Engine
 
             Parallel.ForEach(comparedItem_byGroup, new ParallelOptions() { MaxDegreeOfParallelism = _maxDegreeOfParallelism }, group =>
             {
-                if (existingPrices_dict.ContainsKey(group.Key))
-                {
-                    var lookup = existingPrices_dict[group.Key].ToDictionary(k => k.ProductId, v => v);
-                    var items = group.ToList();
+                GetPriceDifferences(existingPrices_dict, bag, group.Key, group.ToList());
+            });
+            
+            IEnumerable<DbPrice> result = bag.Distinct().ToList();
+            return result;
+        }
 
-                    for (int i = 0; i < items.Count; i++)
+        public void GetPriceDifferences(Dictionary<int,List<DbPrice>> existingPrices_dict, ConcurrentBag<DbPrice> bag, int groupId, List<DbPrice> groupPrices) {
+            if (existingPrices_dict.ContainsKey(groupId))
+            {
+                var lookup = existingPrices_dict[groupId].ToDictionary(k => k.ProductId, v => v);
+                var items = groupPrices;
+
+                for (int i = 0; i < items.Count; i++)
+                {
+                    var p = items[i];
+                    if (lookup.ContainsKey(p.ProductId))
                     {
-                        var p = items[i];
-                        if (lookup.ContainsKey(p.ProductId))
-                        {
-                            var target = lookup[p.ProductId];
-                            if (!target.Equals(p)) {
-                                bag.Add(p);
-                            }
-                        }
-                        else
+                        var target = lookup[p.ProductId];
+                        if (!target.Equals(p))
                         {
                             bag.Add(p);
                         }
                     }
+                    else
+                    {
+                        bag.Add(p);
+                    }
                 }
-            });
-
-            IEnumerable<DbPrice> result = bag.Distinct().ToList();
-            return result;
+            }
         }
 
         public async Task<bool> IsEngineEnabled() {
