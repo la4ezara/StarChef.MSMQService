@@ -112,7 +112,7 @@ namespace StarChef.SqlQueue.Service
         {
             var threadName = $"ThreadDbId{userDatabase.DatabaseId}";
             var count = _databaseManager.ExecuteScalar(userDatabase.ConnectionString, "sc_calculation_queue_count");
-            Common.Repository.IPricingRepository repo = new Common.Repository.PricingRepository(userDatabase.ConnectionString);
+            Common.Repository.IPricingRepository repo = new Common.Repository.PricingRepository(userDatabase.ConnectionString, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC);
             Common.Engine.IPriceEngine engine = new Common.Engine.PriceEngine(repo);
 
             if (count > this._appConfiguration.NewThreadMessages)

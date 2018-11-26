@@ -590,7 +590,7 @@ namespace StarChef.MSMQService
 
         public virtual IPriceEngine GetPriceEngine(string dsn)
         {
-            var repo = new Common.Repository.PricingRepository(dsn);
+            var repo = new Common.Repository.PricingRepository(dsn, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC);
             var engine = new PriceEngine(repo);
             return engine;
         }
