@@ -21,9 +21,12 @@ namespace StarChef.Common.Engine
             _maxDegreeOfParallelism = 1;
         }
 
-        public async Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices) {
-            throw new NotImplementedException();
+        public async Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices, DateTime? arrivedTime) {
             DateTime dt = DateTime.UtcNow;
+            if (arrivedTime.HasValue)
+            {
+                dt = arrivedTime.Value;
+            }
 
             var products = await _pricingRepo.GetProducts();
             var parts = await _pricingRepo.GetProductParts();
@@ -160,6 +163,9 @@ namespace StarChef.Common.Engine
                         bag.Add(p);
                     }
                 }
+            }
+            else {
+                groupPrices.ForEach(gp => bag.Add(gp));
             }
         }
 

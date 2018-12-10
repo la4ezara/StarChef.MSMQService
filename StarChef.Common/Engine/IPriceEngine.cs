@@ -14,7 +14,7 @@ namespace StarChef.Common.Engine
 
         Task<bool> IsEngineEnabled();
 
-        Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices);
+        Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices, DateTime? arrivedTime);
 
         void GetPriceDifferences(Dictionary<int, List<DbPrice>> existingPrices_dict, ConcurrentBag<DbPrice> bag, int groupId, List<DbPrice> groupPrices);
     }

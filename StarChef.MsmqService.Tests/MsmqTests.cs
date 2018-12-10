@@ -164,7 +164,6 @@ namespace StarChef.MsmqService.Tests
             
             Queue normalQueue = new Queue();
             Queue poisonQueue = new Queue();
-            List<UpdateMessage> processMessages = new List<UpdateMessage>();
             IListener listener = null;
             var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
             
@@ -173,8 +172,6 @@ namespace StarChef.MsmqService.Tests
 
             List<string> calledStoredProcedures = new List<string>();
             var dbManager = GetMockDatabaseManager(calledStoredProcedures);
-
-            listener = new Listener(config.Object, dbManager.Object, messageManager.Object);
 
             var ml = new Mock<Listener>(new object[] { config.Object, dbManager.Object, messageManager.Object });
             var ipe = new Mock<IPriceEngine>();
@@ -188,7 +185,6 @@ namespace StarChef.MsmqService.Tests
             Hashtable activeDatabases = new Hashtable();
             Hashtable timestamps = new Hashtable();
             int databaseId = 1;
-            //timestamps.Add(databaseId, DateTime.UtcNow);
 
             //send 1 message to fake queue
             var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
@@ -205,6 +201,75 @@ namespace StarChef.MsmqService.Tests
             calledStoredProcedures.Should().NotBeEmpty();
             calledStoredProcedures.Should().HaveCount(1);
             calledStoredProcedures.First().Should().Be("sc_calculate_dish_pricing");
+        }
+
+        [Fact(DisplayName = "MSMQ Listener process GlobalUpdate messages new engine")]
+        [Trait("MSMQ Listener", "ProcessGlobalUpdateMessageProcessing")]
+        public void ProcessGlobalUpdateMessageProcessingNewEngine()
+        {
+
+            Queue normalQueue = new Queue();
+            Queue poisonQueue = new Queue();
+            IListener listener = null;
+            var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
+
+            var config = new Mock<IAppConfiguration>();
+            config.Setup(x => x.GlobalUpdateWaitTime).Returns(10);
+
+            List<string> calledStoredProcedures = new List<string>();
+            var dbManager = GetMockDatabaseManager(calledStoredProcedures);
+
+            bool globalPriceRecalcExec = false;
+            bool productPriceRecalcExec = false;
+            int productPriceRecalcExecId = 0;
+
+            var ml = new Mock<Listener>(new object[] { config.Object, dbManager.Object, messageManager.Object });
+            var ipe = new Mock<IPriceEngine>();
+            ipe.Setup(x => x.IsEngineEnabled()).Returns(Task.FromResult(true));
+            ipe.Setup(x => x.GlobalRecalculation(It.IsAny<bool>(), It.IsAny<DateTime?>())).Returns(Task.FromResult(new List<Common.Model.DbPrice>().AsEnumerable())).Callback((bool store, DateTime? arriveTime) => { globalPriceRecalcExec = true; });
+            ipe.Setup(x => x.Recalculation(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<DateTime?>())).Returns(Task.FromResult(new List<Common.Model.DbPrice>().AsEnumerable())).Callback((int productId, bool store, DateTime? arriveTime) => { productPriceRecalcExec = true; productPriceRecalcExecId = productId; });
+
+            ml.Setup(x => x.GetPriceEngine(It.IsAny<string>())).Returns(ipe.Object);
+
+            ml.SetupSequence(x => x.CanProcess).Returns(true).Returns(false).Returns(true).Returns(false);
+            listener = ml.Object;
+
+            Hashtable activeDatabases = new Hashtable();
+            Hashtable timestamps = new Hashtable();
+            int databaseId = 1;
+
+            //send 1 message to fake queue
+            var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            messageManager.Object.mqSend(singleMessage, MessagePriority.High);
+
+            //check do we have message in queue
+            normalQueue.Should().NotBeEmpty();
+            normalQueue.Should().HaveCount(1, "single item send");
+
+            listener.ExecuteAsync(activeDatabases, timestamps);
+
+            normalQueue.Should().BeEmpty();
+
+            globalPriceRecalcExec.Should().BeTrue();
+
+            calledStoredProcedures.Should().BeEmpty();
+
+            //send 1 message to fake queue
+            singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            messageManager.Object.mqSend(singleMessage, MessagePriority.High);
+
+            //check do we have message in queue
+            normalQueue.Should().NotBeEmpty();
+            normalQueue.Should().HaveCount(1, "single item send");
+            listener = ml.Object;
+            listener.ExecuteAsync(activeDatabases, timestamps);
+
+            normalQueue.Should().BeEmpty();
+
+            productPriceRecalcExec.Should().BeTrue();
+            productPriceRecalcExecId.Should().Be(1);
+
+            calledStoredProcedures.Should().BeEmpty();
         }
 
         [Theory]
@@ -315,7 +380,6 @@ namespace StarChef.MsmqService.Tests
 
             Queue normalQueue = new Queue();
             Queue poisonQueue = new Queue();
-            List<UpdateMessage> processMessages = new List<UpdateMessage>();
             IListener listener = null;
             var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
 
@@ -358,7 +422,6 @@ namespace StarChef.MsmqService.Tests
 
             Queue normalQueue = new Queue();
             Queue poisonQueue = new Queue();
-            List<UpdateMessage> processMessages = new List<UpdateMessage>();
             IListener listener = null;
             var messageManager = GetMockMessageManager(normalQueue, poisonQueue, listener);
 

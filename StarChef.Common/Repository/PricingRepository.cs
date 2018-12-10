@@ -310,9 +310,10 @@ namespace StarChef.Common.Repository
         }
 
         public bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate) {
-            throw new NotImplementedException();
             if (!prices.Any())
+            {
                 return true;
+            }
 
             var param = new
             {

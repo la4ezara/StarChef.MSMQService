@@ -25,6 +25,19 @@ namespace StarChef.Engine.IntegrationTests
             sw.Reset();
         }
 
+
+        [Fact]
+        public void SinglePriceRecalculation()
+        {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            var rt = new RecalculationTests();
+            rt.GlobalPriceRecalculation(output);
+            sw.Stop();
+            output.WriteLine($"Total time: {sw.Elapsed.TotalSeconds}");
+            sw.Reset();
+        }
+
         [Theory]
         [ClassData(typeof(GlobalRecalculateTheoryData))]
         public void PriceRecalculationStorage(string connStr)
