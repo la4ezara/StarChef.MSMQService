@@ -303,16 +303,19 @@ namespace StarChef.SqlQueue.Service
                                             Logger.Info($"Processing UpdatedProductCost DataBase {userDatabase.DatabaseId}");
                                             if (enabled)
                                             {
+                                                IEnumerable<Common.Model.DbPrice> result;
                                                 if (entityMessage.ProductID > 0)
                                                 {
                                                     Logger.Info($"Run product price recalculation DataBase {userDatabase.DatabaseId}");
-                                                    var result = pEngine.Recalculation(entityMessage.ProductID, true, DateTime.UtcNow).Result;
+                                                    result = pEngine.Recalculation(entityMessage.ProductID, true, DateTime.UtcNow).Result;
                                                 }
                                                 else
                                                 {
                                                     Logger.Info($"Run global price recalculation DataBase {userDatabase.DatabaseId}");
-                                                    var result = pEngine.GlobalRecalculation(true, DateTime.UtcNow).Result;
+                                                    result = pEngine.GlobalRecalculation(true, DateTime.UtcNow).Result;
                                                 }
+
+                                                Logger.Info($"Generated {result.Count()} prices");
                                             }
                                             else {
                                                 Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.StatusId, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
