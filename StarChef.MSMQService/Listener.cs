@@ -621,15 +621,27 @@ namespace StarChef.MSMQService
             bool newPriceEngineOn = engine.IsEngineEnabled().Result;
             bool runGlobalRecalculation = true;
 
-            if (productId > 0) {
+            if (productId > 0)
+            {
                 runGlobalRecalculation = false;
             }
 
             //always run old algo for product price recalculation
-            if (newPriceEngineOn && runGlobalRecalculation) {
+            if (newPriceEngineOn) {
+
                 _logger.Info($"{customer} New engine is used");
-                sw.Start();    
-                var result = engine.GlobalRecalculation(true, arrivedTime).Result;
+                _logger.Info($"Recalculate Product {productId}");
+                sw.Start();
+                IEnumerable<Common.Model.DbPrice> result;
+                if (runGlobalRecalculation)
+                {
+                    result = engine.GlobalRecalculation(true, arrivedTime).Result;
+                }
+                else
+                {
+                    result = engine.Recalculation(productId, true, arrivedTime).Result;
+                }
+
                 sw.Stop();
                 _logger.Info($"{customer} New engine generate {result.Count()} prices for {sw.Elapsed.TotalSeconds}");
             }

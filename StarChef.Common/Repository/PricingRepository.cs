@@ -187,6 +187,74 @@ namespace StarChef.Common.Repository
             }
         }
 
+        public async Task<Tuple<IEnumerable<Product>, IEnumerable<ProductPart>>> GetProductsAndParts(int productId)
+        {
+            var cmd = @"DECLARE @tmP_productParts TABLE (productPartId INT , productId INT , sub_product_id INT);
+
+                WITH rtop(product_part_id,product_id,sub_product_id)
+                AS (
+                SELECT product_part_id, product_id, sub_product_id from product_part where sub_product_id = @product_id
+                UNION ALL
+
+                SELECT pp.product_part_id, pp.product_id, pp.sub_product_id from product_part as pp
+                JOIN rtop ON rtop.product_id = pp.sub_product_id
+                )
+                INSERT INTO @tmP_productParts(productPartId, productId, sub_product_id)
+                SELECT product_part_id,product_id,sub_product_id FROM rtop;
+                --get bottom tree
+                WITH rbottom(product_part_id, product_id,sub_product_id)
+                AS (
+                SELECT product_part_id, product_id, sub_product_id from product_part where product_id = @product_id
+                UNION ALL
+
+                SELECT pp.product_part_id, pp.product_id, pp.sub_product_id from product_part as pp
+                JOIN rbottom ON rbottom.sub_product_id = pp.product_id
+                )
+                INSERT INTO @tmP_productParts(productPartId, productId, sub_product_id)
+                SELECT product_part_id,product_id,sub_product_id FROM rbottom;
+
+                --select * from @tmP_productParts;
+
+                CREATE TABLE #convetion(product_id INT, source_unit_id INT, target_unit_id INT, ratio DECIMAL(30,14))
+
+                INSERT INTO #convetion(product_id, source_unit_id, target_unit_id)
+                select DISTINCT pp.sub_product_id, p.unit_id, pp.unit_id
+                from product_part as pp WITH (NOLOCK)
+                JOIN product as p ON pp.sub_product_id = p.product_id
+                JOIN @tmP_productParts ON productPartId = pp.product_part_id
+
+                UPDATE #convetion
+                SET ratio = dbo.fn_ConversionGetRatioEx(product_id, source_unit_id, target_unit_id) 
+                
+                SELECT DISTINCT pp.product_part_id,pp.portion_type_id,pp.product_id,pp.sub_product_id,pp.quantity,pp.unit_id,pp.is_choice, p.product_type_id,
+                c.ratio as ratio 
+                FROM product_part as pp WITH(NOLOCK)
+                JOIN product as p WITH(NOLOCK) ON pp.sub_product_id = p.product_id
+                JOIN #convetion as c ON c.product_id = pp.sub_product_id AND ISNULL(c.source_unit_id, 0) = ISNULL(p.unit_id,0) AND ISNULL(c.target_unit_id, 0) = ISNULL(pp.unit_id,0)
+                JOIN @tmP_productParts ON productPartId = pp.product_part_id
+                DROP TABLE #convetion
+
+                SELECT p.product_id, p.number, p.quantity, p.unit_id, p.product_type_id, p.scope_id, i.wastage, d.recipe_type_id 
+                FROM product as p WITH(NOLOCK)
+                LEFT JOIN ingredient as i WITH(NOLOCK) on i.product_id = p.product_id
+                LEFT JOIN dish as d WITH(NOLOCK) on d.product_id = p.product_id
+                WHERE p.product_id IN (SELECT DISTINCT productId FROM @tmP_productParts)
+                OR  p.product_id IN (SELECT DISTINCT sub_product_id FROM @tmP_productParts)";
+
+            var param = new
+            {
+                product_id = productId
+            };
+
+            using (var connection = GetOpenConnection())
+            {
+                var multi = await Task.Run(() => { return QueryMultiple(connection, cmd, param, CommandType.Text); });
+                IEnumerable<ProductPart> parts = multi.Read<ProductPart>();
+                IEnumerable<Product> products = multi.Read<Product>();
+                return new Tuple<IEnumerable<Product>, IEnumerable<ProductPart>>(products, parts);
+            }
+        }
+
         public async Task<int> CreateMsmqLog(string action, int productId, DateTime logDate) {
             var param = new
             {
@@ -310,9 +378,10 @@ namespace StarChef.Common.Repository
         }
 
         public bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate) {
-            throw new NotImplementedException();
             if (!prices.Any())
+            {
                 return true;
+            }
 
             var param = new
             {

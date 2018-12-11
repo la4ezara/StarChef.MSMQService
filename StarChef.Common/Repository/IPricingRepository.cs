@@ -18,6 +18,8 @@ namespace StarChef.Common.Repository
         Task<IEnumerable<GroupSets>> GetGroupSets(int groupId, int includeDescendants);
         Task<IEnumerable<ProductPset>> GetProductPsets();
 
+        Task<Tuple<IEnumerable<Product>, IEnumerable<ProductPart>>> GetProductsAndParts(int productId);
+
         Task<string> GetDbSetting(string settingName);
 
         Task ClearPrices();

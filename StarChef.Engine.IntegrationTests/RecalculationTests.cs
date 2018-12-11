@@ -111,9 +111,9 @@ namespace StarChef.Engine.IntegrationTests
             //acknoledge
             sw.Restart();
             var dbPrices = result.ToList();
-
+            var dt = System.DateTime.UtcNow;
             //act
-            var prices = await engine.Recalculation(productId,false);
+            var prices = await engine.Recalculation(productId, false, dt);
             sw.Stop();
             output.WriteLine($"New price recalculation takes {sw.Elapsed.TotalSeconds} seconds.");
 

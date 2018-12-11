@@ -103,6 +103,49 @@ namespace StarChef.Common.Tests
         }
 
         [Fact]
+        public void RecalculationStore()
+        {
+            Mock<IPricingRepository> repo = new Mock<IPricingRepository>();
+            int logIdResult = 123;
+            string actionExpected = "Partial Pricing Calculation";
+            string actionResult = string.Empty;
+            DateTime dtResult = DateTime.MinValue;
+            int productIdResult;
+            DateTime messageTime = DateTime.UtcNow;
+
+            repo.Setup(x => x.GetLastMsmqStartTime()).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
+                actionResult = action;
+                dtResult = dt;
+                productIdResult = productId;
+            }).Returns(() => { return Task.FromResult<int>(logIdResult); });
+
+            List<ProductGroupPrice> privateItems = new List<ProductGroupPrice>();
+            privateItems.Add(new ProductGroupPrice() { GroupId = 0, Price = 123.321m, ProductId = 1122 });
+
+            List<DbPrice> expectedPrices = new List<DbPrice>();
+            expectedPrices.Add(new DbPrice() { ProductId = 1122, Price = 123.321m });
+
+            List<Product> products = new List<Product>();
+            products.Add(new Product() { ScopeId = 3, ProductId = 1122 });
+
+            repo.Setup(x => x.GetProducts()).Returns(() => { return Task.FromResult<IEnumerable<Product>>(products); });
+            repo.Setup(x => x.GetProductParts()).Returns(() => { return Task.FromResult<IEnumerable<ProductPart>>(new List<ProductPart>()); });
+            repo.Setup(x => x.GetGroupProductPricesByProduct(It.IsAny<int>())).Returns(() => { return Task.FromResult<IEnumerable<ProductGroupPrice>>(privateItems); });
+
+            repo.Setup(x => x.InsertPrices(It.IsAny<Dictionary<int, decimal>>(), It.Is<int?>(g => !g.HasValue), It.Is<int>(l => l == 123), It.Is<DateTime>(d => d == messageTime))).Returns(true);
+
+            repo.Setup(x => x.UpdateMsmqLog(It.IsAny<DateTime>(), It.Is<int>(l => l == 123), It.Is<bool>(b => b))).Returns(() => Task.FromResult<int>(1));
+
+            IPriceEngine engine = new PriceEngine(repo.Object);
+            var result = engine.Recalculation(1122, true, messageTime).Result;
+
+            Assert.Equal(actionExpected, actionResult);
+            Assert.NotEmpty(result);
+            Assert.Equal(expectedPrices, result);
+        }
+
+        [Fact]
         public void PriceRecalculationStoreSaveFailed()
         {
             Mock<IPricingRepository> repo = new Mock<IPricingRepository>();
@@ -192,16 +235,22 @@ namespace StarChef.Common.Tests
             Assert.Empty(result);
 
             newPrices.Add(new DbPrice() { GroupId = 3, ProductId = 1, Price = 1m });
-            
 
             result = engine.ComparePrices(existingPrices, newPrices);
 
-            Assert.Empty(result);
+            Assert.Single(result);
+
+            existingPrices.Add(new DbPrice() { GroupId = 3, ProductId = 1, Price = 1.1m });
+
+            result = engine.ComparePrices(existingPrices, newPrices);
+
+            Assert.Single(result);
 
             existingPrices.Add(new DbPrice() { GroupId = 4, ProductId = 1, Price = 1m });
             result = engine.ComparePrices(existingPrices, newPrices);
-
-            //Assert.Single(result);
+            Assert.Single(result);
+            result = engine.ComparePrices(newPrices, existingPrices);
+            Assert.Equal(2, result.Count());
         }
 
 
@@ -214,8 +263,6 @@ namespace StarChef.Common.Tests
             List<DbPrice> existingPrices = new List<DbPrice>();
             existingPrices.Add(new DbPrice() { GroupId = 1, ProductId = 1, Price = 1m });
             existingPrices.Add(new DbPrice() { GroupId = 1, ProductId = 2, Price = 2m });
-
-            
 
             List<DbPrice> newPrices = new List<DbPrice>();
             newPrices.Add(new DbPrice() { GroupId = 1, ProductId = 1, Price = 1m });
