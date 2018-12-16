@@ -18,6 +18,7 @@ namespace StarChef.Orchestrate.Tests
     using MealPeriodUpdated = Fourth.Orchestration.Model.Menus.Events.MealPeriodUpdated;
     using SupplierUpdated = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated;
     using UserUpdated = Fourth.Orchestration.Model.Menus.Events.UserUpdated;
+    using SetUpdated = Fourth.Orchestration.Model.Menus.Events.SetUpdated;
 
     using IngredientUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.IngredientUpdated.Builder;
     using RecipeUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated.Builder;
@@ -164,6 +165,38 @@ namespace StarChef.Orchestrate.Tests
             Assert.True(eventObject.HasSequenceNumber);
             Assert.Equal(SourceSystem.STARCHEF, eventObject.Source);
             Assert.Equal(ChangeType.DELETE, eventObject.ChangeType);
+        }
+
+        [Fact]
+        public void Should_create_delete_event_for_SetUpdated()
+        {
+            var eventSetter = new Mock<IEventSetter<SetUpdatedBuilder>>();
+            eventSetter
+                .Setup(m => m.SetForDelete(It.IsAny<SetUpdatedBuilder>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<SetUpdatedBuilder, string, int>((builder, s, i) =>
+                {
+                    builder.SetCustomerId(i.ToString());
+                    builder.SetCustomerName(i.ToString());
+                    builder.SetExternalId(long.Parse(s));
+                });
+
+            var eventFactory = new EventFactory(
+                Mock.Of<IEventSetter<IngredientUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<GroupUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<MenuUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
+                eventSetter.Object);
+
+            var eventObject = eventFactory.CreateDeleteEvent<SetUpdated, SetUpdatedBuilder>("any", "1", 2);
+
+            Assert.NotNull(eventObject);
+            Assert.True(eventObject.HasSequenceNumber);
+            Assert.Equal(1, eventObject.ExternalId);
+            Assert.Equal("2", eventObject.CustomerId);
+            Assert.Equal("2", eventObject.CustomerName);
         }
 
         [Fact]
@@ -406,6 +439,38 @@ namespace StarChef.Orchestrate.Tests
             Assert.True(eventObject.HasSequenceNumber);
             Assert.Equal(SourceSystem.STARCHEF, eventObject.Source);
             Assert.Equal(ChangeType.UPDATE, eventObject.ChangeType);
+        }
+
+        [Fact]
+        public void Should_create_update_event_for_SetUpdated()
+        {
+            var eventSetter = new Mock<IEventSetter<SetUpdatedBuilder>>();
+            eventSetter
+                .Setup(m => m.SetForUpdate(It.IsAny<SetUpdatedBuilder>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Callback<SetUpdatedBuilder, string, int, int>(
+                (SetUpdatedBuilder builder,string db, int externalId, int customerId) => {
+                    builder.SetExternalId(externalId);
+                    builder.SetCustomerId(customerId.ToString());
+                    builder.SetCustomerName(customerId.ToString());
+                });
+
+            var eventFactory = new EventFactory(
+                Mock.Of<IEventSetter<IngredientUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<GroupUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<MenuUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
+                eventSetter.Object);
+
+            var eventObject = eventFactory.CreateUpdateEvent<SetUpdated, SetUpdatedBuilder>("any", 1, 2);
+
+            Assert.NotNull(eventObject);
+            Assert.True(eventObject.HasSequenceNumber);
+            Assert.Equal(1, eventObject.ExternalId);
+            Assert.Equal("2", eventObject.CustomerId);
+            Assert.Equal("2", eventObject.CustomerName);
         }
 
         #endregion

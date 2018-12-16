@@ -129,8 +129,11 @@ namespace StarChef.Common.Tests
             List<Product> products = new List<Product>();
             products.Add(new Product() { ScopeId = 3, ProductId = 1122 });
 
-            repo.Setup(x => x.GetProducts()).Returns(() => { return Task.FromResult<IEnumerable<Product>>(products); });
-            repo.Setup(x => x.GetProductParts()).Returns(() => { return Task.FromResult<IEnumerable<ProductPart>>(new List<ProductPart>()); });
+            var res = new Tuple<IEnumerable<Product>, IEnumerable<ProductPart>>(products, new List<ProductPart>());
+
+            repo.Setup(x => x.GetProductsAndParts(It.IsAny<int>())).Returns(() => {return Task.FromResult(res);});
+
+
             repo.Setup(x => x.GetGroupProductPricesByProduct(It.IsAny<int>())).Returns(() => { return Task.FromResult<IEnumerable<ProductGroupPrice>>(privateItems); });
 
             repo.Setup(x => x.InsertPrices(It.IsAny<Dictionary<int, decimal>>(), It.Is<int?>(g => !g.HasValue), It.Is<int>(l => l == 123), It.Is<DateTime>(d => d == messageTime))).Returns(true);
