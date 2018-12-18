@@ -2,6 +2,7 @@
 
 namespace StarChef.Orchestrate.Models.TransferObjects
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class AccountCreatedTransferObject
     {
         public int LoginId { get; set; }

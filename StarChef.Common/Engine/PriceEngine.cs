@@ -28,15 +28,16 @@ namespace StarChef.Common.Engine
                 dt = arrivedTime.Value;
             }
 
-            var productsAndParts = await _pricingRepo.GetProductsAndParts(productId);
-
-            var products = productsAndParts.Item1;
-            var parts = productsAndParts.Item2;
+            var products = await _pricingRepo.GetProducts();
+            var parts = await _pricingRepo.GetProductParts();
 
             ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
             pf.BuildForest();
-
+            var cuts = pf.GetAffectedCuts(productId);
+            pf.ReAssignForest(cuts);
+            var productIds = products.Select(x => x.ProductId).ToList();
             var groupPrices = await _pricingRepo.GetGroupProductPricesByProduct(productId);
+            groupPrices = groupPrices.Where(x => productIds.Contains(x.ProductId)).ToList();
             Dictionary<int, Dictionary<int, decimal>> newProductPrices = pf.CalculatePrice(groupPrices.ToList());
             var logId = await _pricingRepo.CreateMsmqLog("Partial Pricing Calculation", productId, dt);
 
@@ -90,7 +91,7 @@ namespace StarChef.Common.Engine
 
                 ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
                 pf.BuildForest();
-
+                
                 var groupPrices = await _pricingRepo.GetGroupProductPricesByGroup(0);
                 Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices.ToList());
 

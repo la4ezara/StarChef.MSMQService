@@ -38,6 +38,7 @@ namespace StarChef.Orchestrate
                     .SetCustomerName(cust.Name)
                     .SetExternalId(reader[1].ToString())
                     .SetMenuName(reader[2].ToString())
+                    .SetSuggestedPlu(reader.GetValue<string>("suggested_plu"))
                     .SetMenuType(reader.GetValue<byte>("menu_type_id") == 1 ? Events.MenuType.ALACARTE : Events.MenuType.BUFFET);
 
                 //This is for Menu Buffet Sales 
