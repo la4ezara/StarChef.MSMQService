@@ -28,11 +28,6 @@ namespace StarChef.Common.Engine
                 dt = arrivedTime.Value;
             }
 
-            //var productsAndParts = await _pricingRepo.GetProductsAndParts(productId);
-
-            //var products = productsAndParts.Item1;
-            //var parts = productsAndParts.Item2;
-
             var products = await _pricingRepo.GetProducts();
             var parts = await _pricingRepo.GetProductParts();
 
