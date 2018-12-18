@@ -129,10 +129,9 @@ namespace StarChef.Common.Tests
             List<Product> products = new List<Product>();
             products.Add(new Product() { ScopeId = 3, ProductId = 1122 });
 
-            var res = new Tuple<IEnumerable<Product>, IEnumerable<ProductPart>>(products, new List<ProductPart>());
+            repo.Setup(x => x.GetProducts()).Returns(() => { return Task.FromResult(products.AsEnumerable()); });
 
-            repo.Setup(x => x.GetProductsAndParts(It.IsAny<int>())).Returns(() => {return Task.FromResult(res);});
-
+            repo.Setup(x => x.GetProductParts()).Returns(() => { return Task.FromResult(new List<ProductPart>().AsEnumerable()); });
 
             repo.Setup(x => x.GetGroupProductPricesByProduct(It.IsAny<int>())).Returns(() => { return Task.FromResult<IEnumerable<ProductGroupPrice>>(privateItems); });
 
