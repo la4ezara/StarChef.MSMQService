@@ -195,7 +195,7 @@ namespace StarChef.Common.Repository
                      WITH rtop(product_part_id,product_id,sub_product_id)
                     AS (
                     SELECT product_part_id, product_id, sub_product_id from product_part where sub_product_id = @product_id
-                 l   UNION ALL
+                    UNION ALL
 
                     SELECT pp.product_part_id, pp.product_id, pp.sub_product_id from product_part as pp
                     JOIN rtop ON rtop.product_id = pp.sub_product_id
