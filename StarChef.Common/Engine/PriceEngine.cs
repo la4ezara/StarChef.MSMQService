@@ -12,13 +12,10 @@ namespace StarChef.Common.Engine
     public class PriceEngine : IPriceEngine
     {
         private readonly IPricingRepository _pricingRepo;
-        private readonly int _maxDegreeOfParallelism;
-
 
         public PriceEngine(IPricingRepository pricingRepo)
         {
             _pricingRepo = pricingRepo;
-            _maxDegreeOfParallelism = 1;
         }
 
         public async Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices, DateTime? arrivedTime) {
@@ -28,13 +25,14 @@ namespace StarChef.Common.Engine
                 dt = arrivedTime.Value;
             }
 
-            var products = await _pricingRepo.GetProducts();
-            var parts = await _pricingRepo.GetProductParts();
+            var productsAndParts = await _pricingRepo.GetProductsAndParts(productId);
+
+            var products = productsAndParts.Item1;
+            var parts = productsAndParts.Item2;
 
             ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
             pf.BuildForest();
-            var cuts = pf.GetAffectedCuts(productId);
-            pf.ReAssignForest(cuts);
+
             var productIds = products.Select(x => x.ProductId).ToList();
             var groupPrices = await _pricingRepo.GetGroupProductPricesByProduct(productId);
             groupPrices = groupPrices.Where(x => productIds.Contains(x.ProductId)).ToList();
@@ -133,10 +131,10 @@ namespace StarChef.Common.Engine
             var comparedItem_byGroup = comparedItem.GroupBy(g => g.GroupId).ToList();
             var existingPrices_dict = existingPrices.GroupBy(g => g.GroupId).ToDictionary(k => k.Key, v => v.ToList());
 
-            Parallel.ForEach(comparedItem_byGroup, new ParallelOptions() { MaxDegreeOfParallelism = _maxDegreeOfParallelism }, group =>
+            foreach (var group in comparedItem_byGroup)
             {
                 GetPriceDifferences(existingPrices_dict, bag, group.Key, group.ToList());
-            });
+            }
             
             IEnumerable<DbPrice> result = bag.Distinct().ToList();
             return result;
