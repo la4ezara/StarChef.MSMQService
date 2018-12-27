@@ -339,6 +339,14 @@ namespace StarChef.SqlQueue.Service
                                     }
                                 }
                             }
+                            else
+                            {
+                                foreach (var entityMessage in entityMessages)
+                                {
+                                    Enqueue(userDatabase.ConnectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.StatusId, entityMessage.RetryCount,
+                                        entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
+                                }
+                            }
                         }
                     }
                     else

@@ -208,10 +208,106 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
             }
         }
 
-        protected HashSet<CalculateUpdateMessage> GetMessages(Constants.EntityType entityType, Constants.MessageActionType messageActionType, int count) {
+        [Theory(DisplayName = "Sql Queue Listener StarChefEventsUpdated Publish not Enabled")]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.UserUnit)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.Category)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.SuppliedDish)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.Document)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.Package)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.IngredientCostPrice)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.DishDetails)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.DishPricing)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.DishAdvancedNutrition)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.Manufacturer)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.Nutrition)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.GroupFilter)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.BasicReports)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.StandardReports)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.AdvancedReports)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.AdminReports)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.PriceBand)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.PriceBandOverride)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.UserPreferences)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.MenuCycle)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.UserLogin)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.ListManager)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.MenuSet)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.MenuPeriod)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.IngredientCostManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.GlobalSearchReplace)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.GroupManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.DbSettings)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.DataManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.PricingManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.SystemDelete)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.AllowReplaceRemoveRecs)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.PriceBandManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.DlineLookup)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.MasterListExportMangement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.InterfaceManagerManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.MassCopyRecipe)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.MassEditRecipe)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.Intolerance)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.BudgetedCostManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.ProductSpecificationManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.IngredientImport)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.SetManagement)]
+        [InlineData(Constants.MessageActionType.StarChefEventsUpdated, Constants.EntityType.StarChefLiteManagement)]
+        [InlineData(Constants.MessageActionType.UserCreated, Constants.EntityType.Dish)]
+        [InlineData(Constants.MessageActionType.UserActivated, Constants.EntityType.Dish)]
+        [InlineData(Constants.MessageActionType.SalesForceUserCreated, Constants.EntityType.Dish)]
+        [InlineData(Constants.MessageActionType.UpdatedProductCost, Constants.EntityType.NotSet)]
+        public void TestProcessingEventEnqueuesNotProcessedMessages(Constants.MessageActionType messageActionType, Constants.EntityType entityType)
+        {
+            HashSet<OrchestrationLookup> orchestrationLookups = new HashSet<OrchestrationLookup>();
+            orchestrationLookups.Add(new OrchestrationLookup((int)entityType, false));
+
+            var moqLister = new Mock<Listener>(new object[] { new Mock<IAppConfiguration>().Object, new Mock<IDatabaseManager>().Object, new Mock<IStarChefMessageSender>().Object });
+            var ud = new UserDatabase(0, string.Empty, string.Empty);
+            ud.OrchestrationLookups = orchestrationLookups;
+
+            var messagesToProcess = GetMessages(entityType, messageActionType, 2);
+
+            moqLister.Setup(l => l.GetDatabaseMessages(It.IsAny<UserDatabase>())).Returns(messagesToProcess);
+
+            var enqueueCount = 0;
+            moqLister.Setup(l => l.Enqueue(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<string, int, int, int, int, DateTime, int, string, int>((conn, entityId, entityTypeId, statusId, retryCount, dateCreated, databaseId, externalId, messageActionTypeId) =>
+                {
+                    enqueueCount++;
+                });
+
+            var obj = moqLister.Object;
+            obj.CanProcess = true;
+
+            Mock<StarChef.Common.Engine.IPriceEngine> priceEngine = new Mock<StarChef.Common.Engine.IPriceEngine>();
+            priceEngine.Setup(x => x.IsEngineEnabled()).Returns(Task.FromResult(false));
+            priceEngine.Setup(x => x.GlobalRecalculation(It.IsAny<bool>(), It.IsAny<DateTime?>())).Returns(Task.FromResult((new List<Common.Model.DbPrice>().AsEnumerable())));
+
+            // Act
+            obj.Process(priceEngine.Object, ud, messagesToProcess.Count);
+
+            // Assert
+            moqLister.Verify(x => x.Enqueue(
+                It.Is<string>(c => c == ud.ConnectionString),
+                It.Is<int>(c => c == messagesToProcess.First().ProductID),
+                It.Is<int>(c => c == messagesToProcess.First().EntityTypeId),
+                It.Is<int>(c => c == messagesToProcess.First().StatusId),
+                It.Is<int>(c => c == messagesToProcess.First().RetryCount),
+                It.Is<DateTime>(c => c == messagesToProcess.First().ArrivedTime),
+                It.Is<int>(c => c == ud.DatabaseId),
+                It.Is<string>(c => c == messagesToProcess.First().ExternalId),
+                It.Is<int>(c => c == messagesToProcess.First().Action)));
+
+            Assert.Equal(messagesToProcess.Count, enqueueCount);
+        }
+
+        protected HashSet<CalculateUpdateMessage> GetMessages(Constants.EntityType entityType, Constants.MessageActionType messageActionType, int count)
+        {
             HashSet<CalculateUpdateMessage> messages = new HashSet<CalculateUpdateMessage>();
 
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < count; i++)
+            {
                 var calculateMessage = new CalculateUpdateMessage(i, string.Empty, (int)messageActionType, 0, (int)entityType, i, 0, 1);
                 calculateMessage.ExternalId = "ExternalId";
                 messages.Add(calculateMessage);
