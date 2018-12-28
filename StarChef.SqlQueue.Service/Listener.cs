@@ -407,6 +407,13 @@ namespace StarChef.SqlQueue.Service
             {
                 var retryCountUpdated = retryCount + 1;
                 var statusIdUpdated = retryCountUpdated >= _appConfiguration.RetryCount ? 3 : statusId;
+                if (statusId == 4)
+                {
+                    // StatusId 4 (INGORED)
+                    // These messages are returned in the queue after dequeueing
+                    retryCountUpdated = retryCount;
+                    statusIdUpdated = 4;
+                }
 
                 _databaseManager.Execute(connectionString,
                     "sc_calculation_enqueue",
