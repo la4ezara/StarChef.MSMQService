@@ -175,7 +175,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
             });
             var enqueueCount = 0;
             moqLister.Setup(l => l.Enqueue(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<OrchestrationQueueStatus>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
-                .Callback<string,int,int,int,int,DateTime,int,string,int>((conn,entityId, entityTypeId, statusId, retryCount, dateCreated, databaseId, externalId, messageActionTypeId)=> {
+                .Callback<string,int,int,OrchestrationQueueStatus,int,DateTime,int,string,int>((conn,entityId, entityTypeId, status, retryCount, dateCreated, databaseId, externalId, messageActionTypeId)=> {
                     enqueueCount++;
                 });
 
@@ -272,7 +272,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
 
             var enqueueCount = 0;
             moqLister.Setup(l => l.Enqueue(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<OrchestrationQueueStatus>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
-                .Callback<string, int, int, int, int, DateTime, int, string, int>((conn, entityId, entityTypeId, statusId, retryCount, dateCreated, databaseId, externalId, messageActionTypeId) =>
+                .Callback<string, int, int, OrchestrationQueueStatus, int, DateTime, int, string, int>((conn, entityId, entityTypeId, status, retryCount, dateCreated, databaseId, externalId, messageActionTypeId) =>
                 {
                     enqueueCount++;
                 });
