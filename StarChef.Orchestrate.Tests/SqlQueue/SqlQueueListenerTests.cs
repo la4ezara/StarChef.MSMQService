@@ -174,7 +174,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
                 sendDeleteMessages.Add(message);
             });
             var enqueueCount = 0;
-            moqLister.Setup(l => l.Enqueue(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+            moqLister.Setup(l => l.Enqueue(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<OrchestrationQueueStatus>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
                 .Callback<string,int,int,int,int,DateTime,int,string,int>((conn,entityId, entityTypeId, statusId, retryCount, dateCreated, databaseId, externalId, messageActionTypeId)=> {
                     enqueueCount++;
                 });
@@ -271,7 +271,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
             moqLister.Setup(l => l.GetDatabaseMessages(It.IsAny<UserDatabase>())).Returns(messagesToProcess);
 
             var enqueueCount = 0;
-            moqLister.Setup(l => l.Enqueue(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
+            moqLister.Setup(l => l.Enqueue(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<OrchestrationQueueStatus>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<int>()))
                 .Callback<string, int, int, int, int, DateTime, int, string, int>((conn, entityId, entityTypeId, statusId, retryCount, dateCreated, databaseId, externalId, messageActionTypeId) =>
                 {
                     enqueueCount++;
@@ -292,7 +292,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
                 It.Is<string>(c => c == ud.ConnectionString),
                 It.Is<int>(c => c == messagesToProcess.First().ProductID),
                 It.Is<int>(c => c == messagesToProcess.First().EntityTypeId),
-                It.Is<int>(c => c == 4),
+                It.Is<OrchestrationQueueStatus>(c => c == OrchestrationQueueStatus.Ignored),
                 It.Is<int>(c => c == messagesToProcess.First().RetryCount),
                 It.Is<DateTime>(c => c == messagesToProcess.First().ArrivedTime),
                 It.Is<int>(c => c == ud.DatabaseId),
@@ -308,7 +308,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
 
             for (int i = 0; i < count; i++)
             {
-                var calculateMessage = new CalculateUpdateMessage(i, string.Empty, (int)messageActionType, 0, (int)entityType, i, 0, 1);
+                var calculateMessage = new CalculateUpdateMessage(i, string.Empty, (int)messageActionType, 0, (int)entityType, i, 0, OrchestrationQueueStatus.New);
                 calculateMessage.ExternalId = "ExternalId";
                 messages.Add(calculateMessage);
             }

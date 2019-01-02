@@ -71,6 +71,7 @@
     <Compile Include="Model\ProductPart.cs" />
     <Compile Include="Engine\PriceEngine.cs" />
     <Compile Include="Model\ProductPset.cs" />
+    <Compile Include="OrchestrationQueueStatus.cs" />
     <Compile Include="Repository\IPricingRepository.cs" />
     <Compile Include="Repository\PricingRepository.cs" />
     <Compile Include="Types\ImportTypeSettings.cs" />
