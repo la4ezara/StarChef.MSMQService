@@ -143,7 +143,7 @@ namespace StarChef.SqlQueue.Service
                 var id = reader.GetValue<int>("Id");
                 var entityId = reader.GetValue<int>("EntityId");
                 var entityTypeId = reader.GetValue<int>("EntityTypeId");
-                var statusId = reader.GetValue<OrchestrationQueueStatus>("StatusId");
+                var statusId = (OrchestrationQueueStatus)reader.GetValue<int>("StatusId");
                 var retryCount = reader.GetValue<int>("RetryCount");
                 var dateCreaded = reader.GetValue<DateTime>("DateCreated");
                 var externalId = reader.GetValue<string>("ExternalId");

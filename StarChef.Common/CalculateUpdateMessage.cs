@@ -1,6 +1,4 @@
-﻿
-
-namespace StarChef.Common
+﻿namespace StarChef.Common
 {
     using System;
     using Fourth.StarChef.Invariables;
