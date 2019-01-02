@@ -24,7 +24,7 @@ namespace StarChef.Common.Tests
             int productIdResult;
             DateTime messageTime = DateTime.UtcNow;
 
-            repo.Setup(x => x.GetLastMsmqStartTime()).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(1)); });
             repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
@@ -46,7 +46,7 @@ namespace StarChef.Common.Tests
             Mock<IPricingRepository> repo = new Mock<IPricingRepository>();
             DateTime messageTime = DateTime.UtcNow;
 
-            repo.Setup(x => x.GetLastMsmqStartTime()).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
             
 
             repo.Setup(x=> x.GetProducts()).Returns( ()=> { return Task.FromResult<IEnumerable<Product>>(new List<Product>()); });
@@ -70,7 +70,7 @@ namespace StarChef.Common.Tests
             int productIdResult;
             DateTime messageTime = DateTime.UtcNow;
 
-            repo.Setup(x => x.GetLastMsmqStartTime()).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
             repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
@@ -107,27 +107,30 @@ namespace StarChef.Common.Tests
         {
             Mock<IPricingRepository> repo = new Mock<IPricingRepository>();
             int logIdResult = 123;
-            string actionExpected = "Partial Pricing Calculation";
+            string actionExpected = "Dish Pricing Calculation";
+            string actionExpectedSkipped = "Dish Pricing Calculation Skipped";
             string actionResult = string.Empty;
             DateTime dtResult = DateTime.MinValue;
             int productIdResult;
             DateTime messageTime = DateTime.UtcNow;
+            int productId = 1122;
+            bool isSuccessStatusUpdate = false;
 
-            repo.Setup(x => x.GetLastMsmqStartTime()).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
-            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
+            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int product_Id, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
-                productIdResult = productId;
+                productIdResult = product_Id;
             }).Returns(() => { return Task.FromResult<int>(logIdResult); });
 
             List<ProductGroupPrice> privateItems = new List<ProductGroupPrice>();
-            privateItems.Add(new ProductGroupPrice() { GroupId = 0, Price = 123.321m, ProductId = 1122 });
+            privateItems.Add(new ProductGroupPrice() { GroupId = 0, Price = 123.321m, ProductId = productId });
 
             List<DbPrice> expectedPrices = new List<DbPrice>();
-            expectedPrices.Add(new DbPrice() { ProductId = 1122, Price = 123.321m });
+            expectedPrices.Add(new DbPrice() { ProductId = productId, Price = 123.321m });
 
             List<Product> products = new List<Product>();
-            products.Add(new Product() { ScopeId = 3, ProductId = 1122 });
+            products.Add(new Product() { ScopeId = 3, ProductId = productId });
              
             repo.Setup(x => x.GetProducts()).Returns(() => { return Task.FromResult(products.AsEnumerable()); });
 
@@ -139,16 +142,40 @@ namespace StarChef.Common.Tests
 
             repo.Setup(x => x.GetGroupProductPricesByProduct(It.IsAny<int>())).Returns(() => { return Task.FromResult<IEnumerable<ProductGroupPrice>>(privateItems); });
 
-            repo.Setup(x => x.InsertPrices(It.IsAny<Dictionary<int, decimal>>(), It.Is<int?>(g => !g.HasValue), It.Is<int>(l => l == 123), It.Is<DateTime>(d => d == messageTime))).Returns(true);
+            repo.Setup(x => x.UpdatePrices(It.IsAny<Dictionary<int, decimal>>(), It.Is<int?>(g => !g.HasValue), It.Is<int>(l => l == 123), It.Is<DateTime>(d => d == messageTime))).Returns(true);
 
-            repo.Setup(x => x.UpdateMsmqLog(It.IsAny<DateTime>(), It.Is<int>(l => l == 123), It.Is<bool>(b => b))).Returns(() => Task.FromResult<int>(1));
+            repo.Setup(x => x.UpdateMsmqLog(It.IsAny<DateTime>(), It.Is<int>(l => l == 123), It.IsAny<bool>())).Callback<DateTime, int, bool>((DateTime dt,int product_Id, bool isSuccess) => {
+                isSuccessStatusUpdate = isSuccess;
+                dtResult = dt;
+                productIdResult = product_Id;
+            }).Returns(() => Task.FromResult<int>(1));
 
             IPriceEngine engine = new PriceEngine(repo.Object);
-            var result = engine.Recalculation(1122, true, messageTime).Result;
+            var result = engine.Recalculation(productId, true, messageTime).Result;
 
             Assert.Equal(actionExpected, actionResult);
             Assert.NotEmpty(result);
             Assert.Equal(expectedPrices, result);
+            Assert.True(isSuccessStatusUpdate);
+
+            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(1)); });
+
+            engine = new PriceEngine(repo.Object);
+            result = engine.Recalculation(productId, true, messageTime).Result;
+
+            Assert.Equal(actionExpectedSkipped, actionResult);
+            Assert.Empty(result);
+
+            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.UpdatePrices(It.IsAny<Dictionary<int, decimal>>(), It.Is<int?>(g => !g.HasValue), It.Is<int>(l => l == 123), It.Is<DateTime>(d => d == messageTime))).Returns(false);
+
+            engine = new PriceEngine(repo.Object);
+            result = engine.Recalculation(productId, true, messageTime).Result;
+
+            Assert.Equal(actionExpected, actionResult);
+            Assert.NotEmpty(result);
+            Assert.Equal(expectedPrices, result);
+            Assert.False(isSuccessStatusUpdate);
         }
 
         [Fact]
@@ -162,7 +189,7 @@ namespace StarChef.Common.Tests
             int productIdResult;
             DateTime messageTime = DateTime.UtcNow;
 
-            repo.Setup(x => x.GetLastMsmqStartTime()).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
             repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;

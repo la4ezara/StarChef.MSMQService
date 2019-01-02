@@ -298,14 +298,20 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public async Task<DateTime?> GetLastMsmqStartTime()
+        public async Task<DateTime?> GetLastMsmqStartTime(int productId)
         {
-
+            var param = new
+            {
+                product_id = productId
+            };
             var cmd = @"SELECT top 1 update_start_time FROM msmq_update_log
+                        where calc_type like 'Dish Pricing Calculation%'
+						and update_end_time IS NOT NULL
+                        and (product_id is null or product_id = @product_id)
                         order by log_id desc";
             using (var connection = GetOpenConnection())
             {
-                DateTime? result = await Task.Run(() => { return ExecuteScalar<DateTime?>(connection, cmd, null, CommandType.Text); });
+                DateTime? result = await Task.Run(() => { return ExecuteScalar<DateTime?>(connection, cmd, param, CommandType.Text); });
                 return result;
             }
         }

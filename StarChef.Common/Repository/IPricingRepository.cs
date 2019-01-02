@@ -25,7 +25,7 @@ namespace StarChef.Common.Repository
         Task ClearPrices();
         Task<int> CreateMsmqLog(string action, int productId, DateTime logDate);
         Task<int> UpdateMsmqLog(DateTime logDate, int logId, bool isSuccess);
-        Task<DateTime?> GetLastMsmqStartTime();
+        Task<DateTime?> GetLastMsmqStartTime(int productId);
         bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
         bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
     }
