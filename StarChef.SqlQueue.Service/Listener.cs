@@ -143,7 +143,7 @@ namespace StarChef.SqlQueue.Service
                 var id = reader.GetValue<int>("Id");
                 var entityId = reader.GetValue<int>("EntityId");
                 var entityTypeId = reader.GetValue<int>("EntityTypeId");
-                var statusId = reader.GetValue<int>("StatusId");
+                var statusId = (OrchestrationQueueStatus)reader.GetValue<int>("StatusId");
                 var retryCount = reader.GetValue<int>("RetryCount");
                 var dateCreaded = reader.GetValue<DateTime>("DateCreated");
                 var externalId = reader.GetValue<string>("ExternalId");
@@ -262,7 +262,7 @@ namespace StarChef.SqlQueue.Service
                                             }
                                             else
                                             {
-                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.StatusId, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
+                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.Status, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
                                                 Logger.Error($"Not supported entity type: DatabaseId {entityMessage.DatabaseID} : EntityId {entityMessage.ProductID} : EntityTypeId {entityMessage.EntityTypeId}");
                                             }
                                             break;
@@ -294,7 +294,7 @@ namespace StarChef.SqlQueue.Service
                                             }
                                             else
                                             {
-                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.StatusId, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
+                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.Status, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
                                                 Logger.Error($"Not supported entity type: DatabaseId {entityMessage.DatabaseID} : EntityId {entityMessage.ProductID} : EntityTypeId {entityMessage.EntityTypeId}");
                                             }
                                             break;
@@ -318,7 +318,7 @@ namespace StarChef.SqlQueue.Service
                                                 Logger.Info($"Generated {result.Count()} prices");
                                             }
                                             else {
-                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.StatusId, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
+                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.Status, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
                                                 Logger.Error($"Global price recalculation is not switch on DatabaseId {entityMessage.DatabaseID}");
                                             }
                                             break;
@@ -332,11 +332,20 @@ namespace StarChef.SqlQueue.Service
                                             }
                                             else
                                             {
-                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.StatusId, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
+                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.Status, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
                                                 Logger.Error($"Not supported entity type: DatabaseId {entityMessage.DatabaseID} : EntityId {entityMessage.ProductID} : EntityTypeId {entityMessage.EntityTypeId}");
                                             }
                                             break;
                                     }
+                                }
+                            }
+                            else
+                            {
+                                foreach (var entityMessage in entityMessages)
+                                {
+                                    // Re-Enqueue the same message with status 3 (Blocked)
+                                    Enqueue(userDatabase.ConnectionString, entityMessage.ProductID, entityMessage.EntityTypeId, OrchestrationQueueStatus.Blocked, entityMessage.RetryCount,
+                                        entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
                                 }
                             }
                         }
@@ -354,7 +363,7 @@ namespace StarChef.SqlQueue.Service
                     //Put back to queue
                     if (messages != null && messages.Any())
                     {
-                        Parallel.ForEach(messages, m => Enqueue(userDatabase.ConnectionString, m.ProductID, m.EntityTypeId, m.StatusId, m.RetryCount, m.ArrivedTime, userDatabase.DatabaseId, m.ExternalId, m.Action));
+                        Parallel.ForEach(messages, m => Enqueue(userDatabase.ConnectionString, m.ProductID, m.EntityTypeId, m.Status, m.RetryCount, m.ArrivedTime, userDatabase.DatabaseId, m.ExternalId, m.Action));
                     }
                     var message = $"Database ID: { userDatabase.DatabaseId }";
                     Logger.Error(message, e);
@@ -368,7 +377,7 @@ namespace StarChef.SqlQueue.Service
             var result = _messageSender.Send(entityTypeWrapper.Value, connectionString, message.EntityTypeId, message.ProductID, message.ExternalId, message.DatabaseID, message.ArrivedTime);
             if (!result)
             {
-                Enqueue(connectionString, message.ProductID, message.EntityTypeId, message.StatusId, message.RetryCount, message.ArrivedTime, databaseId, message.ExternalId, message.Action);
+                Enqueue(connectionString, message.ProductID, message.EntityTypeId, message.Status, message.RetryCount, message.ArrivedTime, databaseId, message.ExternalId, message.Action);
                 Logger.Error($"Processing failed: DatabaseId {message.DatabaseID} : EntityId {message.ProductID} : EntityTypeId {message.EntityTypeId}");
             }
         }
@@ -377,7 +386,7 @@ namespace StarChef.SqlQueue.Service
             var result = _messageSender.PublishCommand(message);
             if (!result)
             {
-                Enqueue(database.ConnectionString, message.ProductID, message.EntityTypeId, message.StatusId, message.RetryCount, message.ArrivedTime, database.DatabaseId, message.ExternalId, message.Action);
+                Enqueue(database.ConnectionString, message.ProductID, message.EntityTypeId, message.Status, message.RetryCount, message.ArrivedTime, database.DatabaseId, message.ExternalId, message.Action);
                 Logger.Error($"Processing failed: DatabaseId {message.DatabaseID} : EntityId {message.ProductID} : EntityTypeId {message.EntityTypeId}");
             }
         }
@@ -387,17 +396,17 @@ namespace StarChef.SqlQueue.Service
             var result = _messageSender.PublishDeleteEvent(message);
             if (!result)
             {
-                Enqueue(database.ConnectionString, message.ProductID, message.EntityTypeId, message.StatusId, message.RetryCount, message.ArrivedTime, database.DatabaseId, message.ExternalId, message.Action);
+                Enqueue(database.ConnectionString, message.ProductID, message.EntityTypeId, message.Status, message.RetryCount, message.ArrivedTime, database.DatabaseId, message.ExternalId, message.Action);
                 Logger.Error($"Processing failed: DatabaseId {message.DatabaseID} : EntityId {message.ProductID} : EntityTypeId {message.EntityTypeId}");
             }
         }
 
-        public virtual void Enqueue(string connectionString, int entityId, int entityTypeId, int statusId, int retryCount, DateTime dateCreated, int databaseId, string externalId,int messageActionTypeId)
+        public virtual void Enqueue(string connectionString, int entityId, int entityTypeId, OrchestrationQueueStatus status, int retryCount, DateTime dateCreated, int databaseId, string externalId,int messageActionTypeId)
         {
             try
             {
                 var retryCountUpdated = retryCount + 1;
-                var statusIdUpdated = retryCountUpdated >= _appConfiguration.RetryCount ? 3 : statusId;
+                var statusIdUpdated = retryCountUpdated >= _appConfiguration.RetryCount ? OrchestrationQueueStatus.Blocked : status;
 
                 _databaseManager.Execute(connectionString,
                     "sc_calculation_enqueue",
