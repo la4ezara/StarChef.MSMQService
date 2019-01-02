@@ -292,7 +292,7 @@ namespace StarChef.Orchestrate.Tests.SqlQueue
                 It.Is<string>(c => c == ud.ConnectionString),
                 It.Is<int>(c => c == messagesToProcess.First().ProductID),
                 It.Is<int>(c => c == messagesToProcess.First().EntityTypeId),
-                It.Is<OrchestrationQueueStatus>(c => c == OrchestrationQueueStatus.Ignored),
+                It.Is<OrchestrationQueueStatus>(c => c == OrchestrationQueueStatus.Blocked),
                 It.Is<int>(c => c == messagesToProcess.First().RetryCount),
                 It.Is<DateTime>(c => c == messagesToProcess.First().ArrivedTime),
                 It.Is<int>(c => c == ud.DatabaseId),

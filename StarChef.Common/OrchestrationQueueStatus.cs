@@ -6,6 +6,5 @@
         New = 1,
         Processing = 2,
         Blocked = 3,
-        Ignored = 4
     }
 }

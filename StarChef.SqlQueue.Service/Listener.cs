@@ -343,8 +343,8 @@ namespace StarChef.SqlQueue.Service
                             {
                                 foreach (var entityMessage in entityMessages)
                                 {
-                                    // Re-Enqueue the same message with status 4 (IGNORED)
-                                    Enqueue(userDatabase.ConnectionString, entityMessage.ProductID, entityMessage.EntityTypeId, OrchestrationQueueStatus.Ignored, entityMessage.RetryCount,
+                                    // Re-Enqueue the same message with status 3 (Blocked)
+                                    Enqueue(userDatabase.ConnectionString, entityMessage.ProductID, entityMessage.EntityTypeId, OrchestrationQueueStatus.Blocked, entityMessage.RetryCount,
                                         entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
                                 }
                             }
