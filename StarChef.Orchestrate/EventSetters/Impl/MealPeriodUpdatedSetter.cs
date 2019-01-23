@@ -38,8 +38,8 @@ namespace StarChef.Orchestrate
                     .SetExternalId(reader.GetValue<Guid>("meal_period_guid").ToString())
                     .SetMealPeriodName(reader.GetValue<string>("meal_period_name"))
                     .SetIsEnabled(reader.GetValueOrDefault<bool>("is_enabled"))
-                    .SetStartTime(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>("start_time")))
-                    .SetEndTime(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>("end_time")));
+                    .SetStartTime((long)reader.GetValueOrDefault<TimeSpan>("start_time").TotalSeconds)
+                    .SetEndTime((long)reader.GetValueOrDefault<TimeSpan>("end_time").TotalSeconds);
             }
 
             return true;
