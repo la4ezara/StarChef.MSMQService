@@ -242,11 +242,21 @@ namespace StarChef.Common.Repository
 
                     CREATE TABLE #convetion(product_id INT, source_unit_id INT, target_unit_id INT, ratio DECIMAL(30,14))
 
-                    INSERT INTO #convetion(product_id, source_unit_id, target_unit_id)
-                    select DISTINCT pp.sub_product_id, p.unit_id, pp.unit_id
-                    from product_part as pp WITH (NOLOCK)
-                    JOIN product as p ON pp.sub_product_id = p.product_id
-                    JOIN @tmP_productParts ON productPartId = pp.product_part_id
+                    IF(EXISTS(SELECT 1 FROM @tmP_productParts))
+                    BEGIN
+	                    INSERT INTO #convetion(product_id, source_unit_id, target_unit_id)
+	                    select DISTINCT pp.sub_product_id, p.unit_id, pp.unit_id
+	                    from product_part as pp WITH (NOLOCK)
+	                    JOIN product as p ON pp.sub_product_id = p.product_id
+	                    JOIN @tmP_productParts ON productPartId = pp.product_part_id
+                    END
+                    ELSE
+                    BEGIN
+	                    INSERT INTO #convetion(product_id, source_unit_id, target_unit_id)
+	                    select DISTINCT p.product_id, p.unit_id, p.unit_id
+	                    FROM product as p
+	                    WHERE p.product_id = @product_id
+                    END
 
                     UPDATE #convetion
                     SET ratio = dbo.fn_ConversionGetRatioEx(product_id, source_unit_id, target_unit_id) 
@@ -264,7 +274,8 @@ namespace StarChef.Common.Repository
                     LEFT JOIN ingredient as i WITH(NOLOCK) on i.product_id = p.product_id
                     LEFT JOIN dish as d WITH(NOLOCK) on d.product_id = p.product_id
                     WHERE p.product_id IN (SELECT DISTINCT productId FROM @tmP_productParts)
-                    OR  p.product_id IN (SELECT DISTINCT sub_product_id FROM @tmP_productParts)";
+                    OR  p.product_id IN (SELECT DISTINCT sub_product_id FROM @tmP_productParts)
+                    OR p.product_id = @product_id";
 
             var param = new
             {
