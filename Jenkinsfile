@@ -3,7 +3,7 @@
 library 'sharedlib@master'
 
 def onReleaseBranch() {
-	return env.BRANCH_NAME == "Development" || env.BRANCH_NAME == "master" || env.BRANCH_NAME == "_HF" || env.BRANCH_NAME == "_HotFix"
+	return env.BRANCH_NAME == "Development" || env.BRANCH_NAME == "master" || env.BRANCH_NAME.endsWith("_HF") || env.BRANCH_NAME.endsWith("_HotFix")
 }
 
 def buildVersion = ""
