@@ -473,5 +473,31 @@ namespace StarChef.Common.Repository
                 yield return record;
             }
         }
+
+        public async Task ClearPrices(int? groupId)
+        {
+            if (groupId.HasValue)
+            {
+                var cmd = "DELETE FROM db_product_calc WHERE group_Id = @group_id";
+
+                var param = new
+                {
+                    group_id = groupId,
+                };
+
+                using (var connection = GetOpenConnection())
+                {
+                    await Task.Run(() => { base.Execute(connection, cmd, param, CommandType.Text); });
+                }
+            }
+            else
+            {
+                var cmd = "DELETE FROM db_product_calc WHERE group_Id IS NULL";
+                using (var connection = GetOpenConnection())
+                {
+                    await Task.Run(() => { base.Execute(connection, cmd, null, CommandType.Text); });
+                }
+            }
+        }
     }
 }
