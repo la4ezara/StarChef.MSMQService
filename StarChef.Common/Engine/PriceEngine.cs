@@ -102,13 +102,14 @@ namespace StarChef.Common.Engine
 
                 if (storePrices)
                 {
-                    await _pricingRepo.ClearPrices();
                     var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", 0, dt);
 
                     bool isSuccess = true;
                     foreach (var group in result)
                     {
-                        bool saveResult = _pricingRepo.InsertPrices(group.Value, group.Key == 0 ? new Nullable<int>() : group.Key, logId, dt);
+                        var groupId = group.Key == 0 ? new Nullable<int>() : group.Key;
+                        await _pricingRepo.ClearPrices(groupId);
+                        bool saveResult = _pricingRepo.InsertPrices(group.Value, groupId, logId, dt);
                         if (!saveResult)
                         {
                             isSuccess = false;

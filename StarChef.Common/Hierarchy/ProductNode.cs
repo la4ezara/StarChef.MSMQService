@@ -73,6 +73,8 @@ namespace StarChef.Common.Hierarchy
                                 var child = Childs[i];
                                 decimal price = 0;
 
+                                //need to check if child is ingredient is any of its alternates listed in access list
+                                //this case is used when feature Restrict by Supplier access is enable
                                 //check access of child product 
                                 if (!accessList.Contains(child.ProductId) || child.IsBroken)
                                 {
@@ -90,6 +92,8 @@ namespace StarChef.Common.Hierarchy
                                     {
                                         if (RecipeKind != RecipeType.Choice || child.IsChoise)
                                         {
+                                            //need to check if child is ingredient is any of its alternates listed in price storage
+                                            //this case is used when feature Restrict by Supplier access is enable
                                             var baseIngredientPrice = priceStorage[child.ProductId];
                                             decimal ingredientEpPrice = baseIngredientPrice;
                                             if (child.Portion == PortionType.EP && product.Wastage.HasValue && product.Wastage <= 100 && product.Wastage > 0)

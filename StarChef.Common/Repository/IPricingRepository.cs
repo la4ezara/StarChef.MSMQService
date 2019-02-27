@@ -28,5 +28,6 @@ namespace StarChef.Common.Repository
         Task<DateTime?> GetLastMsmqStartTime(int productId);
         bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
         bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
+        Task ClearPrices(int? groupId);
     }
 }

@@ -193,6 +193,7 @@ namespace StarChef.SqlQueue.Service
                     messages = GetDatabaseMessages(userDatabase);
                     if (messages.Any())
                     {
+                        Logger.Debug($"Db {userDatabase.DatabaseId} has messages  {messages.Count}");
                         var grouppedMessages = messages.GroupBy(c => c.EntityTypeId);
                         foreach (var groupedMessage in grouppedMessages)
                         {
