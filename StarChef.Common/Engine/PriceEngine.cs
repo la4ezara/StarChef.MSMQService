@@ -18,6 +18,26 @@ namespace StarChef.Common.Engine
             _pricingRepo = pricingRepo;
         }
 
+        public bool CanRecalculate(MsmqLog log, DateTime arrivedTime)
+        {
+            //last recalculation was done
+            if (log.EndTime.HasValue)
+            {
+                //last arrivedTime is older that recalculation end time so no need of action.
+                if (log.EndTime.Value > arrivedTime)
+                {
+                    return false;
+                }
+            }
+            //last recalculation was not finished and it is the same or newer that arrived time.
+            else if (log.StartTime.HasValue && log.StartTime.Value >= arrivedTime)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public async Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices, DateTime? arrivedTime) {
             List<DbPrice> prices = new List<DbPrice>();
             DateTime dt = DateTime.UtcNow;
@@ -27,9 +47,10 @@ namespace StarChef.Common.Engine
             }
 
             var lastRecalculationTime = await _pricingRepo.GetLastMsmqStartTime(productId);
+            var canRecalculate = CanRecalculate(lastRecalculationTime, dt);
 
-            //validate is it last recalculation more actual that current request date
-            if (lastRecalculationTime.HasValue && lastRecalculationTime.Value > dt)
+            //validate - is it last recalculation more actual that current request date
+            if (!canRecalculate)
             {
                 var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation Skipped", productId, dt);
                 await _pricingRepo.UpdateMsmqLog(dt, logId, true);
@@ -82,9 +103,9 @@ namespace StarChef.Common.Engine
                 dt = arrivedTime.Value;
             }
             var lastRecalculationTime = await _pricingRepo.GetLastMsmqStartTime(0);
-
+            var canRecalculate = CanRecalculate(lastRecalculationTime, dt);
             //validate is it last recalculation more actual that current request date
-            if (lastRecalculationTime.HasValue && lastRecalculationTime.Value > dt)
+            if (!canRecalculate)
             {
                 var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation Skipped", 0, dt);
                 await _pricingRepo.UpdateMsmqLog(dt, logId, true);
