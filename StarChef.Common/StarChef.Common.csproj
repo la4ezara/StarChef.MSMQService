@@ -65,6 +65,7 @@
     <Compile Include="IDatabaseManager.cs" />
     <Compile Include="EnumHelper.cs" />
     <Compile Include="Model\DbPrice.cs" />
+    <Compile Include="Model\MsmqLog.cs" />
     <Compile Include="Model\ProductGroupPrice.cs" />
     <Compile Include="Model\GroupSets.cs" />
     <Compile Include="Model\Product.cs" />

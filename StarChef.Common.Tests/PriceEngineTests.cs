@@ -24,7 +24,34 @@ namespace StarChef.Common.Tests
             int productIdResult;
             DateTime messageTime = DateTime.UtcNow;
 
-            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(1) }); });
+            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
+                actionResult = action;
+                dtResult = dt;
+                productIdResult = productId;
+            }).Returns(() => { return Task.FromResult<int>(logIdResult); });
+
+            IPriceEngine engine = new PriceEngine(repo.Object);
+            var result = engine.GlobalRecalculation(true, messageTime).Result;
+
+            Assert.Empty(result);
+            Assert.Equal(actionExpected, actionResult);
+            Assert.Equal(messageTime, dtResult);
+            Assert.Equal(messageTime, dtResult);
+        }
+
+        [Fact]
+        public void SkipPriceRecalculationEndTime()
+        {
+            Mock<IPricingRepository> repo = new Mock<IPricingRepository>();
+            int logIdResult = 123;
+            string actionExpected = "Dish Pricing Calculation Skipped";
+            string actionResult = string.Empty;
+            DateTime dtResult = DateTime.MinValue;
+            int productIdResult;
+            DateTime messageTime = DateTime.UtcNow;
+
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { EndTime = DateTime.UtcNow.AddHours(1) }); });
             repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
@@ -46,9 +73,8 @@ namespace StarChef.Common.Tests
             Mock<IPricingRepository> repo = new Mock<IPricingRepository>();
             DateTime messageTime = DateTime.UtcNow;
 
-            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>( new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(-1) }); });
             
-
             repo.Setup(x=> x.GetProducts()).Returns( ()=> { return Task.FromResult<IEnumerable<Product>>(new List<Product>()); });
             repo.Setup(x => x.GetProductParts()).Returns(() => { return Task.FromResult<IEnumerable<ProductPart>>(new List<ProductPart>()); });
             repo.Setup(x => x.GetGroupProductPricesByGroup(It.IsAny<int>())).Returns(() => { return Task.FromResult<IEnumerable<ProductGroupPrice>>(new List<ProductGroupPrice>()); });
@@ -70,7 +96,7 @@ namespace StarChef.Common.Tests
             int productIdResult;
             DateTime messageTime = DateTime.UtcNow;
 
-            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(-1) }); });
             repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
@@ -116,7 +142,7 @@ namespace StarChef.Common.Tests
             int productId = 1122;
             bool isSuccessStatusUpdate = false;
 
-            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(-1) }); });
             repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int product_Id, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
@@ -158,7 +184,7 @@ namespace StarChef.Common.Tests
             Assert.Equal(expectedPrices, result);
             Assert.True(isSuccessStatusUpdate);
 
-            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(1) }); });
 
             engine = new PriceEngine(repo.Object);
             result = engine.Recalculation(productId, true, messageTime).Result;
@@ -166,7 +192,7 @@ namespace StarChef.Common.Tests
             Assert.Equal(actionExpectedSkipped, actionResult);
             Assert.Empty(result);
 
-            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(-1) }); });
             repo.Setup(x => x.UpdatePrices(It.IsAny<Dictionary<int, decimal>>(), It.Is<int?>(g => !g.HasValue), It.Is<int>(l => l == 123), It.Is<DateTime>(d => d == messageTime))).Returns(false);
 
             engine = new PriceEngine(repo.Object);
@@ -189,7 +215,7 @@ namespace StarChef.Common.Tests
             int productIdResult;
             DateTime messageTime = DateTime.UtcNow;
 
-            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<DateTime?>(DateTime.UtcNow.AddHours(-1)); });
+            repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(-1) }); });
             repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
