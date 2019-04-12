@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace StarChef.Common.Engine
@@ -20,19 +21,22 @@ namespace StarChef.Common.Engine
 
         public bool CanRecalculate(MsmqLog log, DateTime arrivedTime)
         {
-            //last recalculation was done
-            if (log.EndTime.HasValue)
+            if (log != null)
             {
-                //last arrivedTime is older that recalculation end time so no need of action.
-                if (log.EndTime.Value > arrivedTime)
+                //last recalculation was done
+                if (log.EndTime.HasValue)
+                {
+                    //last arrivedTime is older that recalculation end time so no need of action.
+                    if (log.EndTime.Value > arrivedTime)
+                    {
+                        return false;
+                    }
+                }
+                //last recalculation was not finished and it is the same or newer that arrived time.
+                else if (log.StartTime.HasValue && log.StartTime.Value >= arrivedTime)
                 {
                     return false;
                 }
-            }
-            //last recalculation was not finished and it is the same or newer that arrived time.
-            else if (log.StartTime.HasValue && log.StartTime.Value >= arrivedTime)
-            {
-                return false;
             }
 
             return true;
@@ -68,7 +72,10 @@ namespace StarChef.Common.Engine
                 var productIds = products.Select(x => x.ProductId).ToList();
                 var groupPrices = await _pricingRepo.GetGroupProductPricesByProduct(productId);
                 groupPrices = groupPrices.Where(x => productIds.Contains(x.ProductId)).ToList();
-                Dictionary<int, Dictionary<int, decimal>> newProductPrices = pf.CalculatePrice(groupPrices.ToList());
+
+                bool restictBySupplier = await _pricingRepo.IsIngredientAccess();
+
+                Dictionary<int, Dictionary<int, decimal>> newProductPrices = pf.CalculatePrice(groupPrices.ToList(), restictBySupplier);
                 var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", productId, dt);
 
                 bool isSuccess = true;
@@ -115,11 +122,20 @@ namespace StarChef.Common.Engine
                 var products = await _pricingRepo.GetProducts();
                 var parts = await _pricingRepo.GetProductParts();
 
+                bool restictBySupplier = await _pricingRepo.IsIngredientAccess();
+                IEnumerable<IngredientAlternate> alternates = null;
+                if (restictBySupplier)
+                {
+                    alternates=await _pricingRepo.GetIngredientAlternates(null);
+                }
+
                 ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
+                pf.Alternates = alternates;
                 pf.BuildForest();
 
                 var groupPrices = await _pricingRepo.GetGroupProductPricesByGroup(0);
-                Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices.ToList());
+
+                Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices.ToList(), restictBySupplier);
 
                 if (storePrices)
                 {

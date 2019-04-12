@@ -187,7 +187,6 @@ namespace StarChef.Common.Tests
         [Fact]
         public void PriceRecalcBaseRecipeChoiseThrowProductException()
         {
-            decimal expected = 2;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
@@ -208,7 +207,6 @@ namespace StarChef.Common.Tests
         [Fact]
         public void PriceRecalcBaseRecipeChoiseThrowPriceStorageException()
         {
-            decimal expected = 2;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
@@ -320,7 +318,6 @@ namespace StarChef.Common.Tests
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipeNoAccess()
         {
-            decimal expectedPrice = 8;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);
@@ -392,7 +389,6 @@ namespace StarChef.Common.Tests
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipeBroken()
         {
-            decimal expectedPrice = 2;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);
@@ -472,7 +468,6 @@ namespace StarChef.Common.Tests
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipeOptionBroken()
         {
-            decimal expectedPrice = 0;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Option;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);

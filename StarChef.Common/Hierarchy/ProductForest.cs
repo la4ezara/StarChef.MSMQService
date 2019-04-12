@@ -19,6 +19,8 @@ namespace StarChef.Common.Hierarchy
 
         public Dictionary<int, Product> PrivateProducts => _privateProducts;
 
+        public IEnumerable<IngredientAlternate> Alternates { get;set;}
+
         public ProductForest(List<Product> products, List<ProductPart> parts)
         {
             _products = products;
@@ -123,20 +125,31 @@ namespace StarChef.Common.Hierarchy
         }
 
         /// <summary>
-        /// Calcualte all prices for set of groups
+        /// Calculate all prices for set of groups
         /// </summary>
         /// <param name="groupPrices"></param>
         /// <returns></returns>
         public Dictionary<int, Dictionary<int, decimal>> CalculatePrice(List<ProductGroupPrice> groupPrices)
         {
+            return CalculatePrice(groupPrices, false);
+        }
+
+        /// <summary>
+        /// Calculate all prices for set of groups
+        /// </summary>
+        /// <param name="groupPrices"></param>
+        /// <param name="checkAlternates"></param>
+        /// <returns></returns>
+        public Dictionary<int, Dictionary<int, decimal>> CalculatePrice(List<ProductGroupPrice> groupPrices, bool checkAlternates)
+        {
             Dictionary<int, Dictionary<int, decimal>> allPrices = new Dictionary<int, Dictionary<int, decimal>>();
             ConcurrentDictionary<int, decimal> privatePrices = new ConcurrentDictionary<int, decimal>();
             var groupedGroupPrices = groupPrices.GroupBy(g => g.GroupId).OrderByDescending(g => g.Key).ToList();
-            //possible to execure in parallel
+            //possible to execute in parallel
             for (int i = 0; i < groupedGroupPrices.Count; i++)
             {
                 var groups = groupedGroupPrices[i].ToList();
-                var groupCalculatedPrices = CalculatePrice(groups, privatePrices);
+                var groupCalculatedPrices = CalculatePrice(groups, privatePrices, checkAlternates);
                 if (groupCalculatedPrices.Any())
                 {
                     if (groupedGroupPrices[i].Key.HasValue)
@@ -151,7 +164,8 @@ namespace StarChef.Common.Hierarchy
             }
 
             //if we have a public items which are not linked to any set they do not have a group
-            if (allPrices.ContainsKey(0)) {
+            if (allPrices.ContainsKey(0))
+            {
                 var items = allPrices[0];
                 //add private items to that list
                 foreach (var pi in privatePrices)
@@ -166,7 +180,7 @@ namespace StarChef.Common.Hierarchy
             {
                 allPrices.Add(0, privatePrices.ToDictionary(k => k.Key, v => v.Value));
             }
-            
+
             return allPrices;
         }
 
@@ -176,7 +190,7 @@ namespace StarChef.Common.Hierarchy
         /// <param name="groups"></param>
         /// <param name="privatePrices"></param>
         /// <returns></returns>
-        public Dictionary<int, decimal> CalculatePrice(List<ProductGroupPrice> groups, ConcurrentDictionary<int, decimal> privatePrices)
+        public Dictionary<int, decimal> CalculatePrice(List<ProductGroupPrice> groups, ConcurrentDictionary<int, decimal> privatePrices, bool checkAlternates)
         {
             HashSet<int> accessList = new HashSet<int>(groups.Select(p => p.ProductId).Distinct());
 
@@ -187,7 +201,7 @@ namespace StarChef.Common.Hierarchy
 
             for (var y = 0; y < keys.Count; y++)
             {
-                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList);
+                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList, checkAlternates, Alternates);
             }
 
             ///calculate items for producrs which are in results but they are private

@@ -111,7 +111,7 @@ namespace StarChef.MSMQService
                                     }
                                 }
 
-                                if (updmsg != null)
+                                if (updmsg != null && !string.IsNullOrEmpty(updmsg.DSN))
                                 {
                                     OnMessageProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Processing));
                                     _logger.Debug("start processing");

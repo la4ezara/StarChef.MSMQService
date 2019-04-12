@@ -29,5 +29,8 @@ namespace StarChef.Common.Repository
         bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
         bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
         Task ClearPrices(int? groupId);
+        Task<IEnumerable<IngredientAlternate>> GetIngredientAlternates();
+        Task<IEnumerable<IngredientAlternate>> GetIngredientAlternates(IEnumerable<int> ingredients);
+        Task<bool> IsIngredientAccess();
     }
 }

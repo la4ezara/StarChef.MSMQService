@@ -229,7 +229,7 @@ namespace StarChef.Common.Tests
             groupPrices.Add(new ProductGroupPrice() { GroupId = 0, ProductId = 6, Price = 1 });
             groupPrices.Add(new ProductGroupPrice() { ProductId = 7});
 
-            var result = forest.CalculatePrice(groupPrices);
+            var result = forest.CalculatePrice(groupPrices, false);
             Assert.NotEmpty(result);
             Assert.True(result.ContainsKey(0));
             //private and non group items = 2

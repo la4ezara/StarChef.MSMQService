@@ -20,12 +20,14 @@ namespace StarChef.Common.Hierarchy
 
         public List<ProductNode> Childs => _childs;
 
-        public ProductNode(int productId, int unitId, decimal quantity, ProductType productType) : this(productId, unitId, quantity, productType, 1, PortionType.NotSet)
+        public ProductNode(int productId, int unitId, decimal quantity, ProductType productType) : this(productId,
+            unitId, quantity, productType, 1, PortionType.NotSet)
         {
 
         }
 
-        public ProductNode(int productId, int unitId, decimal quantity, ProductType productType, decimal ratio, PortionType? portionType)
+        public ProductNode(int productId, int unitId, decimal quantity, ProductType productType, decimal ratio,
+            PortionType? portionType)
         {
             ProductId = productId;
             UnitId = unitId;
@@ -36,24 +38,31 @@ namespace StarChef.Common.Hierarchy
             _childs = new List<ProductNode>();
         }
 
-        
-
-        public decimal? GetPrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products, HashSet<int> accessList)
+        public decimal? GetPrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products,
+            HashSet<int> accessList)
         {
-            if (!accessList.Contains(ProductId) || IsBroken)
+            return GetPrice(priceStorage, products, accessList, false, null);
+        }
+
+        public decimal? GetPrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products,
+            HashSet<int> accessList, bool checkAlternates, IEnumerable<IngredientAlternate> alternates)
+        {
+            //TODO:: check is it setting for restrict by supplier is on
+            //if it is on check access of productId and priceStorage for related alternates
+            var workProductId = ProductId;
+            if (!accessList.Contains(workProductId) || IsBroken)
             {
                 return null;
             }
 
-            if (priceStorage.ContainsKey(ProductId))
+            if (priceStorage.ContainsKey(workProductId))
             {
-                return priceStorage[ProductId];
+                return priceStorage[workProductId];
             }
             else
             {
-                //all ingredients has values 
+                //all ingredients has values
                 //need to calculate prices for recipes
-
                 if (NodeType != ProductType.Ingredient)
                 {
                     decimal? total = 0;
@@ -76,17 +85,44 @@ namespace StarChef.Common.Hierarchy
                                 //need to check if child is ingredient is any of its alternates listed in access list
                                 //this case is used when feature Restrict by Supplier access is enable
                                 //check access of child product 
-                                if (!accessList.Contains(child.ProductId) || child.IsBroken)
+                                var workChildProductId = child.ProductId;
+
+                                if (checkAlternates && child.NodeType == ProductType.Ingredient)
                                 {
-                                    total = null;
-                                    break;
+                                    if (child.IsBroken)
+                                    {
+                                        total = null;
+                                        break;
+                                    }
+
+                                    if (!accessList.Contains(workChildProductId))
+                                    {
+                                        var newItem = GetAlternativeProduct(accessList, alternates, workChildProductId);
+                                        if (!newItem.HasValue)
+                                        {
+                                            total = null;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            workChildProductId = newItem.Value;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (!accessList.Contains(workChildProductId) || child.IsBroken)
+                                    {
+                                        total = null;
+                                        break;
+                                    }
                                 }
 
                                 if (RecipeKind != RecipeType.Option)
                                 {
                                     //for batch && standard recipe or for choise where is selected
-                                    var product = products[child.ProductId];
-                                    var convertion = product.Quantity * product.Number * child.Ratio;
+                                    var product = products[workChildProductId];
+                                    var productConvertion = product.Quantity * product.Number * child.Ratio;
 
                                     if (child.NodeType == ProductType.Ingredient)
                                     {
@@ -94,15 +130,17 @@ namespace StarChef.Common.Hierarchy
                                         {
                                             //need to check if child is ingredient is any of its alternates listed in price storage
                                             //this case is used when feature Restrict by Supplier access is enable
-                                            var baseIngredientPrice = priceStorage[child.ProductId];
+                                            var baseIngredientPrice = priceStorage[workChildProductId];
                                             decimal ingredientEpPrice = baseIngredientPrice;
-                                            if (child.Portion == PortionType.EP && product.Wastage.HasValue && product.Wastage <= 100 && product.Wastage > 0)
+                                            if (child.Portion == PortionType.EP && product.Wastage.HasValue &&
+                                                product.Wastage <= 100 && product.Wastage > 0)
                                             {
-                                                ingredientEpPrice = baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
+                                                ingredientEpPrice =
+                                                    baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
                                             }
 
                                             var apPrice = ingredientEpPrice * child.Quantity;
-                                            price = apPrice / convertion;
+                                            price = apPrice / productConvertion;
                                         }
                                     }
                                     else
@@ -113,8 +151,9 @@ namespace StarChef.Common.Hierarchy
                                             if (RecipeKind != RecipeType.Choice || child.IsChoise)
                                             {
                                                 var apPrice = recipePrice.Value * child.Quantity;
-                                                price = apPrice / convertion;
+                                                price = apPrice / productConvertion;
                                             }
+
                                             //add non ingredient price
                                         }
                                         else
@@ -147,14 +186,52 @@ namespace StarChef.Common.Hierarchy
 
                     if (total.HasValue)
                     {
-                        priceStorage.Add(ProductId, total.Value);
+                        priceStorage.Add(workProductId, total.Value);
                     }
+
                     //add final price to storage
                     return total;
 
                 }
+
                 return 0;
             }
+        }
+
+        private static int? GetAlternativeProduct(HashSet<int> accessList, IEnumerable<IngredientAlternate> alternates,
+            int workChildProductId)
+        {
+            if (alternates != null)
+            {
+                var alternateItems = alternates.Where(x => x.ProductId == workChildProductId);
+                if (alternateItems.Any())
+                {
+                    foreach (var alternate in alternateItems.OrderBy((x => x.AlternateRank)))
+                    {
+                        if (accessList.Contains((alternate.AlternateProductId)))
+                        {
+                            return alternate.AlternateProductId;
+                        }
+                    }
+                }
+                else
+                {
+                    //try to 
+                    var parentOfAlternate = alternates.FirstOrDefault(x => x.AlternateProductId == workChildProductId);
+                    if (parentOfAlternate != null)
+                    {
+                        if (!accessList.Contains(parentOfAlternate.ProductId))
+                        {
+                        }
+                        else
+                        {
+                            return parentOfAlternate.ProductId;
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

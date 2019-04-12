@@ -291,6 +291,8 @@ namespace StarChef.Common.Repository
             }
         }
 
+        #region Msmqlog
+
         public async Task<int> CreateMsmqLog(string action, int productId, DateTime logDate) {
             var param = new
             {
@@ -321,7 +323,7 @@ namespace StarChef.Common.Repository
                         order by log_id desc";
             using (var connection = GetOpenConnection())
             {
-                var result = await Task.Run(() => { return QuerySingle<MsmqLog>(connection, cmd, param, CommandType.Text); });
+                var result = await Task.Run(() => { return QuerySingleOrDefault<MsmqLog>(connection, cmd, param, CommandType.Text); });
                 return result;
             }
         }
@@ -346,6 +348,10 @@ namespace StarChef.Common.Repository
             }
         }
 
+        #endregion
+
+        #region Prices
+
         public async Task ClearPrices()
         {
             using (var connection = GetOpenConnection())
@@ -355,6 +361,52 @@ namespace StarChef.Common.Repository
                 await Task.Run(() => { base.Execute(connection, cmd, null, CommandType.Text); });
             }
         }
+
+        public bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate)
+        {
+            if (!prices.Any())
+                return true;
+
+            var param = new
+            {
+                udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price"),
+                group_id = groupId,
+                logid = logId,
+                updateDate = logDate
+            };
+
+            var cmd = @"sc_insert_prices";
+            using (var connection = GetOpenConnection())
+            {
+                int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
+                return result == 0;
+            }
+        }
+
+        public bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate)
+        {
+            if (!prices.Any())
+            {
+                return true;
+            }
+
+            var param = new
+            {
+                udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price"),
+                group_id = groupId,
+                logid = logId,
+                updateDate = logDate
+            };
+
+            var cmd = @"sc_update_prices";
+            using (var connection = GetOpenConnection())
+            {
+                int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
+                return result == 0;
+            }
+        }
+
+        #endregion
 
         public async Task<IEnumerable<GroupSets>> GetGroupSets(int groupId, int includeDescendants) {
             var param = new
@@ -382,27 +434,6 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate)
-        {
-            if (!prices.Any())
-                return true;
-
-            var param = new
-            {
-                udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price"),
-                group_id = groupId,
-                logid = logId,
-                updateDate = logDate
-            };
-
-            var cmd = @"sc_insert_prices";
-            using (var connection = GetOpenConnection())
-            {
-                int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
-                return result == 0;
-            }
-        }
-
         public async Task<string> GetDbSetting(string settingName) {
             var param = new
             {
@@ -418,25 +449,13 @@ namespace StarChef.Common.Repository
             }
         }
 
-        public bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate) {
-            if (!prices.Any())
-            {
-                return true;
-            }
-
-            var param = new
-            {
-                udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price"),
-                group_id = groupId,
-                logid = logId,
-                updateDate = logDate
-            };
-
-            var cmd = @"sc_update_prices";
+        public async Task<bool> IsIngredientAccess()
+        {
+            var cmd = @"select TOP 1 restrict_ingredient_access_by_vendor from ingredient_access_db_setting";
             using (var connection = GetOpenConnection())
             {
-                int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
-                return result == 0;
+                bool result = await Task.Run(() => { return ExecuteScalar<bool>(connection, cmd, null, CommandType.Text); });
+                return result;
             }
         }
 
@@ -496,6 +515,27 @@ namespace StarChef.Common.Repository
                 {
                     await Task.Run(() => { base.Execute(connection, cmd, null, CommandType.Text); });
                 }
+            }
+        }
+
+        public async Task<IEnumerable<IngredientAlternate>> GetIngredientAlternates()
+        {
+            return await GetIngredientAlternates(null);
+        }
+
+        public async Task<IEnumerable<IngredientAlternate>> GetIngredientAlternates(IEnumerable<int> ingredients)
+        {
+            var cmd = @"SELECT p.product_id, pa.product_id AS alternate_product_id, pa.master_rank_order AS alternate_rank
+                    FROM product AS p 
+                    JOIN product as pa ON p.master_ref_no = pa.master_ref_no
+                    WHERE p.product_type_id = 1 AND pa.product_type_id = 1 
+                    AND p.product_id <> pa.product_id AND pa.master_rank_order > 0 
+                    AND p.master_rank_order IN (0,1) AND p.master_ref_rev = 0
+                    ORDER BY p.product_id, pa.master_rank_order";
+            using (var connection = GetOpenConnection())
+            {
+                var result = await Task.Run(() => { return Query<IngredientAlternate>(connection, cmd, null, CommandType.Text); });
+                return result;
             }
         }
     }

@@ -21,7 +21,7 @@ namespace StarChef.Engine.IntegrationTests
         public IEnumerable<string> GetConnectionStrings()
         {
             var cmd = @"SELECT [database_name] + ';' + [server_name]
-                    FROM [dbo].[db_database] where is_online = 1";
+                    FROM [dbo].[db_database] where is_online = 1 and database_name like 'Initial Catalog=SCNET_Tish_Price_Test'";
             using (var connection = GetOpenConnection())
             {
                 var result = Query<string>(connection, cmd, null, CommandType.Text);
