@@ -321,7 +321,7 @@ namespace StarChef.Common.Repository
                         order by log_id desc";
             using (var connection = GetOpenConnection())
             {
-                var result = await Task.Run(() => { return QuerySingle<MsmqLog>(connection, cmd, param, CommandType.Text); });
+                var result = await Task.Run(() => { return QuerySingleOrDefault<MsmqLog>(connection, cmd, param, CommandType.Text); });
                 return result;
             }
         }

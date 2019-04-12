@@ -20,19 +20,22 @@ namespace StarChef.Common.Engine
 
         public bool CanRecalculate(MsmqLog log, DateTime arrivedTime)
         {
-            //last recalculation was done
-            if (log.EndTime.HasValue)
+            if (log != null)
             {
-                //last arrivedTime is older that recalculation end time so no need of action.
-                if (log.EndTime.Value > arrivedTime)
+                //last recalculation was done
+                if (log.EndTime.HasValue)
+                {
+                    //last arrivedTime is older that recalculation end time so no need of action.
+                    if (log.EndTime.Value > arrivedTime)
+                    {
+                        return false;
+                    }
+                }
+                //last recalculation was not finished and it is the same or newer that arrived time.
+                else if (log.StartTime.HasValue && log.StartTime.Value >= arrivedTime)
                 {
                     return false;
                 }
-            }
-            //last recalculation was not finished and it is the same or newer that arrived time.
-            else if (log.StartTime.HasValue && log.StartTime.Value >= arrivedTime)
-            {
-                return false;
             }
 
             return true;
