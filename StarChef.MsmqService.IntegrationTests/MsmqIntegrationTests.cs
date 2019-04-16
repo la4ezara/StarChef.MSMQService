@@ -66,7 +66,7 @@ namespace StarChef.MsmqService.IntegrationTests
 
             for (int i = 0; i < maxMessageCount; i++)
             {
-                var singleMessage = new UpdateMessage() { DatabaseID = 1, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductNutrient, GroupID = 1, ProductID = i, ArrivedTime = DateTime.UtcNow };
+                var singleMessage = new UpdateMessage() { DatabaseID = 1, ExternalId = "1", DSN = "123",EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductNutrient, GroupID = 1, ProductID = i, ArrivedTime = DateTime.UtcNow };
                 messageManager.mqSend(singleMessage, MessagePriority.Normal);
             }
 

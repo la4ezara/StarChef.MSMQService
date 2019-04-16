@@ -165,7 +165,7 @@ namespace StarChef.Common.Hierarchy
                                 }
                                 else
                                 {
-                                    var recipePrice = child.GetPrice(priceStorage, products, accessList);
+                                    var recipePrice = child.GetPrice(priceStorage, products, accessList, checkAlternates, alternates);
                                     if (!recipePrice.HasValue)
                                     {
                                         total = null;
