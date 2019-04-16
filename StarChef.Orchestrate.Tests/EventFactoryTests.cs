@@ -308,6 +308,82 @@ namespace StarChef.Orchestrate.Tests
         }
 
         [Fact]
+        public void Should_create_update_event_for_RecipeUpdated_Without_Barcodes()
+        {
+            var eventSetter = new Mock<IEventSetter<RecipeUpdatedBuilder>>();
+            eventSetter
+                .Setup(m => m.SetForUpdate(It.IsAny<RecipeUpdatedBuilder>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Callback<RecipeUpdatedBuilder, string, int, int>(
+                (RecipeUpdatedBuilder builder, string connectionString, int entityId, int databaseId) => {
+                    builder.SetExternalId(entityId.ToString());
+                    builder.SetCustomerId(databaseId.ToString());
+                    builder.SetCustomerName(databaseId.ToString());
+                    builder.AddRangeBarcode(new List<string>());
+                });
+         
+
+            var eventFactory = new EventFactory(
+                Mock.Of<IEventSetter<IngredientUpdatedBuilder>>(),
+                eventSetter.Object,
+                Mock.Of<IEventSetter<GroupUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<MenuUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+
+            var eventObject = eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>("any", 0, 0);
+
+            Assert.NotNull(eventObject);
+            Assert.True(eventObject.HasSequenceNumber);
+            Assert.Equal(SourceSystem.STARCHEF, eventObject.Source);
+            Assert.Equal(ChangeType.UPDATE, eventObject.ChangeType);
+            Assert.Equal(0, eventObject.BarcodeCount);
+        }
+
+
+        [Fact]
+        public void Should_create_update_event_for_RecipeUpdated_With_Barcodes()
+        {
+            var firstBarcode = "1111111111111";
+            var secondBarcode = "0000000000000";
+
+            var eventSetter = new Mock<IEventSetter<RecipeUpdatedBuilder>>();
+            eventSetter
+                .Setup(m => m.SetForUpdate(It.IsAny<RecipeUpdatedBuilder>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Callback<RecipeUpdatedBuilder, string, int, int>(
+                (RecipeUpdatedBuilder builder, string connectionString, int entityId, int databaseId) => {
+                    builder.SetExternalId(entityId.ToString());
+                    builder.SetCustomerId(databaseId.ToString());
+                    builder.SetCustomerName(databaseId.ToString());
+                    builder.AddRangeBarcode(new List<string>() {
+                    firstBarcode, secondBarcode
+                    });
+                });
+
+
+            var eventFactory = new EventFactory(
+                Mock.Of<IEventSetter<IngredientUpdatedBuilder>>(),
+                eventSetter.Object,
+                Mock.Of<IEventSetter<GroupUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<MenuUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+
+            var eventObject = eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>("any", 0, 0);
+
+            Assert.NotNull(eventObject);
+            Assert.True(eventObject.HasSequenceNumber);
+            Assert.Equal(SourceSystem.STARCHEF, eventObject.Source);
+            Assert.Equal(ChangeType.UPDATE, eventObject.ChangeType);
+            Assert.Equal(2, eventObject.BarcodeCount);
+            Assert.Equal(firstBarcode, eventObject.BarcodeList.First());
+            Assert.Equal(secondBarcode, eventObject.BarcodeList.Last());
+        }
+
+        [Fact]
         public void Should_create_update_event_for_GroupUpdated()
         {
             var eventSetter = new Mock<IEventSetter<GroupUpdatedBuilder>>();

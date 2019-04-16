@@ -59,7 +59,8 @@ namespace StarChef.Orchestrate
                     .SetModifiedDate(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>(23)))
                     .SetPortionSizeQuantity(reader.GetValueOrDefault<double>("PortionSizeQuantity"))
                     .SetPortionSizeUom(reader.GetValueOrDefault<string>("PortionSizeUom") ?? string.Empty)
-                    .SetChangeType(changeType);
+                    .SetChangeType(changeType)
+                    .AddRangeBarcode(ReadBarcodes(reader));
             }
 
             //Ingredients
@@ -255,6 +256,26 @@ namespace StarChef.Orchestrate
             }
 
             return ingredientList;
+        }
+
+        internal List<string> ReadBarcodes(IDataReader reader)
+        {
+            var barcodeList = new List<string>();
+
+            var barcodesString = reader.GetValueOrDefault<string>("Barcode");
+
+            if(!string.IsNullOrEmpty(barcodesString))
+            {
+                var separators = new char[] { ' ', '\t', '\r', '\n' };
+                var barcodes = barcodesString.Split(separators , StringSplitOptions.RemoveEmptyEntries);
+
+                foreach(var barcode in barcodes)
+                {
+                    barcodeList.Add(barcode);
+                }
+            }
+
+            return barcodeList;
         }
         public bool SetForDelete(Events.RecipeUpdated.Builder builder, string entityExternalId, int databaseId)
         {
