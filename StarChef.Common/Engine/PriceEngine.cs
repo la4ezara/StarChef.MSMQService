@@ -73,8 +73,7 @@ namespace StarChef.Common.Engine
                     alternates = await _pricingRepo.GetIngredientAlternates(null);
                 }
 
-                ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
-                pf.Alternates = alternates;
+                ProductForest pf = new ProductForest(products.ToList(), parts.ToList(), alternates.ToList());
                 pf.BuildForest();
 
                 var productIds = products.Select(x => x.ProductId).ToList();
@@ -158,8 +157,7 @@ namespace StarChef.Common.Engine
                     alternates=await _pricingRepo.GetIngredientAlternates(null);
                 }
 
-                ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
-                pf.Alternates = alternates;
+                ProductForest pf = new ProductForest(products.ToList(), parts.ToList(), alternates.ToList());
                 pf.BuildForest();
 
                 var groupPrices = await _pricingRepo.GetGroupProductPricesByGroup(0);

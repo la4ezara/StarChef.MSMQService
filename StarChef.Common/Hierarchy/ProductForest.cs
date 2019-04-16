@@ -19,15 +19,21 @@ namespace StarChef.Common.Hierarchy
 
         public Dictionary<int, Product> PrivateProducts => _privateProducts;
 
-        public IEnumerable<IngredientAlternate> Alternates { get;set;}
+        private IEnumerable<IngredientAlternate> _alternates { get;set;}
 
-        public ProductForest(List<Product> products, List<ProductPart> parts)
+        public ProductForest(List<Product> products, List<ProductPart> parts) : this(products, parts, null)
+        {
+            
+        }
+
+        public ProductForest(List<Product> products, List<ProductPart> parts, List<IngredientAlternate> alternates)
         {
             _products = products;
             _products_dict = products.ToDictionary(key => key.ProductId, value => value);
             _privateProducts = products.Where(p => p.ScopeId > 1).ToDictionary(key => key.ProductId, value => value);
             _parts = parts;
             _forest = new Dictionary<int, ProductNode>();
+            _alternates = alternates;
         }
 
         public void BuildForest()
@@ -201,7 +207,7 @@ namespace StarChef.Common.Hierarchy
 
             for (var y = 0; y < keys.Count; y++)
             {
-                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList, checkAlternates, Alternates);
+                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList, checkAlternates, _alternates);
             }
 
             ///calculate items for producrs which are in results but they are private
