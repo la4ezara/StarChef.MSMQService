@@ -66,14 +66,20 @@ namespace StarChef.Common.Engine
                 var products = productsAndParts.Item1;
                 var parts = productsAndParts.Item2;
 
+                bool restictBySupplier = await _pricingRepo.IsIngredientAccess();
+                IEnumerable<IngredientAlternate> alternates = null;
+                if (restictBySupplier)
+                {
+                    alternates = await _pricingRepo.GetIngredientAlternates(null);
+                }
+
                 ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
+                pf.Alternates = alternates;
                 pf.BuildForest();
 
                 var productIds = products.Select(x => x.ProductId).ToList();
                 var groupPrices = await _pricingRepo.GetGroupProductPricesByProduct(productId);
-                groupPrices = groupPrices.Where(x => productIds.Contains(x.ProductId)).ToList();
-
-                bool restictBySupplier = await _pricingRepo.IsIngredientAccess();
+                //groupPrices = groupPrices.Where(x => productIds.Contains(x.ProductId)).ToList();
 
                 Dictionary<int, Dictionary<int, decimal>> newProductPrices = pf.CalculatePrice(groupPrices.ToList(), restictBySupplier);
                 var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", productId, dt);
@@ -81,7 +87,30 @@ namespace StarChef.Common.Engine
                 bool isSuccess = true;
                 foreach (var group in newProductPrices)
                 {
-                    bool saveResult = _pricingRepo.UpdatePrices(group.Value, group.Key == 0 ? new Nullable<int>() : group.Key, logId, dt);
+                    //delete old prices which are no longer valid
+                    var requiredPrices = groupPrices.Where(x => (x.GroupId.HasValue && x.GroupId == group.Key) ||(group.Key == 0 && !x.GroupId.HasValue));
+                    List<int> itemsToDelete = new List<int>();
+                    foreach (var price in requiredPrices)
+                    {
+                        if (!group.Value.ContainsKey((price.ProductId)))
+                        {
+                            itemsToDelete.Add(price.ProductId);
+                        }
+                    }
+
+                    int? groupId = null;
+                    if (group.Key > 0)
+                    {
+                        groupId = group.Key;
+                    }
+
+                    //delete items for which we require prices but prices was not generated
+                    if (itemsToDelete.Any())
+                    {
+                        await _pricingRepo.ClearPrices(itemsToDelete, groupId);
+                    }
+
+                    bool saveResult = _pricingRepo.UpdatePrices(group.Value, groupId, logId, dt);
                     if (!saveResult)
                     {
                         isSuccess = false;

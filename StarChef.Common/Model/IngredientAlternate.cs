@@ -10,6 +10,8 @@ namespace StarChef.Common.Model
         public int AlternateProductId { get; set; }
         [Description("alternate_rank")]
         public int AlternateRank { get; set; }
+        [Description("ratio")]
+        public decimal Ratio { get; set; }
         
     }
 }

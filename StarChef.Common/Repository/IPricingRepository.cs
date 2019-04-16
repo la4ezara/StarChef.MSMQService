@@ -28,6 +28,7 @@ namespace StarChef.Common.Repository
         Task<MsmqLog> GetLastMsmqStartTime(int productId);
         bool InsertPrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
         bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate);
+        Task ClearPrices(List<int> prices, int? groupId);
         Task ClearPrices(int? groupId);
         Task<IEnumerable<IngredientAlternate>> GetIngredientAlternates();
         Task<IEnumerable<IngredientAlternate>> GetIngredientAlternates(IEnumerable<int> ingredients);

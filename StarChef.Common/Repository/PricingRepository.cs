@@ -200,7 +200,7 @@ namespace StarChef.Common.Repository
                     SELECT pp.product_part_id, pp.product_id, pp.sub_product_id from product_part as pp
                     JOIN rtop ON rtop.product_id = pp.sub_product_id
                     )
-                    --get top level recipes which are not nested in any other recipes. AKA forest top custs
+                    --get top level recipes which are not nested in any other recipes. AKA forest top cuts
                     INSERT INTO @topRecipes(product_id)
                     SELECT DISTINCT rtop.product_id FROM rtop
                     LEFT JOIN product_part as pp on rtop.product_id = pp.sub_product_id
@@ -240,42 +240,53 @@ namespace StarChef.Common.Repository
                     CLOSE cur_cut
                     DEALLOCATE cur_cut
 
-                    CREATE TABLE #convetion(product_id INT, source_unit_id INT, target_unit_id INT, ratio DECIMAL(30,14))
+                    CREATE TABLE #convertion(product_id INT, source_unit_id INT, target_unit_id INT, ratio DECIMAL(30,14))
 
                     IF(EXISTS(SELECT 1 FROM @tmP_productParts))
                     BEGIN
-	                    INSERT INTO #convetion(product_id, source_unit_id, target_unit_id)
+	                    INSERT INTO #convertion(product_id, source_unit_id, target_unit_id)
 	                    select DISTINCT pp.sub_product_id, p.unit_id, pp.unit_id
-	                    from product_part as pp WITH (NOLOCK)
+	                    from product_part as pp 
 	                    JOIN product as p ON pp.sub_product_id = p.product_id
 	                    JOIN @tmP_productParts ON productPartId = pp.product_part_id
                     END
                     ELSE
                     BEGIN
-	                    INSERT INTO #convetion(product_id, source_unit_id, target_unit_id)
+	                    INSERT INTO #convertion(product_id, source_unit_id, target_unit_id)
 	                    select DISTINCT p.product_id, p.unit_id, p.unit_id
 	                    FROM product as p
 	                    WHERE p.product_id = @product_id
                     END
 
-                    UPDATE #convetion
+                    UPDATE #convertion
                     SET ratio = dbo.fn_ConversionGetRatioEx(product_id, source_unit_id, target_unit_id) 
                 
                     SELECT DISTINCT pp.product_part_id,pp.portion_type_id,pp.product_id,pp.sub_product_id,pp.quantity,pp.unit_id,pp.is_choice, p.product_type_id,
                     c.ratio as ratio 
-                    FROM product_part as pp WITH(NOLOCK)
-                    JOIN product as p WITH(NOLOCK) ON pp.sub_product_id = p.product_id
-                    JOIN #convetion as c ON c.product_id = pp.sub_product_id AND ISNULL(c.source_unit_id, 0) = ISNULL(p.unit_id,0) AND ISNULL(c.target_unit_id, 0) = ISNULL(pp.unit_id,0)
+                    FROM product_part as pp 
+                    JOIN product as p ON pp.sub_product_id = p.product_id
+                    JOIN #convertion as c ON c.product_id = pp.sub_product_id AND ISNULL(c.source_unit_id, 0) = ISNULL(p.unit_id,0) AND ISNULL(c.target_unit_id, 0) = ISNULL(pp.unit_id,0)
                     JOIN @tmP_productParts ON productPartId = pp.product_part_id
-                    DROP TABLE #convetion
+                    DROP TABLE #convertion
+
+                    DECLARE @AlternateProductId TABLE(product_Id INT)
+					INSERT INTO @AlternateProductId(product_Id)
+					SELECT DISTINCT pa.product_id AS alternate_product_id
+					FROM product AS p 
+					JOIN product as pa ON p.master_ref_no = pa.master_ref_no
+					WHERE p.product_type_id = 1 AND pa.product_type_id = 1 
+					AND p.product_id <> pa.product_id AND pa.master_rank_order > 0 
+					AND p.master_rank_order IN (0,1) AND p.master_ref_rev = 0
+					AND p.product_id IN (SELECT DISTINCT sub_product_id FROM @tmP_productParts)
 
                     SELECT p.product_id, p.number, p.quantity, p.unit_id, p.product_type_id, p.scope_id, i.wastage, d.recipe_type_id 
-                    FROM product as p WITH(NOLOCK)
-                    LEFT JOIN ingredient as i WITH(NOLOCK) on i.product_id = p.product_id
-                    LEFT JOIN dish as d WITH(NOLOCK) on d.product_id = p.product_id
+                    FROM product as p 
+                    LEFT JOIN ingredient as i on i.product_id = p.product_id
+                    LEFT JOIN dish as d on d.product_id = p.product_id
                     WHERE p.product_id IN (SELECT DISTINCT productId FROM @tmP_productParts)
-                    OR  p.product_id IN (SELECT DISTINCT sub_product_id FROM @tmP_productParts)
-                    OR p.product_id = @product_id";
+                    OR p.product_id IN (SELECT DISTINCT sub_product_id FROM @tmP_productParts)
+                    OR p.product_id = @product_id
+                    OR p.product_id IN (SELECT DISTINCT product_id FROM @AlternateProductId)";
 
             var param = new
             {
@@ -492,6 +503,55 @@ namespace StarChef.Common.Repository
             }
         }
 
+        public static IEnumerable<SqlDataRecord> ToSqlDataRecords(List<int> filters)
+        {
+            var metaData = new[]
+            {
+                new SqlMetaData("product_id", SqlDbType.Int),
+                new SqlMetaData("price", SqlDbType.Decimal, 18, 9)
+            };
+
+            foreach (var filter in filters)
+            {
+                var record = new SqlDataRecord(metaData);
+                record.SetInt32(0, filter);
+                record.SetDecimal(1, 0);
+                yield return record;
+            }
+        }
+
+        public async Task ClearPrices(List<int> prices, int? groupId)
+        {
+            if (groupId.HasValue)
+            {
+                var cmd = "DELETE FROM db_product_calc WHERE group_Id = @group_id AND product_id IN (SELECT product_id FROM @udt_prices)";
+
+                var param = new
+                {
+                    udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price"),
+                    group_id = groupId
+                };
+
+                using (var connection = GetOpenConnection())
+                {
+                    await Task.Run(() => { base.Execute(connection, cmd, param, CommandType.Text); });
+                }
+            }
+            else
+            {
+                var param = new
+                {
+                    udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price")
+                };
+                var cmd = "DELETE FROM db_product_calc WHERE group_Id IS NULL AND product_id IN (SELECT product_id FROM @udt_prices)";
+                using (var connection = GetOpenConnection())
+                {
+                    await Task.Run(() => { base.Execute(connection, cmd, null, CommandType.Text); });
+                }
+            }
+
+        }
+
         public async Task ClearPrices(int? groupId)
         {
             if (groupId.HasValue)
@@ -525,13 +585,30 @@ namespace StarChef.Common.Repository
 
         public async Task<IEnumerable<IngredientAlternate>> GetIngredientAlternates(IEnumerable<int> ingredients)
         {
-            var cmd = @"SELECT p.product_id, pa.product_id AS alternate_product_id, pa.master_rank_order AS alternate_rank
-                    FROM product AS p 
-                    JOIN product as pa ON p.master_ref_no = pa.master_ref_no
-                    WHERE p.product_type_id = 1 AND pa.product_type_id = 1 
-                    AND p.product_id <> pa.product_id AND pa.master_rank_order > 0 
-                    AND p.master_rank_order IN (0,1) AND p.master_ref_rev = 0
-                    ORDER BY p.product_id, pa.master_rank_order";
+            var cmd = @"CREATE TABLE #convetion(product_id INT, target_product_id INT, source_unit_id INT, target_unit_id INT, ratio DECIMAL(30,14))
+
+                INSERT INTO #convetion(product_id,target_product_id, source_unit_id, target_unit_id)
+
+                SELECT p.product_id, pa.product_id AS alternate_product_id, pa.unit_id, p.unit_id
+                FROM product AS p 
+                JOIN product as pa ON p.master_ref_no = pa.master_ref_no
+                WHERE p.product_type_id = 1 AND pa.product_type_id = 1 
+                AND p.product_id <> pa.product_id AND pa.master_rank_order > 0 
+                AND p.master_rank_order IN (0,1) AND p.master_ref_rev = 0
+
+                UPDATE #convetion
+                SET ratio = dbo.fn_ConversionGetRatioEx(target_product_id, source_unit_id, target_unit_id) 
+
+                SELECT p.product_id, pa.product_id AS alternate_product_id, pa.master_rank_order AS alternate_rank, c.ratio
+                FROM product AS p 
+                JOIN product as pa ON p.master_ref_no = pa.master_ref_no
+				JOIN #convetion as c ON pa.product_id = c.target_product_id AND p.product_id = c.product_id
+                WHERE p.product_type_id = 1 AND pa.product_type_id = 1 
+                AND p.product_id <> pa.product_id AND pa.master_rank_order > 0 
+                AND p.master_rank_order IN (0,1) AND p.master_ref_rev = 0
+                ORDER BY p.product_id, pa.master_rank_order
+
+                DROP TABLE #convetion";
             using (var connection = GetOpenConnection())
             {
                 var result = await Task.Run(() => { return Query<IngredientAlternate>(connection, cmd, null, CommandType.Text); });

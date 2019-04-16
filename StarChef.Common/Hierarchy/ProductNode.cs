@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using static Fourth.StarChef.Invariables.Constants;
 using System.Linq;
+using System.Reflection.Emit;
 
 namespace StarChef.Common.Hierarchy
 {
@@ -47,7 +48,6 @@ namespace StarChef.Common.Hierarchy
         public decimal? GetPrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products,
             HashSet<int> accessList, bool checkAlternates, IEnumerable<IngredientAlternate> alternates)
         {
-            //TODO:: check is it setting for restrict by supplier is on
             //if it is on check access of productId and priceStorage for related alternates
             var workProductId = ProductId;
             if (!accessList.Contains(workProductId) || IsBroken)
@@ -86,6 +86,7 @@ namespace StarChef.Common.Hierarchy
                                 //this case is used when feature Restrict by Supplier access is enable
                                 //check access of child product 
                                 var workChildProductId = child.ProductId;
+                                var workChildRatio = 1m;
 
                                 if (checkAlternates && child.NodeType == ProductType.Ingredient)
                                 {
@@ -95,19 +96,32 @@ namespace StarChef.Common.Hierarchy
                                         break;
                                     }
 
-                                    if (!accessList.Contains(workChildProductId))
+                                    var newItem = GetAlternativeProduct(accessList, alternates, workChildProductId);
+                                    if (newItem != null)
                                     {
-                                        var newItem = GetAlternativeProduct(accessList, alternates, workChildProductId);
-                                        if (!newItem.HasValue)
-                                        {
-                                            total = null;
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            workChildProductId = newItem.Value;
-                                        }
+                                        workChildProductId = newItem.ProductId;
+                                        workChildRatio = newItem.Ratio;
                                     }
+                                    else if(!accessList.Contains(workChildProductId))
+                                    {
+                                        total = null;
+                                        break;
+                                    }
+
+                                    //if (!accessList.Contains(workChildProductId))
+                                    //{
+                                    //    var newItem = GetAlternativeProduct(accessList, alternates, workChildProductId);
+                                    //    if (newItem != null)
+                                    //    {
+                                    //        workChildProductId = newItem.ProductId;
+                                    //        workChildRatio = newItem.Ratio;
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        total = null;
+                                    //        break;
+                                    //    }
+                                    //}
                                 }
                                 else
                                 {
@@ -122,7 +136,7 @@ namespace StarChef.Common.Hierarchy
                                 {
                                     //for batch && standard recipe or for choise where is selected
                                     var product = products[workChildProductId];
-                                    var productConvertion = product.Quantity * product.Number * child.Ratio;
+                                    var productConvertion = product.Quantity * product.Number * child.Ratio * workChildRatio;
 
                                     if (child.NodeType == ProductType.Ingredient)
                                     {
@@ -198,40 +212,72 @@ namespace StarChef.Common.Hierarchy
             }
         }
 
-        private static int? GetAlternativeProduct(HashSet<int> accessList, IEnumerable<IngredientAlternate> alternates,
-            int workChildProductId)
+        private static AlternateChildProduct GetAlternativeProduct(HashSet<int> accessList, IEnumerable<IngredientAlternate> alternates, int workChildProductId)
         {
             if (alternates != null)
             {
-                var alternateItems = alternates.Where(x => x.ProductId == workChildProductId);
-                if (alternateItems.Any())
+                //check is it workChildProductId already alternate
+                var itemItself = alternates.FirstOrDefault(a => a.AlternateProductId == workChildProductId);
+                //item is alternate
+                if (itemItself != null)
                 {
-                    foreach (var alternate in alternateItems.OrderBy((x => x.AlternateRank)))
+                    //check permission if has permission everything is fine
+                    if (accessList.Contains(itemItself.AlternateProductId))
                     {
-                        if (accessList.Contains((alternate.AlternateProductId)))
+                        return new AlternateChildProduct() { ProductId = itemItself.AlternateProductId, Ratio = 1 };
+                    }
+                    else
+                    {
+                        //try to find other item in alternate list
+                        var otherAlternates = alternates.Where(x => x.ProductId == itemItself.ProductId);
+                        if (otherAlternates.Any())
                         {
-                            return alternate.AlternateProductId;
+                            foreach (var alternate in otherAlternates.OrderBy((x => x.AlternateRank)))
+                            {
+                                if (accessList.Contains((alternate.AlternateProductId)))
+                                {
+                                    return new AlternateChildProduct() { ProductId = alternate.AlternateProductId, Ratio = alternate.Ratio };
+                                }
+                            }
                         }
                     }
                 }
                 else
                 {
-                    //try to 
-                    var parentOfAlternate = alternates.FirstOrDefault(x => x.AlternateProductId == workChildProductId);
-                    if (parentOfAlternate != null)
+                    var alternateItems = alternates.Where(x => x.ProductId == workChildProductId);
+                    if (alternateItems.Any())
                     {
-                        if (!accessList.Contains(parentOfAlternate.ProductId))
+                        foreach (var alternate in alternateItems.OrderBy((x => x.AlternateRank)))
                         {
-                        }
-                        else
-                        {
-                            return parentOfAlternate.ProductId;
+                            if (accessList.Contains((alternate.AlternateProductId)))
+                            {
+                                return new AlternateChildProduct() {ProductId = alternate.AlternateProductId, Ratio = alternate.Ratio};
+                            }
                         }
                     }
+                    //else
+                    //{
+                    //    //try to 
+                    //    var parentOfAlternate = alternates.FirstOrDefault(x => x.AlternateProductId == workChildProductId);
+                    //    if (parentOfAlternate != null)
+                    //    {
+                    //        if (accessList.Contains(parentOfAlternate.ProductId))
+                    //        {
+                    //            return new AlternateX()
+                    //                {ProductId = parentOfAlternate.ProductId, Ratio = parentOfAlternate.Ratio};
+                    //        }
+                    //    }
+                    //}
                 }
             }
 
             return null;
         }
+    }
+
+    internal class AlternateChildProduct
+    {
+        public int ProductId { get; set; }
+        public decimal Ratio { get; set; }
     }
 }
