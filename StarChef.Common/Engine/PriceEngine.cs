@@ -76,9 +76,7 @@ namespace StarChef.Common.Engine
                 ProductForest pf = new ProductForest(products.ToList(), parts.ToList(), alternates.ToList());
                 pf.BuildForest();
 
-                var productIds = products.Select(x => x.ProductId).ToList();
                 var groupPrices = await _pricingRepo.GetGroupProductPricesByProduct(productId);
-                //groupPrices = groupPrices.Where(x => productIds.Contains(x.ProductId)).ToList();
 
                 Dictionary<int, Dictionary<int, decimal>> newProductPrices = pf.CalculatePrice(groupPrices.ToList(), restictBySupplier);
                 var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", productId, dt);

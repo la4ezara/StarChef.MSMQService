@@ -243,10 +243,10 @@ namespace StarChef.Common.Hierarchy
             return null;
         }
     }
-}
 
-public class AlternateChildProduct
-{
-    public int ProductId { get; set; }
-    public decimal Ratio { get; set; }
+    public class AlternateChildProduct
+    {
+        public int ProductId { get; set; }
+        public decimal Ratio { get; set; }
+    }
 }

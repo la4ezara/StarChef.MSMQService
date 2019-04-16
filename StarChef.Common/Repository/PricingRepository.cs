@@ -546,7 +546,7 @@ namespace StarChef.Common.Repository
                 var cmd = "DELETE FROM db_product_calc WHERE group_Id IS NULL AND product_id IN (SELECT product_id FROM @udt_prices)";
                 using (var connection = GetOpenConnection())
                 {
-                    await Task.Run(() => { base.Execute(connection, cmd, null, CommandType.Text); });
+                    await Task.Run(() => { base.Execute(connection, cmd, param, CommandType.Text); });
                 }
             }
 
