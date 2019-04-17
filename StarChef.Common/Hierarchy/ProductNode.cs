@@ -136,46 +136,25 @@ namespace StarChef.Common.Hierarchy
 
                                     if (child.NodeType == ProductType.Ingredient)
                                     {
-                                        if (RecipeKind != RecipeType.Choice || child.IsChoise)
+                                        var ingredientPrice = GetIngredientPrice(priceStorage, errors, child, workChildProductId, product, productConvertion);
+                                        if(ingredientPrice.HasValue)
                                         {
-                                            //need to check if child is ingredient is any of its alternates listed in price storage
-                                            //this case is used when feature Restrict by Supplier access is enable
-                                            if (!priceStorage.ContainsKey(workChildProductId))
-                                            {
-                                                string msg = $"ProductId {workChildProductId} not found in list with priceStorage. Calculated productId {ProductId}, childProductId {child.ProductId}, workChildProductId {workChildProductId}";
-                                                if (errors != null)
-                                                {
-                                                    errors.AppendLine(msg);
-                                                }
-                                                throw new KeyNotFoundException(msg);
-                                            }
-
-                                            var baseIngredientPrice = priceStorage[workChildProductId];
-                                            decimal ingredientEpPrice = baseIngredientPrice;
-                                            if (child.Portion == PortionType.EP && product.Wastage.HasValue &&
-                                                product.Wastage <= 100 && product.Wastage > 0)
-                                            {
-                                                ingredientEpPrice =
-                                                    baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
-                                            }
-
-                                            var apPrice = ingredientEpPrice * child.Quantity;
-                                            price = apPrice / productConvertion;
+                                            price = ingredientPrice.Value;
+                                        }
+                                        else
+                                        {
+                                            total = null;
+                                            break;
                                         }
                                     }
                                     else
                                     {
                                         try
                                         {
-                                            var recipePrice = child.GetPrice(priceStorage, products, accessList, checkAlternates, alternates, errors);
+                                            var recipePrice = GetRecipePrice(priceStorage, products, accessList, checkAlternates, alternates, errors, child, productConvertion);
                                             if (recipePrice.HasValue)
                                             {
-                                                if (RecipeKind != RecipeType.Choice || child.IsChoise)
-                                                {
-                                                    var apPrice = recipePrice.Value * child.Quantity;
-                                                    price = apPrice / productConvertion;
-                                                }
-                                                //add non ingredient price
+                                                price = recipePrice.Value;
                                             }
                                             else
                                             {
@@ -230,6 +209,61 @@ namespace StarChef.Common.Hierarchy
 
                 return 0;
             }
+        }
+
+        protected virtual decimal? GetIngredientPrice(Dictionary<int, decimal> priceStorage, StringBuilder errors, ProductNode child,
+            int workChildProductId, Product product, decimal productConvertion)
+        {
+            decimal? price = null;
+            if (RecipeKind != RecipeType.Choice || child.IsChoise)
+            {
+                //need to check if child is ingredient is any of its alternates listed in price storage
+                //this case is used when feature Restrict by Supplier access is enable
+                if (!priceStorage.ContainsKey(workChildProductId))
+                {
+                    string msg =
+                        $"ProductId {workChildProductId} not found in list with priceStorage. Calculated productId {ProductId}, childProductId {child.ProductId}, workChildProductId {workChildProductId}";
+                    if (errors != null)
+                    {
+                        errors.AppendLine(msg);
+                    }
+
+                    throw new KeyNotFoundException(msg);
+                }
+
+                var baseIngredientPrice = priceStorage[workChildProductId];
+                decimal ingredientEpPrice = baseIngredientPrice;
+                if (child.Portion == PortionType.EP && product.Wastage.HasValue &&
+                    product.Wastage <= 100 && product.Wastage > 0)
+                {
+                    ingredientEpPrice =
+                        baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
+                }
+
+                var apPrice = ingredientEpPrice * child.Quantity;
+                price = apPrice / productConvertion;
+            }
+
+            return price;
+        }
+
+        protected virtual decimal? GetRecipePrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products, HashSet<int> accessList,
+            bool checkAlternates, IEnumerable<IngredientAlternate> alternates, StringBuilder errors, ProductNode child, decimal productConvertion)
+        {
+            decimal? price = null;
+            var recipePrice = child.GetPrice(priceStorage, products, accessList, checkAlternates, alternates, errors);
+            if (recipePrice.HasValue)
+            {
+                if (RecipeKind != RecipeType.Choice || child.IsChoise)
+                {
+                    var apPrice = recipePrice.Value * child.Quantity;
+                    price = apPrice / productConvertion;
+                }
+
+                //add non ingredient price
+            }
+
+            return price;
         }
 
         private AlternateChildProduct GetAlternativeProduct(HashSet<int> accessList, IEnumerable<IngredientAlternate> alternates, int workChildProductId)
