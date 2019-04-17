@@ -89,33 +89,26 @@ namespace StarChef.Common.Hierarchy
                                 var workChildProductId = child.ProductId;
                                 var workChildRatio = 1m;
 
+                                if (child.IsBroken)
+                                {
+                                    total = null;
+                                    break;
+                                }
+
                                 if (checkAlternates && child.NodeType == ProductType.Ingredient)
                                 {
-                                    if (child.IsBroken)
-                                    {
-                                        total = null;
-                                        break;
-                                    }
-
                                     var newItem = GetAlternativeProduct(accessList, alternates, workChildProductId);
                                     if (newItem != null)
                                     {
                                         workChildProductId = newItem.ProductId;
                                         workChildRatio = newItem.Ratio;
                                     }
-                                    else if(!accessList.Contains(workChildProductId))
-                                    {
-                                        total = null;
-                                        break;
-                                    }
                                 }
-                                else
+                                
+                                if (!accessList.Contains(workChildProductId))
                                 {
-                                    if (!accessList.Contains(workChildProductId) || child.IsBroken)
-                                    {
-                                        total = null;
-                                        break;
-                                    }
+                                    total = null;
+                                    break;
                                 }
 
                                 if (RecipeKind != RecipeType.Option)
@@ -252,14 +245,10 @@ namespace StarChef.Common.Hierarchy
         {
             decimal? price = null;
             var recipePrice = child.GetPrice(priceStorage, products, accessList, checkAlternates, alternates, errors);
-            if (recipePrice.HasValue)
+            if (recipePrice.HasValue && (RecipeKind != RecipeType.Choice || child.IsChoise))
             {
-                if (RecipeKind != RecipeType.Choice || child.IsChoise)
-                {
-                    var apPrice = recipePrice.Value * child.Quantity;
-                    price = apPrice / productConvertion;
-                }
-
+                var apPrice = recipePrice.Value * child.Quantity;
+                price = apPrice / productConvertion;
                 //add non ingredient price
             }
 
