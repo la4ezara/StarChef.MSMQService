@@ -60,7 +60,6 @@
     <Compile Include="Engine\IPriceEngine.cs" />
     <Compile Include="Extensions\ImportTypeExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
-    <Compile Include="Hierarchy\IngredientAlternates.cs" />
     <Compile Include="Hierarchy\ProductForest.cs" />
     <Compile Include="Hierarchy\ProductNode.cs" />
     <Compile Include="IDatabaseManager.cs" />

@@ -1,7 +1,9 @@
-﻿using StarChef.Common.Model;
+﻿using System;
+using StarChef.Common.Model;
 using System.Collections.Generic;
 using static Fourth.StarChef.Invariables.Constants;
 using System.Linq;
+using System.Text;
 
 namespace StarChef.Common.Hierarchy
 {
@@ -39,13 +41,13 @@ namespace StarChef.Common.Hierarchy
         }
 
         public decimal? GetPrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products,
-            HashSet<int> accessList)
+            HashSet<int> accessList, StringBuilder errors)
         {
-            return GetPrice(priceStorage, products, accessList, false, null);
+            return GetPrice(priceStorage, products, accessList, false, null, errors);
         }
 
         public decimal? GetPrice(Dictionary<int, decimal> priceStorage, Dictionary<int, Product> products,
-            HashSet<int> accessList, bool checkAlternates, IEnumerable<IngredientAlternate> alternates)
+            HashSet<int> accessList, bool checkAlternates, IEnumerable<IngredientAlternate> alternates, StringBuilder errors)
         {
             //if it is on check access of productId and priceStorage for related alternates
             var workProductId = ProductId;
@@ -118,6 +120,16 @@ namespace StarChef.Common.Hierarchy
 
                                 if (RecipeKind != RecipeType.Option)
                                 {
+                                    if (!products.ContainsKey(workChildProductId))
+                                    {
+                                        string msg = $"ProductId {workChildProductId} not found in list with Products. Calculated productId {ProductId}, childProductId {child.ProductId}, workChildProductId {workChildProductId}";
+                                        if (errors != null)
+                                        {
+                                            errors.AppendLine(msg);
+                                        }
+                                        throw new KeyNotFoundException(msg);
+                                    }
+
                                     //for batch && standard recipe or for choise where is selected
                                     var product = products[workChildProductId];
                                     var productConvertion = product.Quantity * product.Number * child.Ratio * workChildRatio;
@@ -128,6 +140,16 @@ namespace StarChef.Common.Hierarchy
                                         {
                                             //need to check if child is ingredient is any of its alternates listed in price storage
                                             //this case is used when feature Restrict by Supplier access is enable
+                                            if (!priceStorage.ContainsKey(workChildProductId))
+                                            {
+                                                string msg = $"ProductId {workChildProductId} not found in list with priceStorage. Calculated productId {ProductId}, childProductId {child.ProductId}, workChildProductId {workChildProductId}";
+                                                if (errors != null)
+                                                {
+                                                    errors.AppendLine(msg);
+                                                }
+                                                throw new KeyNotFoundException(msg);
+                                            }
+
                                             var baseIngredientPrice = priceStorage[workChildProductId];
                                             decimal ingredientEpPrice = baseIngredientPrice;
                                             if (child.Portion == PortionType.EP && product.Wastage.HasValue &&
@@ -143,18 +165,25 @@ namespace StarChef.Common.Hierarchy
                                     }
                                     else
                                     {
-                                        var recipePrice = child.GetPrice(priceStorage, products, accessList, checkAlternates, alternates);
-                                        if (recipePrice.HasValue)
+                                        try
                                         {
-                                            if (RecipeKind != RecipeType.Choice || child.IsChoise)
+                                            var recipePrice = child.GetPrice(priceStorage, products, accessList, checkAlternates, alternates, errors);
+                                            if (recipePrice.HasValue)
                                             {
-                                                var apPrice = recipePrice.Value * child.Quantity;
-                                                price = apPrice / productConvertion;
+                                                if (RecipeKind != RecipeType.Choice || child.IsChoise)
+                                                {
+                                                    var apPrice = recipePrice.Value * child.Quantity;
+                                                    price = apPrice / productConvertion;
+                                                }
+                                                //add non ingredient price
                                             }
-
-                                            //add non ingredient price
+                                            else
+                                            {
+                                                total = null;
+                                                break;
+                                            }
                                         }
-                                        else
+                                        catch (Exception)
                                         {
                                             total = null;
                                             break;
@@ -165,18 +194,26 @@ namespace StarChef.Common.Hierarchy
                                 }
                                 else
                                 {
-                                    var recipePrice = child.GetPrice(priceStorage, products, accessList, checkAlternates, alternates);
-                                    if (!recipePrice.HasValue)
+                                    try
+                                    {
+                                        var recipePrice = child.GetPrice(priceStorage, products, accessList, checkAlternates, alternates, errors);
+                                        if (!recipePrice.HasValue)
+                                        {
+                                            total = null;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            price = 0;
+                                        }
+
+                                        total += price;
+                                    }
+                                    catch (Exception)
                                     {
                                         total = null;
                                         break;
                                     }
-                                    else
-                                    {
-                                        price = 0;
-                                    }
-
-                                    total += price;
                                 }
                             }
                         }

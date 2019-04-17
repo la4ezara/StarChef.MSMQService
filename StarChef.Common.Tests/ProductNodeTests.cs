@@ -2,6 +2,8 @@
 using Xunit;
 using StarChef.Common.Hierarchy;
 using System.Collections.Generic;
+using System.Data.OleDb;
+using System.Text;
 using Fourth.StarChef.Invariables;
 using StarChef.Common.Model;
 
@@ -37,32 +39,37 @@ namespace StarChef.Common.Tests
         [Fact]
         public void PriceRecalcBaseNoAccess()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             Dictionary<int, decimal> priceStorate = new Dictionary<int, decimal>();
             Dictionary<int, Product> forest = new Dictionary<int, Product>();
             forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseIsBroken()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             Dictionary<int, decimal> priceStorate = new Dictionary<int, decimal>();
             Dictionary<int, Product> forest = new Dictionary<int, Product>();
             forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
             node.IsBroken = true;
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseAlreadyCalculatedPrice()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 2.546m;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             Dictionary<int, decimal> priceStorate = new Dictionary<int, decimal>();
@@ -71,14 +78,16 @@ namespace StarChef.Common.Tests
             forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
             accessList.Add(node.ProductId);
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseIngredientZeroPrice()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 0m;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             Dictionary<int, decimal> priceStorate = new Dictionary<int, decimal>();
@@ -86,15 +95,17 @@ namespace StarChef.Common.Tests
             forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
             accessList.Add(node.ProductId);
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.Empty(priceStorate);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeMissingType()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 0m;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             Dictionary<int, decimal> priceStorate = new Dictionary<int, decimal>();
@@ -102,17 +113,19 @@ namespace StarChef.Common.Tests
             forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
             accessList.Add(node.ProductId);
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseNoChilds()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 0m;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
@@ -121,17 +134,19 @@ namespace StarChef.Common.Tests
             forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
             accessList.Add(node.ProductId);
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildNoDefault()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             node.Childs.Add(new ProductNode(2, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient));
@@ -141,13 +156,15 @@ namespace StarChef.Common.Tests
             forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
             accessList.Add(node.ProductId);
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildNoAccess()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient);
@@ -160,13 +177,15 @@ namespace StarChef.Common.Tests
             forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
             accessList.Add(node.ProductId);
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildBroken()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient);
@@ -180,13 +199,15 @@ namespace StarChef.Common.Tests
             HashSet<int> accessList = new HashSet<int>();
             accessList.Add(node.ProductId);
             accessList.Add(childNode.ProductId);
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseThrowProductException()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
@@ -200,13 +221,15 @@ namespace StarChef.Common.Tests
             accessList.Add(node.ProductId);
             accessList.Add(childNode.ProductId);
 
-            Exception ex = Assert.Throws<KeyNotFoundException>(() => node.GetPrice(priceStorate, forest, accessList));
+            Exception ex = Assert.Throws<KeyNotFoundException>(() => node.GetPrice(priceStorate, forest, accessList, sbErrors));
             Assert.NotNull(ex);
+            Assert.NotEqual(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseThrowPriceStorageException()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
@@ -221,13 +244,15 @@ namespace StarChef.Common.Tests
             accessList.Add(node.ProductId);
             accessList.Add(childNode.ProductId);
 
-            Exception ex = Assert.Throws<KeyNotFoundException>(() => node.GetPrice(priceStorate, forest, accessList));
+            Exception ex = Assert.Throws<KeyNotFoundException>(() => node.GetPrice(priceStorate, forest, accessList, sbErrors));
             Assert.NotNull(ex);
+            Assert.NotEqual(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildAp()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 4;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
@@ -244,17 +269,19 @@ namespace StarChef.Common.Tests
             accessList.Add(node.ProductId);
             accessList.Add(childNode.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildEp()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 8;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
@@ -271,17 +298,19 @@ namespace StarChef.Common.Tests
             accessList.Add(node.ProductId);
             accessList.Add(childNode.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildEpInvalidWastage()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 4;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
@@ -298,26 +327,29 @@ namespace StarChef.Common.Tests
             accessList.Add(node.ProductId);
             accessList.Add(childNode.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
 
             forest[childNode.ProductId].Wastage = 110;
-
-            result = node.GetPrice(priceStorate, forest, accessList);
+            sbErrors.Clear();
+            result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipeNoAccess()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);
@@ -340,13 +372,14 @@ namespace StarChef.Common.Tests
             accessList.Add(node.ProductId);
             accessList.Add(childNode.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.Null(result);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipe()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 2;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
@@ -377,17 +410,19 @@ namespace StarChef.Common.Tests
             accessList.Add(subChildOne.ProductId);
             accessList.Add(subChildTwo.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipeBroken()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);
@@ -417,13 +452,15 @@ namespace StarChef.Common.Tests
             accessList.Add(subChildOne.ProductId);
             accessList.Add(subChildTwo.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipeOption()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 0;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
@@ -454,17 +491,19 @@ namespace StarChef.Common.Tests
             accessList.Add(subChildOne.ProductId);
             accessList.Add(subChildTwo.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipeOptionBroken()
         {
+            StringBuilder sbErrors = new StringBuilder();
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Option;
             var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);
@@ -494,13 +533,15 @@ namespace StarChef.Common.Tests
             accessList.Add(childNode.ProductId);
             accessList.Add(subChildTwo.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipeChoiseOption()
         {
+            StringBuilder sbErrors = new StringBuilder();
             decimal expectedPrice = 0m;
             ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
             node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Option;
@@ -509,17 +550,19 @@ namespace StarChef.Common.Tests
             forest.Add(node.ProductId, new Product() { ProductId = 1, Wastage = 0, ScopeId = 1 });
             HashSet<int> accessList = new HashSet<int>();
             accessList.Add(node.ProductId);
-            var result = node.GetPrice(priceStorate, forest, accessList);
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
             Assert.NotNull(result);
             Assert.Equal(expectedPrice, result);
             Assert.NotEmpty(priceStorate);
             Assert.True(priceStorate.ContainsKey(node.ProductId));
             Assert.Equal(expectedPrice, priceStorate[node.ProductId]);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipe_RestrictBySupplier()
         {
+            StringBuilder sbErrors = new StringBuilder();
             //core scenario where we have access to used ingredient and no list with alternates
             var ingredientA = new ProductNode(3, 2, 2, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.EP);
             var ingredientB = new ProductNode(4, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
@@ -550,15 +593,17 @@ namespace StarChef.Common.Tests
             accessList.Add(ingredientB.ProductId);
 
             List<IngredientAlternate> alternates = new List<IngredientAlternate>();
-
-            var result = node.GetPrice(priceStorate, forest, accessList,true, alternates);
+            
+            var result = node.GetPrice(priceStorate, forest, accessList,true, alternates, sbErrors);
             //expected price of node recipe is 2
-            Assert.Equal(result,2);
+            Assert.Equal(2,result);
+            Assert.Equal(0, sbErrors.Length);
         }
 
         [Fact]
         public void PriceRecalcBaseRecipe_RestrictBySupplierWithMainIngredient()
         {
+            StringBuilder sbErrors = new StringBuilder();
             //core scenario where we have access to used ingredient and no list with alternates
             var ingredientA = new ProductNode(3, 2, 2, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.EP);
             var ingredientB = new ProductNode(4, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
@@ -600,13 +645,15 @@ namespace StarChef.Common.Tests
             //remove productId=4 from access list
             accessList.Remove(ingredientB.ProductId);
 
-            var result = node.GetPrice(priceStorate, forest, accessList, true, alternates);
+            var result = node.GetPrice(priceStorate, forest, accessList, true, alternates, sbErrors);
 
             //expected price of node recipe is 2
-            Assert.Equal(result, 1.25m);
+            Assert.Equal(1.25m,result);
+            Assert.Equal(0, sbErrors.Length);
 
             //reset test
             //productid4 is alternate which does not have access -
+            sbErrors.Clear();
             priceStorate.Remove(node.ProductId);
             priceStorate.Remove(childNode.ProductId);
 
@@ -629,13 +676,15 @@ namespace StarChef.Common.Tests
             priceStorate.Add(alternateOfBAlternate.AlternateProductId, 2);
             forest.Add(alternateOfBAlternate.AlternateProductId, new Product() { ProductId = alternateOfBAlternate.AlternateProductId, Wastage = 10, ScopeId = 1, Quantity = 1, UnitId = 3, Number = 2 });
 
-            result = node.GetPrice(priceStorate, forest, accessList, true, alternates);
+            result = node.GetPrice(priceStorate, forest, accessList, true, alternates, sbErrors);
 
             //expected price of node recipe is 2
-            Assert.Equal(result, 3);
+            Assert.Equal(3,result);
+            Assert.Equal(0, sbErrors.Length);
 
             //reset test
             //productid4 is broken
+            sbErrors.Clear();
             priceStorate.Remove(node.ProductId);
             priceStorate.Remove(childNode.ProductId);
 
@@ -650,27 +699,33 @@ namespace StarChef.Common.Tests
             alternates = new List<IngredientAlternate>();
             ingredientB.IsBroken = true;
 
-            result = node.GetPrice(priceStorate, forest, accessList, true, alternates);
+            result = node.GetPrice(priceStorate, forest, accessList, true, alternates, sbErrors);
             //expected price not calculated
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
 
             //reset test
+            sbErrors.Clear();
             ingredientB.IsBroken =false;
             accessList.Remove(ingredientB.ProductId);
-            result = node.GetPrice(priceStorate, forest, accessList, true, alternates);
+            result = node.GetPrice(priceStorate, forest, accessList, true, alternates, sbErrors);
 
             //expected price not calculated
             Assert.Null(result);
+            Assert.Equal(0, sbErrors.Length);
 
             //reset test
+            sbErrors.Clear();
             accessList.Add(ingredientB.ProductId);
             //alternates.Add(new IngredientAlternate() { ProductId = 1, AlternateProductId = 2, Ratio = 3});
-            result = node.GetPrice(priceStorate, forest, accessList, true, null);
+            result = node.GetPrice(priceStorate, forest, accessList, true, null, sbErrors);
 
             //expected price not calculated
-            Assert.Equal(result, 2);
+            Assert.Equal(2, result);
+            Assert.Equal(0, sbErrors.Length);
 
             //reset test
+            sbErrors.Clear();
             priceStorate.Remove(node.ProductId);
             priceStorate.Remove(childNode.ProductId);
 
@@ -682,11 +737,11 @@ namespace StarChef.Common.Tests
             priceStorate.Add(alternateOfMainB.ProductId, 1);
             forest.Add(alternateOfMainB.ProductId, new Product() { ProductId = alternateOfMainB.ProductId, Wastage = 10, ScopeId = 1, Quantity = 1, UnitId = 3, Number = 2 });
 
-            result = node.GetPrice(priceStorate, forest, accessList, true, alternates);
+            result = node.GetPrice(priceStorate, forest, accessList, true, alternates,sbErrors);
 
             //expected price of node recipe is 2
-            Assert.Equal(result, 2);
-
+            Assert.Equal(2, result);
+            Assert.Equal(0, sbErrors.Length);
         }
     }
 }

@@ -276,7 +276,7 @@ namespace StarChef.Common.Repository
 					JOIN product as pa ON p.master_ref_no = pa.master_ref_no
 					WHERE p.product_type_id = 1 AND pa.product_type_id = 1 
 					AND p.product_id <> pa.product_id AND pa.master_rank_order > 0 
-					AND p.master_rank_order IN (0,1) AND p.master_ref_rev = 0
+					AND p.master_rank_order IN (0,1) 
 					AND p.product_id IN (SELECT DISTINCT sub_product_id FROM @tmP_productParts)
 
                     SELECT p.product_id, p.number, p.quantity, p.unit_id, p.product_type_id, p.scope_id, i.wastage, d.recipe_type_id 
@@ -594,7 +594,7 @@ namespace StarChef.Common.Repository
                 JOIN product as pa ON p.master_ref_no = pa.master_ref_no
                 WHERE p.product_type_id = 1 AND pa.product_type_id = 1 
                 AND p.product_id <> pa.product_id AND pa.master_rank_order > 0 
-                AND p.master_rank_order IN (0,1) AND p.master_ref_rev = 0
+                AND p.master_rank_order IN (0,1) 
 
                 UPDATE #convetion
                 SET ratio = dbo.fn_ConversionGetRatioEx(target_product_id, source_unit_id, target_unit_id) 

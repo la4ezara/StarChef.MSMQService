@@ -67,7 +67,7 @@ namespace StarChef.Common.Engine
                 var parts = productsAndParts.Item2;
 
                 bool restictBySupplier = await _pricingRepo.IsIngredientAccess();
-                IEnumerable<IngredientAlternate> alternates = null;
+                IEnumerable<IngredientAlternate> alternates = new List<IngredientAlternate>();
                 if (restictBySupplier)
                 {
                     alternates = await _pricingRepo.GetIngredientAlternates(null);
@@ -149,7 +149,7 @@ namespace StarChef.Common.Engine
                 var parts = await _pricingRepo.GetProductParts();
 
                 bool restictBySupplier = await _pricingRepo.IsIngredientAccess();
-                IEnumerable<IngredientAlternate> alternates = null;
+                IEnumerable<IngredientAlternate> alternates = new List<IngredientAlternate>();
                 if (restictBySupplier)
                 {
                     alternates=await _pricingRepo.GetIngredientAlternates(null);

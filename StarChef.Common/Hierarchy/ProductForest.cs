@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using static Fourth.StarChef.Invariables.Constants;
 
 namespace StarChef.Common.Hierarchy
@@ -134,16 +135,6 @@ namespace StarChef.Common.Hierarchy
         /// Calculate all prices for set of groups
         /// </summary>
         /// <param name="groupPrices"></param>
-        /// <returns></returns>
-        public Dictionary<int, Dictionary<int, decimal>> CalculatePrice(List<ProductGroupPrice> groupPrices)
-        {
-            return CalculatePrice(groupPrices, false);
-        }
-
-        /// <summary>
-        /// Calculate all prices for set of groups
-        /// </summary>
-        /// <param name="groupPrices"></param>
         /// <param name="checkAlternates"></param>
         /// <returns></returns>
         public Dictionary<int, Dictionary<int, decimal>> CalculatePrice(List<ProductGroupPrice> groupPrices, bool checkAlternates)
@@ -204,10 +195,10 @@ namespace StarChef.Common.Hierarchy
             Dictionary<int, decimal> groupCalculatedPrices = groups.Where(p => p.Price.HasValue && p.Price >= 0).ToDictionary(key => key.ProductId, value => value.Price.Value);
 
             var keys = _forest.Keys.ToList();
-
+            StringBuilder errors = new StringBuilder();
             for (var y = 0; y < keys.Count; y++)
             {
-                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList, checkAlternates, _alternates);
+                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList, checkAlternates, _alternates, errors);
             }
 
             ///calculate items for producrs which are in results but they are private
