@@ -29,7 +29,7 @@ namespace StarChef.MSMQService.Configuration.Impl
             this.ToAddress = ConfigurationManager.AppSettings["ToAddress"];
             this.Alias = ConfigurationManager.AppSettings["Alias"];
             this.FromAddress = ConfigurationManager.AppSettings["FromAddress"];
-            this.SendPoisonMessageNotification = true;
+            this.SendPoisonMessageNotification = false;
         }
     }
 }

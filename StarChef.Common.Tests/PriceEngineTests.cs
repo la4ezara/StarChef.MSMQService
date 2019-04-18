@@ -25,7 +25,7 @@ namespace StarChef.Common.Tests
             DateTime messageTime = DateTime.UtcNow;
 
             repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(1) }); });
-            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
+            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int,int,int,int,int, DateTime>((string action, int productId, int groupid, int pbandId, int setid, int unitId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
                 productIdResult = productId;
@@ -52,7 +52,7 @@ namespace StarChef.Common.Tests
             DateTime messageTime = DateTime.UtcNow;
 
             repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { EndTime = DateTime.UtcNow.AddHours(1) }); });
-            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
+            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, int, int, int, int, DateTime>((string action, int productId, int groupid, int pbandId, int setid, int unitId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
                 productIdResult = productId;
@@ -97,7 +97,7 @@ namespace StarChef.Common.Tests
             DateTime messageTime = DateTime.UtcNow;
 
             repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(-1) }); });
-            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
+            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, int, int, int, int, DateTime>((string action, int productId, int groupid, int pbandId, int setid, int unitId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
                 productIdResult = productId;
@@ -143,7 +143,7 @@ namespace StarChef.Common.Tests
             bool isSuccessStatusUpdate = false;
 
             repo.Setup(x => x.GetLastMsmqStartTime(productId)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(-1) }); });
-            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int product_Id, DateTime dt) => {
+            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, int, int, int, int, DateTime>((string action, int product_Id, int groupid, int pbandId, int setid, int unitId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
                 productIdResult = product_Id;
@@ -216,7 +216,7 @@ namespace StarChef.Common.Tests
             DateTime messageTime = DateTime.UtcNow;
 
             repo.Setup(x => x.GetLastMsmqStartTime(0)).Returns(() => { return Task.FromResult<MsmqLog>(new MsmqLog() { StartTime = DateTime.UtcNow.AddHours(-1) }); });
-            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, DateTime>((string action, int productId, DateTime dt) => {
+            repo.Setup(x => x.CreateMsmqLog(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<string, int, int, int, int, int, DateTime>((string action, int productId, int groupid, int pbandId, int setid, int unitId, DateTime dt) => {
                 actionResult = action;
                 dtResult = dt;
                 productIdResult = productId;

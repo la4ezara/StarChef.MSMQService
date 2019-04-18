@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using static Fourth.StarChef.Invariables.Constants;
 
 namespace StarChef.Common.Hierarchy
@@ -19,13 +20,21 @@ namespace StarChef.Common.Hierarchy
 
         public Dictionary<int, Product> PrivateProducts => _privateProducts;
 
-        public ProductForest(List<Product> products, List<ProductPart> parts)
+        private IEnumerable<IngredientAlternate> _alternates { get;set;}
+
+        public ProductForest(List<Product> products, List<ProductPart> parts) : this(products, parts, null)
+        {
+            
+        }
+
+        public ProductForest(List<Product> products, List<ProductPart> parts, List<IngredientAlternate> alternates)
         {
             _products = products;
             _products_dict = products.ToDictionary(key => key.ProductId, value => value);
             _privateProducts = products.Where(p => p.ScopeId > 1).ToDictionary(key => key.ProductId, value => value);
             _parts = parts;
             _forest = new Dictionary<int, ProductNode>();
+            _alternates = alternates;
         }
 
         public void BuildForest()
@@ -122,37 +131,54 @@ namespace StarChef.Common.Hierarchy
             }
         }
 
+        public class CalculatedPrices
+        {
+            public readonly Dictionary<int, decimal> Prices;
+            public readonly StringBuilder Errors;
+
+            public CalculatedPrices(Dictionary<int, decimal> prices, StringBuilder errors)
+            {
+                Prices = prices;
+                Errors = errors;
+            }
+        }
+
         /// <summary>
-        /// Calcualte all prices for set of groups
+        /// Calculate all prices for set of groups
         /// </summary>
         /// <param name="groupPrices"></param>
+        /// <param name="checkAlternates"></param>
         /// <returns></returns>
-        public Dictionary<int, Dictionary<int, decimal>> CalculatePrice(List<ProductGroupPrice> groupPrices)
+        public Dictionary<int, CalculatedPrices> CalculatePrice(List<ProductGroupPrice> groupPrices, bool checkAlternates)
         {
-            Dictionary<int, Dictionary<int, decimal>> allPrices = new Dictionary<int, Dictionary<int, decimal>>();
+            Dictionary<int, CalculatedPrices> allPrices = new Dictionary<int, CalculatedPrices>();
             ConcurrentDictionary<int, decimal> privatePrices = new ConcurrentDictionary<int, decimal>();
             var groupedGroupPrices = groupPrices.GroupBy(g => g.GroupId).OrderByDescending(g => g.Key).ToList();
-            //possible to execure in parallel
+            //possible to execute in parallel
             for (int i = 0; i < groupedGroupPrices.Count; i++)
             {
-                var groups = groupedGroupPrices[i].ToList();
-                var groupCalculatedPrices = CalculatePrice(groups, privatePrices);
+                var group = groupedGroupPrices[i];
+                StringBuilder sbErrors = new StringBuilder();
+                var groups = group.ToList();
+                var groupCalculatedPrices = CalculatePrice(groups, privatePrices, checkAlternates, sbErrors);
                 if (groupCalculatedPrices.Any())
                 {
-                    if (groupedGroupPrices[i].Key.HasValue)
+                    var calcPrices = new CalculatedPrices(groupCalculatedPrices, sbErrors);
+                    if (group.Key.HasValue)
                     {
-                        allPrices.Add(groupedGroupPrices[i].Key.Value, groupCalculatedPrices);
+                        allPrices.Add(group.Key.Value, calcPrices);
                     }
                     else
                     {
-                        allPrices.Add(0, groupCalculatedPrices);
+                        allPrices.Add(0, calcPrices);
                     }
                 }
             }
 
             //if we have a public items which are not linked to any set they do not have a group
-            if (allPrices.ContainsKey(0)) {
-                var items = allPrices[0];
+            if (allPrices.ContainsKey(0))
+            {
+                var items = allPrices[0].Prices;
                 //add private items to that list
                 foreach (var pi in privatePrices)
                 {
@@ -164,9 +190,10 @@ namespace StarChef.Common.Hierarchy
             }
             else
             {
-                allPrices.Add(0, privatePrices.ToDictionary(k => k.Key, v => v.Value));
+                var calcPrices = new CalculatedPrices(privatePrices.ToDictionary(k => k.Key, v => v.Value), new StringBuilder());
+                allPrices.Add(0, calcPrices);
             }
-            
+
             return allPrices;
         }
 
@@ -176,7 +203,7 @@ namespace StarChef.Common.Hierarchy
         /// <param name="groups"></param>
         /// <param name="privatePrices"></param>
         /// <returns></returns>
-        public Dictionary<int, decimal> CalculatePrice(List<ProductGroupPrice> groups, ConcurrentDictionary<int, decimal> privatePrices)
+        public Dictionary<int, decimal> CalculatePrice(List<ProductGroupPrice> groups, ConcurrentDictionary<int, decimal> privatePrices, bool checkAlternates, StringBuilder errors)
         {
             HashSet<int> accessList = new HashSet<int>(groups.Select(p => p.ProductId).Distinct());
 
@@ -184,10 +211,9 @@ namespace StarChef.Common.Hierarchy
             Dictionary<int, decimal> groupCalculatedPrices = groups.Where(p => p.Price.HasValue && p.Price >= 0).ToDictionary(key => key.ProductId, value => value.Price.Value);
 
             var keys = _forest.Keys.ToList();
-
             for (var y = 0; y < keys.Count; y++)
             {
-                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList);
+                _forest[keys[y]].GetPrice(groupCalculatedPrices, _products_dict, accessList, checkAlternates, _alternates, errors);
             }
 
             ///calculate items for producrs which are in results but they are private

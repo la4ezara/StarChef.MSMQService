@@ -6,17 +6,27 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using log4net;
 
 namespace StarChef.Common.Engine
 {
     public class PriceEngine : IPriceEngine
     {
         private readonly IPricingRepository _pricingRepo;
+        private readonly ILog _logger;
 
         public PriceEngine(IPricingRepository pricingRepo)
         {
             _pricingRepo = pricingRepo;
         }
+
+        public PriceEngine(IPricingRepository pricingRepo, ILog logger)
+        {
+            _pricingRepo = pricingRepo;
+            _logger = logger;
+        }
+
+
 
         public bool CanRecalculate(MsmqLog log, DateTime arrivedTime)
         {
@@ -41,7 +51,13 @@ namespace StarChef.Common.Engine
             return true;
         }
 
-        public async Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices, DateTime? arrivedTime) {
+        public async Task<IEnumerable<DbPrice>> Recalculation(int productId, bool storePrices, DateTime? arrivedTime)
+        {
+            return await Recalculation(productId, 0, 0, 0, 0, storePrices, arrivedTime);
+        }
+
+        public async Task<IEnumerable<DbPrice>> Recalculation(int productId, int groupId, int pbandId, int setId, int unitId, bool storePrices, DateTime? arrivedTime)
+        {
             List<DbPrice> prices = new List<DbPrice>();
             DateTime dt = DateTime.UtcNow;
             if (arrivedTime.HasValue)
@@ -55,7 +71,7 @@ namespace StarChef.Common.Engine
             //validate - is it last recalculation more actual that current request date
             if (!canRecalculate)
             {
-                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation Skipped", productId, dt);
+                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation Skipped", productId, groupId, pbandId, setId, unitId, dt);
                 await _pricingRepo.UpdateMsmqLog(dt, logId, true);
             }
             else
@@ -65,19 +81,56 @@ namespace StarChef.Common.Engine
                 var products = productsAndParts.Item1;
                 var parts = productsAndParts.Item2;
 
-                ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
+                bool restictBySupplier = await _pricingRepo.IsIngredientAccess();
+                IEnumerable<IngredientAlternate> alternates = new List<IngredientAlternate>();
+                if (restictBySupplier)
+                {
+                    alternates = await _pricingRepo.GetIngredientAlternates(null);
+                }
+
+                ProductForest pf = new ProductForest(products.ToList(), parts.ToList(), alternates.ToList());
                 pf.BuildForest();
 
-                var productIds = products.Select(x => x.ProductId).ToList();
                 var groupPrices = await _pricingRepo.GetGroupProductPricesByProduct(productId);
-                groupPrices = groupPrices.Where(x => productIds.Contains(x.ProductId)).ToList();
-                Dictionary<int, Dictionary<int, decimal>> newProductPrices = pf.CalculatePrice(groupPrices.ToList());
-                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", productId, dt);
+
+                Dictionary<int, ProductForest.CalculatedPrices> newProductPrices = pf.CalculatePrice(groupPrices.ToList(), restictBySupplier);
+                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", productId, groupId, pbandId, setId, unitId, dt);
 
                 bool isSuccess = true;
                 foreach (var group in newProductPrices)
                 {
-                    bool saveResult = _pricingRepo.UpdatePrices(group.Value, group.Key == 0 ? new Nullable<int>() : group.Key, logId, dt);
+                    //delete old prices which are no longer valid
+                    var requiredPrices = groupPrices.Where(x => (x.GroupId.HasValue && x.GroupId == group.Key) ||(group.Key == 0 && !x.GroupId.HasValue));
+                    List<int> itemsToDelete = new List<int>();
+                    foreach (var price in requiredPrices)
+                    {
+                        if (!group.Value.Prices.ContainsKey((price.ProductId)))
+                        {
+                            itemsToDelete.Add(price.ProductId);
+                        }
+                    }
+
+                    int? calculatedGroupId = null;
+                    if (group.Key > 0)
+                    {
+                        calculatedGroupId = group.Key;
+                    }
+
+                    //delete items for which we require prices but prices was not generated
+                    if (itemsToDelete.Any())
+                    {
+                        await _pricingRepo.ClearPrices(itemsToDelete, calculatedGroupId);
+                        var msgDelete = $"Delete prices for group {group.Key} total prices {itemsToDelete.Count}";
+                        DebugLog(msgDelete);
+                    }
+
+                    var msgStart = $"Start saving group {group.Key} total prices {group.Value.Prices.Count} at {DateTime.UtcNow}";
+                    DebugLog(msgStart);
+                    bool saveResult = _pricingRepo.UpdatePrices(group.Value.Prices, calculatedGroupId, logId, dt);
+                    ErrorLog(group.Value.Errors.ToString());
+                    var msgEnd = $"End saving group {group.Key} total prices {group.Value.Prices.Count} at {DateTime.UtcNow}";
+                    DebugLog(msgEnd);
+                    
                     if (!saveResult)
                     {
                         isSuccess = false;
@@ -88,7 +141,7 @@ namespace StarChef.Common.Engine
 
                 foreach (var group in newProductPrices)
                 {
-                    foreach (var productPrice in group.Value)
+                    foreach (var productPrice in group.Value.Prices)
                     {
                         prices.Add(new DbPrice() { GroupId = group.Key, ProductId = productPrice.Key, Price = productPrice.Value });
                     }
@@ -98,6 +151,11 @@ namespace StarChef.Common.Engine
         }
 
         public async Task<IEnumerable<DbPrice>> GlobalRecalculation(bool storePrices, DateTime? arrivedTime)
+        {
+            return await GlobalRecalculation(storePrices, 0, 0, 0, 0, arrivedTime);
+        }
+
+        public async Task<IEnumerable<DbPrice>> GlobalRecalculation(bool storePrices, int groupId, int pbandId, int setId, int unitId, DateTime? arrivedTime)
         {
             List<DbPrice> prices = new List<DbPrice>();
             DateTime dt = DateTime.UtcNow;
@@ -110,7 +168,7 @@ namespace StarChef.Common.Engine
             //validate is it last recalculation more actual that current request date
             if (!canRecalculate)
             {
-                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation Skipped", 0, dt);
+                var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation Skipped", 0, groupId, pbandId, setId, unitId, dt);
                 await _pricingRepo.UpdateMsmqLog(dt, logId, true);
             }
             else
@@ -118,22 +176,36 @@ namespace StarChef.Common.Engine
                 var products = await _pricingRepo.GetProducts();
                 var parts = await _pricingRepo.GetProductParts();
 
-                ProductForest pf = new ProductForest(products.ToList(), parts.ToList());
+                bool restictBySupplier = await _pricingRepo.IsIngredientAccess();
+                IEnumerable<IngredientAlternate> alternates = new List<IngredientAlternate>();
+                if (restictBySupplier)
+                {
+                    alternates=await _pricingRepo.GetIngredientAlternates(null);
+                }
+
+                ProductForest pf = new ProductForest(products.ToList(), parts.ToList(), alternates.ToList());
                 pf.BuildForest();
 
                 var groupPrices = await _pricingRepo.GetGroupProductPricesByGroup(0);
-                Dictionary<int, Dictionary<int, decimal>> result = pf.CalculatePrice(groupPrices.ToList());
+
+                Dictionary<int, ProductForest.CalculatedPrices> result = pf.CalculatePrice(groupPrices.ToList(), restictBySupplier);
 
                 if (storePrices)
                 {
-                    var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", 0, dt);
+                    var logId = await _pricingRepo.CreateMsmqLog("Dish Pricing Calculation", 0, groupId, pbandId, setId, unitId, dt);
 
                     bool isSuccess = true;
                     foreach (var group in result)
                     {
-                        var groupId = group.Key == 0 ? new Nullable<int>() : group.Key;
-                        await _pricingRepo.ClearPrices(groupId);
-                        bool saveResult = _pricingRepo.InsertPrices(group.Value, groupId, logId, dt);
+                        var calculatedGroupId = group.Key == 0 ? new Nullable<int>() : group.Key;
+                        await _pricingRepo.ClearPrices(calculatedGroupId);
+                        var msgStart = $"Start saving group {group.Key} total prices {group.Value.Prices.Count} at {DateTime.UtcNow}";
+                        DebugLog(msgStart);
+                        bool saveResult = _pricingRepo.InsertPrices(group.Value.Prices, calculatedGroupId, logId, dt);
+                        ErrorLog(group.Value.Errors.ToString());
+                        var msgEnd = $"End saving group {group.Key} total prices {group.Value.Prices.Count} at {DateTime.UtcNow}";
+                        DebugLog(msgEnd);
+                        
                         if (!saveResult)
                         {
                             isSuccess = false;
@@ -145,7 +217,7 @@ namespace StarChef.Common.Engine
 
                 foreach (var group in result)
                 {
-                    foreach (var productPrice in group.Value)
+                    foreach (var productPrice in group.Value.Prices)
                     {
                         prices.Add(new DbPrice() { GroupId = group.Key, ProductId = productPrice.Key, Price = productPrice.Value });
                     }
@@ -208,6 +280,22 @@ namespace StarChef.Common.Engine
                 result = true;
             }
             return result;
+        }
+
+        protected void ErrorLog(string message)
+        {
+            if (_logger != null && !string.IsNullOrEmpty(message))
+            {
+                _logger.Error(message);
+            }
+        }
+
+        protected void DebugLog(string message)
+        {
+            if (_logger != null && !string.IsNullOrEmpty(message))
+            {
+                _logger.Debug(message);
+            }
         }
     }
 }

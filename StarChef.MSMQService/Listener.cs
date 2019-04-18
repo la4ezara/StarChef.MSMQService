@@ -111,7 +111,7 @@ namespace StarChef.MSMQService
                                     }
                                 }
 
-                                if (updmsg != null)
+                                if (updmsg != null && !string.IsNullOrEmpty(updmsg.DSN))
                                 {
                                     OnMessageProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Processing));
                                     _logger.Debug("start processing");
@@ -591,7 +591,7 @@ namespace StarChef.MSMQService
         public virtual IPriceEngine GetPriceEngine(string dsn)
         {
             var repo = new Common.Repository.PricingRepository(dsn, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC);
-            var engine = new PriceEngine(repo);
+            var engine = new PriceEngine(repo, _logger);
             return engine;
         }
 
@@ -635,11 +635,11 @@ namespace StarChef.MSMQService
                 IEnumerable<Common.Model.DbPrice> result;
                 if (runGlobalRecalculation)
                 {
-                    result = engine.GlobalRecalculation(true, arrivedTime).Result;
+                    result = engine.GlobalRecalculation(true, groupId, pbandId, psetId, unitId, arrivedTime).Result;
                 }
                 else
                 {
-                    result = engine.Recalculation(productId, true, arrivedTime).Result;
+                    result = engine.Recalculation(productId, groupId, pbandId, psetId, unitId, true, arrivedTime).Result;
                 }
 
                 sw.Stop();

@@ -113,7 +113,7 @@ namespace StarChef.SqlQueue.Service
             var threadName = $"ThreadDbId{userDatabase.DatabaseId}";
             var count = _databaseManager.ExecuteScalar(userDatabase.ConnectionString, "sc_calculation_queue_count");
             Common.Repository.IPricingRepository repo = new Common.Repository.PricingRepository(userDatabase.ConnectionString, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC);
-            Common.Engine.IPriceEngine engine = new Common.Engine.PriceEngine(repo);
+            Common.Engine.IPriceEngine engine = new Common.Engine.PriceEngine(repo, Logger);
 
             if (count > this._appConfiguration.NewThreadMessages)
             {
@@ -308,12 +308,12 @@ namespace StarChef.SqlQueue.Service
                                                 if (entityMessage.ProductID > 0)
                                                 {
                                                     Logger.Info($"Run product price recalculation DataBase {userDatabase.DatabaseId}");
-                                                    result = pEngine.Recalculation(entityMessage.ProductID, true, DateTime.UtcNow).Result;
+                                                    result = pEngine.Recalculation(entityMessage.ProductID,0,0,0,0, true, DateTime.UtcNow).Result;
                                                 }
                                                 else
                                                 {
                                                     Logger.Info($"Run global price recalculation DataBase {userDatabase.DatabaseId}");
-                                                    result = pEngine.GlobalRecalculation(true, DateTime.UtcNow).Result;
+                                                    result = pEngine.GlobalRecalculation(true,0,0,0,0, DateTime.UtcNow).Result;
                                                 }
 
                                                 Logger.Info($"Generated {result.Count()} prices");
