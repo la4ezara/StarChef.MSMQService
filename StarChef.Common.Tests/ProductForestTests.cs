@@ -233,7 +233,7 @@ namespace StarChef.Common.Tests
             Assert.NotEmpty(result);
             Assert.True(result.ContainsKey(0));
             //private and non group items = 2
-            Assert.Equal(2, result[0].Count);
+            Assert.Equal(2, result[0].Prices.Count);
         }
     }
 }

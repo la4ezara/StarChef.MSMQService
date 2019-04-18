@@ -304,16 +304,20 @@ namespace StarChef.Common.Repository
 
         #region Msmqlog
 
-        public async Task<int> CreateMsmqLog(string action, int productId, DateTime logDate) {
+        public async Task<int> CreateMsmqLog(string action, int productId, int groupId, int pbandId, int setId, int unitId, DateTime logDate) {
             var param = new
             {
                 action = action,
                 product_id = productId,
-                updateDate = logDate
+                updateDate = logDate,
+                group_id = groupId,
+                pset_id = setId,
+                pband_id = pbandId,
+                unit_id = unitId
             };
 
             var cmd = @"INSERT INTO msmq_update_log (calc_type, group_id, product_id, pset_id, pband_id, unit_id,update_start_time)
-                    VALUES (@action, 0, @product_id, 0, 0, 0, @updateDate)
+                    VALUES (@action, @group_id, @product_id, @pset_id, @pband_id, @unit_id, @updateDate)
                     SELECT SCOPE_IDENTITY()";
             using (var connection = GetOpenConnection())
             {

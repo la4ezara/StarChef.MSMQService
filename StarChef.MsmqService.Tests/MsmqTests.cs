@@ -187,7 +187,7 @@ namespace StarChef.MsmqService.Tests
             int databaseId = 1;
 
             //send 1 message to fake queue
-            var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", DSN = "testdb", EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
             //check do we have message in queue
@@ -226,6 +226,8 @@ namespace StarChef.MsmqService.Tests
             var ml = new Mock<Listener>(new object[] { config.Object, dbManager.Object, messageManager.Object });
             var ipe = new Mock<IPriceEngine>();
             ipe.Setup(x => x.IsEngineEnabled()).Returns(Task.FromResult(true));
+            ipe.Setup(x => x.GlobalRecalculation(It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime?>())).Returns(Task.FromResult(new List<Common.Model.DbPrice>().AsEnumerable())).Callback((bool store, int groupid, int pbandid, int psetid, int unitid, DateTime? arriveTime) => { globalPriceRecalcExec = true; });
+            ipe.Setup(x => x.Recalculation(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<DateTime?>())).Returns(Task.FromResult(new List<Common.Model.DbPrice>().AsEnumerable())).Callback((int productId, int groupid, int pbandid, int psetid, int unitid, bool store, DateTime? arriveTime) => { productPriceRecalcExec = true; productPriceRecalcExecId = productId; });
             ipe.Setup(x => x.GlobalRecalculation(It.IsAny<bool>(), It.IsAny<DateTime?>())).Returns(Task.FromResult(new List<Common.Model.DbPrice>().AsEnumerable())).Callback((bool store, DateTime? arriveTime) => { globalPriceRecalcExec = true; });
             ipe.Setup(x => x.Recalculation(It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<DateTime?>())).Returns(Task.FromResult(new List<Common.Model.DbPrice>().AsEnumerable())).Callback((int productId, bool store, DateTime? arriveTime) => { productPriceRecalcExec = true; productPriceRecalcExecId = productId; });
 
@@ -239,7 +241,7 @@ namespace StarChef.MsmqService.Tests
             int databaseId = 1;
 
             //send 1 message to fake queue
-            var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", DSN = "testdb", EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
             //check do we have message in queue
@@ -255,7 +257,7 @@ namespace StarChef.MsmqService.Tests
             calledStoredProcedures.Should().BeEmpty();
 
             //send 1 message to fake queue
-            singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", DSN = "testdb", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
             //check do we have message in queue
@@ -320,7 +322,7 @@ namespace StarChef.MsmqService.Tests
             int databaseId = 1;
 
             //send 1 message to fake queue
-            var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            var singleMessage = new UpdateMessage() { DatabaseID = databaseId, ExternalId = "1", DSN = "testdb",EntityTypeId = 20, Action = (int)MessageActionType.GlobalUpdate, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
             //check do we have message in queue
