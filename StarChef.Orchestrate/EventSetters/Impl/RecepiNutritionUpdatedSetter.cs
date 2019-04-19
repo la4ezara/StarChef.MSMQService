@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Decimal = Fourth.Orchestration.Model.Common.Decimal;
 
 namespace StarChef.Orchestrate
 {
@@ -17,98 +18,85 @@ namespace StarChef.Orchestrate
 
         public bool SetForUpdate(Events.RecipeNutritionUpdated.Builder builder, string connectionString, int entityId, int databaseId)
         {
-            if (builder == null) return false;
+            if (builder == null)
+            {
+                return false;
+            }
 
             var cust = new Customer(databaseId);
             var dbManager = new DatabaseManager();
-            using (var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_set", new SqlParameter("@pset_id", entityId)))
+            using (var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_recipe_nutritions", new SqlParameter("@entity_id", entityId)))
             {
                 if (reader.Read())
                 {
-                    byte productType = reader.GetValueOrDefault<byte>("product_type_id");
-
                     builder
-                        .SetCustomerCanonicalId(cust.ExternalId);
-                        //.SetRecipeId(entityId)
+                        .SetCustomerCanonicalId(cust.ExternalId)
+                        .SetRecipeId(reader.GetValueOrDefault<string>("product_guid"));
 
-                        //.SetStatus(Events.EntityState.Valid)
-                        //.SetSetName(reader.GetValueOrDefault<string>("pset_name"));
+                    List<RecipeNutrition> nutritions = new List<RecipeNutrition>();
 
-                    builder.
-
-                    List<Product> products = new List<Product>();
                     if (reader.NextResult())
                     {
-                        products = GetProducts(reader);
+                        nutritions = GetRecipeNutrition(reader);
                     }
-                    switch (productType)
-                    {
-                        // Ingredient
-                        case 1:
-                            BuildIngredients(builder, products);
-                            break;
-                        // Dish (Recipe)
-                        case 2:
-                            BuildRecipes(builder, products);
-                            break;
-                    }
+
+                    BuildRecipeNutritions(builder, nutritions);
+                         
                 }
             }
 
             return true;
         }
 
-        private List<Product> GetProducts(IDataReader reader)
+        private List<RecipeNutrition> GetRecipeNutrition(IDataReader reader)
         {
-            List<Product> products = new List<Product>();
+            List<RecipeNutrition> nutritions = new List<RecipeNutrition>();
 
             while (reader.Read())
             {
-                var product = new Product
+                var nutrition = new RecipeNutrition
                 {
 
-                    Id = reader.GetValueOrDefault<string>("product_guid"),
-                    Name = reader.GetValueOrDefault<string>("product_name")
-
+                    Id = reader.GetValueOrDefault<string>("nutrient_guid"),
+                    Name = reader.GetValueOrDefault<string>("nutrient_name"),
+                    NutrientPerHundredGram = reader.GetValueOrDefault<Decimal>("nutrient_percent"),
+                    NutrientPerPortion = reader.GetValueOrDefault<Decimal>("nutrient_percent"),
+                    NutrientReferenceIntake = reader.GetValueOrDefault<Decimal>("nutrient_portion"),
+                    NutrientDescription = reader.GetValueOrDefault<string>("nutrient_ds_percent"),
                 };
-                products.Add(product);
+
+                nutritions.Add(nutrition);
             }
 
-            return products;
+            return nutritions;
         }
 
-        private static void BuildIngredients(Events.SetUpdated.Builder builder, List<Product> products)
+        private static void BuildRecipeNutritions(Events.RecipeNutritionUpdated.Builder builder, List<RecipeNutrition> nutritions)
         {
-            foreach (var product in products)
+            foreach (var nutrition in nutritions)
             {
-                var ingredientBuilder = Events.SetUpdated.Types.Ingredient.CreateBuilder();
+                var recipeNutritionsBuilder = Events.RecipeNutritionUpdated.Types.RecipeNutrition.CreateBuilder();
 
-                ingredientBuilder
-                    .SetExternalId(product.Id)
-                    .SetIngredientName(product.Name);
+                recipeNutritionsBuilder
+                    .SetNutrientId(nutrition.Id)
+                    .SetNutrientName(nutrition.Name)
+                    .SetNutrientPerHundredGram(nutrition.NutrientPerHundredGram)
+                    .SetNutrientPerPortion(nutrition.NutrientPerPortion)
+                    .SetReferenceIntake(nutrition.NutrientReferenceIntake)
+                    .SetNutrientDescription(nutrition.NutrientDescription);
 
-                builder.AddIngredients(ingredientBuilder);
+                builder.AddRecipeNutritions(recipeNutritionsBuilder);
             }
         }
 
-        private static void BuildRecipes(Events.SetUpdated.Builder builder, List<Product> products)
-        {
-            foreach (var product in products)
-            {
-                var recipeBuilder = Events.SetUpdated.Types.Recipe.CreateBuilder();
-
-                recipeBuilder
-                    .SetExternalId(product.Id)
-                    .SetRecipeName(product.Name);
-
-                builder.AddRecipes(recipeBuilder);
-            }
-        }
-
-        private class Product
+        private class RecipeNutrition
         {
             public string Id { get; set; }
             public string Name { get; set; }
+            public Decimal NutrientPerHundredGram { get; set; }
+            public Decimal NutrientPerPortion { get; set; }
+            public Decimal NutrientReferenceIntake { get; set; }
+            public string NutrientDescription { get; set; }
         }
     }
 }
