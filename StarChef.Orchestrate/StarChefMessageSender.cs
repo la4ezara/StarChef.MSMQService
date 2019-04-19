@@ -18,6 +18,7 @@ using MealPeriodUpdated = Fourth.Orchestration.Model.Menus.Events.MealPeriodUpda
 using SupplierUpdated = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated;
 using UserUpdated = Fourth.Orchestration.Model.Menus.Events.UserUpdated;
 using SetUpdated = Fourth.Orchestration.Model.Menus.Events.SetUpdated;
+using RecepiNutritionUpdated = Fourth.Orchestration.Model.Menus.Events.RecipeNutritionUpdated;
 
 using IngredientUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.IngredientUpdated.Builder;
 using RecipeUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated.Builder;
@@ -28,6 +29,7 @@ using SupplierUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SupplierU
 using UserUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.UserUpdated.Builder;
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
 using SetUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SetUpdated.Builder;
+using RecepiNutritionUpdateBuilder = Fourth.Orchestration.Model.Menus.Events.RecipeNutritionUpdated.Builder;
 
 using CreateAccountBuilder = Fourth.Orchestration.Model.People.Commands.CreateAccount.Builder;
 using UpdateAccountBuilder = Fourth.Orchestration.Model.People.Commands.UpdateAccount.Builder;
@@ -247,6 +249,12 @@ namespace StarChef.Orchestrate
                             case EnumHelper.EntityTypeWrapper.ProductSet:
                                 {
                                     var payload = _eventFactory.CreateUpdateEvent<SetUpdated, SetUpdatedBuilder>(dbConnectionString, entityId, databaseId);
+                                    result = Publish(bus, payload);
+                                }
+                                break;
+                            case EnumHelper.EntityTypeWrapper.ProductNutrition:
+                                {
+                                    var payload = _eventFactory.CreateUpdateEvent<RecepiNutritionUpdated, RecepiNutritionUpdateBuilder>(dbConnectionString, entityId, databaseId);
                                     result = Publish(bus, payload);
                                 }
                                 break;

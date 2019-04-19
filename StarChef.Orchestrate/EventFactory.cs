@@ -13,6 +13,7 @@ namespace StarChef.Orchestrate
         private readonly IEventSetter<Events.SupplierUpdated.Builder> _supplierUpdatedSetter;
         private readonly IEventSetter<Events.UserUpdated.Builder> _userUpdatedSetter;
         private readonly IEventSetter<Events.SetUpdated.Builder> _setUpdatedSetter;
+        private readonly IEventSetter<Events.RecipeNutritionUpdated.Builder> _recepiNutritionUpdatedSetter;
 
         public EventFactory(
             IEventSetter<Events.IngredientUpdated.Builder> ingredientUpdatedSetter,
@@ -22,7 +23,8 @@ namespace StarChef.Orchestrate
             IEventSetter<Events.MealPeriodUpdated.Builder> mealPeriodUpdatedSetter,
             IEventSetter<Events.SupplierUpdated.Builder> supplierUpdatedSetter,
             IEventSetter<Events.UserUpdated.Builder> userUpdatedSetter,
-            IEventSetter<Events.SetUpdated.Builder> setUpdatedSetter)
+            IEventSetter<Events.SetUpdated.Builder> setUpdatedSetter,
+            IEventSetter<Events.RecipeNutritionUpdated.Builder> recepiNutritionUpdatedSetter)
         {
             _ingredientUpdatedSetter = ingredientUpdatedSetter;
             _recipeUpdatedSetter = recipeUpdatedSetter;
@@ -32,6 +34,7 @@ namespace StarChef.Orchestrate
             _supplierUpdatedSetter = supplierUpdatedSetter;
             _userUpdatedSetter = userUpdatedSetter;
             _setUpdatedSetter = setUpdatedSetter;
+            _recepiNutritionUpdatedSetter = recepiNutritionUpdatedSetter;
         }
 
         protected TBuilder CreateBuilder<TMessage, TBuilder>(Events.ChangeType? changeType = null)
@@ -56,6 +59,9 @@ namespace StarChef.Orchestrate
                 result = Events.UserUpdated.CreateBuilder();
             else if (typeof(TMessage) == typeof(Events.SetUpdated))
                 result = Events.SetUpdated.CreateBuilder();
+            else if (typeof(TMessage) == typeof(Events.RecipeNutritionUpdated))
+                result = Events.RecipeNutritionUpdated.CreateBuilder();
+
 
             if (result != null)
             {
@@ -124,6 +130,8 @@ namespace StarChef.Orchestrate
                 _userUpdatedSetter.SetForUpdate((Events.UserUpdated.Builder)builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.SetUpdated.Builder))
                 _setUpdatedSetter.SetForUpdate((Events.SetUpdated.Builder)builderObj, connectionString, entityId, databaseId);
+            else if (typeof(TBuilder) == typeof(Events.RecipeNutritionUpdated.Builder))
+                _recepiNutritionUpdatedSetter.SetForUpdate((Events.RecipeNutritionUpdated.Builder)builderObj, connectionString, entityId, databaseId);
 
             // the builder object is initialized since it was passed to initializes as referenced object
             return builder.Build();
