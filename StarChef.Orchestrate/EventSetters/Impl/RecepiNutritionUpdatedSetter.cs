@@ -57,7 +57,7 @@ namespace StarChef.Orchestrate
                 var nutrition = new RecipeNutrition
                 {
 
-                    Id = reader.GetValueOrDefault<string>("nutrient_guid"),
+                    Id = reader.GetValueOrDefault<int>("nutrient_id"),
                     Name = reader.GetValueOrDefault<string>("nutrient_name"),
                     NutrientPerHundredGram = reader.GetValueOrDefault<Decimal>("nutrient_percent"),
                     NutrientPerPortion = reader.GetValueOrDefault<Decimal>("nutrient_percent"),
@@ -91,7 +91,7 @@ namespace StarChef.Orchestrate
 
         private class RecipeNutrition
         {
-            public string Id { get; set; }
+            public int Id { get; set; }
             public string Name { get; set; }
             public Decimal NutrientPerHundredGram { get; set; }
             public Decimal NutrientPerPortion { get; set; }
