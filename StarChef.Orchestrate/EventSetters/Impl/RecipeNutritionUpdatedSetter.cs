@@ -9,7 +9,7 @@ using Decimal = Fourth.Orchestration.Model.Common.Decimal;
 
 namespace StarChef.Orchestrate
 {
-    public class RecepiNutritionUpdatedSetter : IEventSetter<Events.RecipeNutritionUpdated.Builder>
+    public class RecipeNutritionUpdatedSetter : IEventSetter<Events.RecipeNutritionUpdated.Builder>
     {
         public bool SetForDelete(Events.RecipeNutritionUpdated.Builder builder, string entityExternalId, int databaseId)
         {
