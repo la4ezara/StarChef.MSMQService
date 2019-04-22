@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using Fourth.Orchestration.Model.Menus;
 using StarChef.Common;
 using StarChef.Orchestrate.EventSetters.Impl;
@@ -59,8 +60,14 @@ namespace StarChef.Orchestrate
                     .SetModifiedDate(Fourth.Orchestration.Model.UnixDateTime.FromDateTime(reader.GetValueOrDefault<DateTime>(23)))
                     .SetPortionSizeQuantity(reader.GetValueOrDefault<double>("PortionSizeQuantity"))
                     .SetPortionSizeUom(reader.GetValueOrDefault<string>("PortionSizeUom") ?? string.Empty)
-                    .SetChangeType(changeType)
-                    .AddRangeBarcode(ReadBarcodes(reader));
+                    .SetChangeType(changeType);
+
+                var barcodes = ReadBarcodes(reader);
+                if (barcodes.Any())
+                {
+                    builder.AddRangeBarcode(barcodes);
+                }
+                    
             }
 
             //Ingredients
