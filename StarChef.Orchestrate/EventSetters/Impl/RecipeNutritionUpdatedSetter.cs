@@ -60,9 +60,9 @@ namespace StarChef.Orchestrate
                     Id = reader.GetValueOrDefault<int>("nutrient_id"),
                     Name = reader.GetValueOrDefault<string>("nutrient_name"),
                     NutrientPerHundredGram = reader.GetValueOrDefault<Decimal>("nutrient_percent"),
-                    NutrientPerPortion = reader.GetValueOrDefault<Decimal>("nutrient_percent"),
-                    NutrientReferenceIntake = reader.GetValueOrDefault<Decimal>("nutrient_portion"),
-                    NutrientDescription = reader.GetValueOrDefault<string>("nutrient_ds_percent"),
+                    NutrientPerPortion = reader.GetValueOrDefault<Decimal>("nutrient_portion"),
+                    NutrientReferenceIntake = reader.GetValueOrDefault<Decimal>("nutrient_ds_percent"),
+                    NutrientDescription = reader.GetValueOrDefault<string>("nutrient_desc"),
                 };
 
                 nutritions.Add(nutrition);
