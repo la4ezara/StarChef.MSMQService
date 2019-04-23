@@ -323,6 +323,20 @@ namespace StarChef.SqlQueue.Service
                                                 Logger.Error($"Global price recalculation is not switch on DatabaseId {entityMessage.DatabaseID}");
                                             }
                                             break;
+                                        case Constants.MessageActionType.UpdatedProductNutrient:
+                                            if (entityTypeWrapper.HasValue)
+                                            {
+                                                entityTypeWrapper = EnumHelper.EntityTypeWrapper.ProductNutrition;
+                                                Console.WriteLine($"Message sending start Entity ID {entityMessage.ProductID} {entityMessage.EntityTypeId} DataBase {userDatabase.DatabaseId}");
+                                                Send(entityTypeWrapper.Value, connectionString, entityMessage, userDatabase.DatabaseId);
+                                                Console.WriteLine("Message was sent");
+                                            }
+                                            else
+                                            {
+                                                Enqueue(connectionString, entityMessage.ProductID, entityMessage.EntityTypeId, entityMessage.Status, entityMessage.RetryCount, entityMessage.ArrivedTime, userDatabase.DatabaseId, entityMessage.ExternalId, entityMessage.Action);
+                                                Logger.Error($"Not supported entity type: DatabaseId {entityMessage.DatabaseID} : EntityId {entityMessage.ProductID} : EntityTypeId {entityMessage.EntityTypeId}");
+                                            }
+                                            break;
                                         default:
                                             if ((Constants.EntityType)entityTypeId == Constants.EntityType.User)
                                             {
