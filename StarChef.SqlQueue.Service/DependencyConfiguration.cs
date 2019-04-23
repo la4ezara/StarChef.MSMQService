@@ -47,6 +47,7 @@ namespace StarChef.SqlQueue.Service
             builder.RegisterType<SupplierUpdatedSetter>().As<IEventSetter<Events.SupplierUpdated.Builder>>().InstancePerLifetimeScope();
             builder.RegisterType<UserUpdatedSetter>().As<IEventSetter<Events.UserUpdated.Builder>>().InstancePerLifetimeScope();
             builder.RegisterType<SetUpdatedSetter>().As<IEventSetter<Events.SetUpdated.Builder>>().InstancePerLifetimeScope();
+            builder.RegisterType<RecipeNutritionUpdatedSetter>().As<IEventSetter<Events.RecipeNutritionUpdated>>().InstancePerLifetimeScope();
             #endregion
 
             _logger.Info("Dependencies are configured.");

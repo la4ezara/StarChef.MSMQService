@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using StarChef.Orchestrate.Models;
 using Xunit;
 
 namespace StarChef.Orchestrate.Tests
@@ -19,6 +20,7 @@ namespace StarChef.Orchestrate.Tests
     using SupplierUpdated = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated;
     using UserUpdated = Fourth.Orchestration.Model.Menus.Events.UserUpdated;
     using SetUpdated = Fourth.Orchestration.Model.Menus.Events.SetUpdated;
+    using RecipeNutritionUpdated = Fourth.Orchestration.Model.Menus.Events.RecipeNutritionUpdated;
 
     using IngredientUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.IngredientUpdated.Builder;
     using RecipeUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.RecipeUpdated.Builder;
@@ -28,6 +30,7 @@ namespace StarChef.Orchestrate.Tests
     using SupplierUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated.Builder;
     using UserUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.UserUpdated.Builder;
     using SetUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.SetUpdated.Builder;
+    using RecipeNutritionUpdatedBuilder = Fourth.Orchestration.Model.Menus.Events.RecipeNutritionUpdated.Builder;
 
     public class EventFactoryTests
     {
@@ -49,7 +52,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateDeleteEvent<IngredientUpdated, IngredientUpdatedBuilder>("any", "any", 0);
 
@@ -75,7 +79,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateDeleteEvent<RecipeUpdated, RecipeUpdatedBuilder>("any", "any", 0);
 
@@ -101,7 +106,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateDeleteEvent<GroupUpdated, GroupUpdatedBuilder>("any", "any", 0);
 
@@ -127,7 +133,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateDeleteEvent<MenuUpdated, MenuUpdatedBuilder>("any", "any", 0);
 
@@ -157,7 +164,8 @@ namespace StarChef.Orchestrate.Tests
                 eventSetter.Object,
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateDeleteEvent<MealPeriodUpdated, MealPeriodUpdatedBuilder>("any", "any", 0);
 
@@ -188,7 +196,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                eventSetter.Object);
+                eventSetter.Object,
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateDeleteEvent<SetUpdated, SetUpdatedBuilder>("any", "1", 2);
 
@@ -215,7 +224,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 eventSetter.Object,
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateDeleteEvent<SupplierUpdated, SupplierUpdatedBuilder>("any", "any", 0);
 
@@ -241,7 +251,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 eventSetter.Object,
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateDeleteEvent<UserUpdated, UserUpdatedBuilder>("any", "any", 0);
 
@@ -271,7 +282,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<IngredientUpdated, IngredientUpdatedBuilder>("any", 0, 0);
 
@@ -297,7 +309,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>("any", 0, 0);
 
@@ -330,7 +343,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>("any", 0, 0);
 
@@ -370,7 +384,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>("any", 0, 0);
 
@@ -399,7 +414,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<GroupUpdated, GroupUpdatedBuilder>("any", 0, 0);
 
@@ -425,7 +441,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<MenuUpdated, MenuUpdatedBuilder>("any", 0, 0);
 
@@ -455,7 +472,8 @@ namespace StarChef.Orchestrate.Tests
                 eventSetter.Object,
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<MealPeriodUpdated, MealPeriodUpdatedBuilder>("any", 0, 0);
 
@@ -481,7 +499,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 eventSetter.Object,
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<SupplierUpdated, SupplierUpdatedBuilder>("any", 0, 0);
 
@@ -507,7 +526,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 eventSetter.Object,
-                Mock.Of<IEventSetter<SetUpdatedBuilder>>());
+                Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<UserUpdated, UserUpdatedBuilder>("any", 0, 0);
 
@@ -538,7 +558,8 @@ namespace StarChef.Orchestrate.Tests
                 Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
                 Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
-                eventSetter.Object);
+                eventSetter.Object,
+                Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
 
             var eventObject = eventFactory.CreateUpdateEvent<SetUpdated, SetUpdatedBuilder>("any", 1, 2);
 
@@ -548,7 +569,6 @@ namespace StarChef.Orchestrate.Tests
             Assert.Equal("2", eventObject.CustomerId);
             Assert.Equal("2", eventObject.CustomerName);
         }
-
         #endregion
 
         #region Mandatory fields setters

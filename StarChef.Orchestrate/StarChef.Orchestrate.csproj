@@ -128,6 +128,7 @@
     <Compile Include="EventSetters\Impl\DeactivateAccountSetter.cs" />
     <Compile Include="EventSetters\Impl\GroupUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\IngredientUpdateSetter.cs" />
+    <Compile Include="EventSetters\Impl\RecipeNutritionUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\SetUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\RecipeUpdatedSetter.cs" />
     <Compile Include="EventSetters\Impl\MenuUpdatedSetter.cs" />

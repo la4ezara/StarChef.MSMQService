@@ -264,6 +264,10 @@ namespace StarChef.MSMQService
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductNutrient:
                         ProcessProductNutrientUpdate(msg);
+                        //extend processing to orchestration
+                        msg.Action = (int)Constants.MessageActionType.UpdatedProductNutrient;
+                        msg.EntityTypeId = (int)Constants.EntityType.Dish;
+                        ProcessStarChefEventsUpdated(msg);
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductIntolerance:
                         ProcessProductIntoleranceUpdate(msg);
