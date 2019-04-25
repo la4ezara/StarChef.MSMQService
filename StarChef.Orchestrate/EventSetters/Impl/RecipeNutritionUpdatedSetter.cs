@@ -25,17 +25,18 @@ namespace StarChef.Orchestrate
 
             var cust = new Customer(databaseId);
             var dbManager = new DatabaseManager();
-            using (var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_recipe_nutritions", new SqlParameter("@entity_id", entityId)))
+            using (var reader = dbManager.ExecuteReaderMultiResultset(connectionString, "sc_event_recipe_nutrient", new SqlParameter("@entity_id", entityId)))
             {
-                if (reader.Read())
+                if(reader.Read())
                 {
+                    var productGuidAsString = (reader.GetValueOrDefault<Guid>("product_guid")).ToString();
                     builder
                         .SetCustomerCanonicalId(cust.ExternalId)
-                        .SetRecipeId(reader.GetValueOrDefault<string>("product_guid"));
+                        .SetRecipeId(productGuidAsString);
 
                     List<RecipeNutrition> nutritions = new List<RecipeNutrition>();
 
-                    if (reader.NextResult())
+                    if(reader.NextResult())
                     {
                         nutritions = GetRecipeNutrition(reader);
                     }
@@ -54,14 +55,17 @@ namespace StarChef.Orchestrate
 
             while (reader.Read())
             {
+                var nutPercent = reader.GetValueOrDefault<decimal>("nutrient_percent");
+                var nutPercentPortion = reader.GetValueOrDefault<decimal?>("nutrient_portion") ?? 0;
+                var nutRefIntake = reader.GetValueOrDefault<decimal?>("nutrient_ds_percent") ?? 0;
+
                 var nutrition = new RecipeNutrition
                 {
-
                     Id = reader.GetValueOrDefault<int>("nutrient_id"),
                     Name = reader.GetValueOrDefault<string>("nutrient_name"),
-                    NutrientPerHundredGram = reader.GetValueOrDefault<Decimal>("nutrient_percent"),
-                    NutrientPerPortion = reader.GetValueOrDefault<Decimal>("nutrient_portion"),
-                    NutrientReferenceIntake = reader.GetValueOrDefault<Decimal>("nutrient_ds_percent"),
+                    NutrientPerHundredGram = Decimal.BuildFromDecimal(nutPercent),
+                    NutrientPerPortion = Decimal.BuildFromDecimal(nutPercentPortion),
+                    NutrientReferenceIntake = Decimal.BuildFromDecimal(nutRefIntake),
                     NutrientDescription = reader.GetValueOrDefault<string>("nutrient_desc"),
                 };
 

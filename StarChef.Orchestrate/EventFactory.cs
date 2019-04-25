@@ -65,7 +65,7 @@ namespace StarChef.Orchestrate
 
             if (result != null)
             {
-                if (result.GetType().GetMethod("SetSource") != null)
+                if (result.GetType().GetMethod("SetSource") != null && typeof(TMessage) != typeof(Events.RecipeNutritionUpdated))
                 {
                     result.SetSource(Events.SourceSystem.STARCHEF);
                 }
