@@ -55,18 +55,29 @@ namespace StarChef.Orchestrate
 
             while (reader.Read())
             {
+                var nutrientName = reader.GetValueOrDefault<string>("nutrient_name");
                 var nutPercent = reader.GetValueOrDefault<decimal>("nutrient_percent");
                 var nutPercentPortion = reader.GetValueOrDefault<decimal?>("nutrient_portion") ?? 0;
                 var nutRefIntake = reader.GetValueOrDefault<decimal?>("nutrient_ds_percent") ?? 0;
+                var nutDescription = reader.GetValueOrDefault<string>("nutrient_desc");
+
+                if (nutrientName == "Sodium")
+                {
+                    nutPercent *= 2.5m;
+                    nutPercentPortion *= 2.5m;
+                    nutRefIntake *= 2.5m;
+                    nutrientName = "Salt";
+                    nutDescription = "Salt(mg)";
+                }
 
                 var nutrition = new RecipeNutrition
                 {
                     Id = reader.GetValueOrDefault<int>("nutrient_id"),
-                    Name = reader.GetValueOrDefault<string>("nutrient_name"),
+                    Name = nutrientName,
                     NutrientPerHundredGram = Decimal.BuildFromDecimal(nutPercent),
                     NutrientPerPortion = Decimal.BuildFromDecimal(nutPercentPortion),
                     NutrientReferenceIntake = Decimal.BuildFromDecimal(nutRefIntake),
-                    NutrientDescription = reader.GetValueOrDefault<string>("nutrient_desc"),
+                    NutrientDescription = nutDescription,
                 };
 
                 nutritions.Add(nutrition);
