@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using Fourth.Orchestration.Model.Common;
 using Decimal = Fourth.Orchestration.Model.Common.Decimal;
 
 namespace StarChef.Orchestrate
@@ -32,7 +33,9 @@ namespace StarChef.Orchestrate
                     var productGuidAsString = (reader.GetValueOrDefault<Guid>("product_guid")).ToString();
                     builder
                         .SetCustomerCanonicalId(cust.ExternalId)
+                        .SetSource(SourceSystemId.STARCHEF)
                         .SetRecipeId(productGuidAsString);
+
 
                     List<RecipeNutrition> nutritions = new List<RecipeNutrition>();
 
