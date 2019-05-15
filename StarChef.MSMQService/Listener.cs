@@ -315,9 +315,13 @@ namespace StarChef.MSMQService
 
                 {
                     var importTypeSettings = importSettings.Ingredient();
-                    if (importTypeSettings.AutoCalculateCost)
+                        if (importTypeSettings.AutoCalculateCost)
+                        {
                             _databaseManager.Execute(msg.DSN, "sc_calculate_dish_pricing", new SqlParameter("@product_id", msg.ProductID));
-                }
+                        }
+                        
+                        _databaseManager.Execute(msg.DSN, "sc_product_run_rankreorder", new SqlParameter("@product_id", msg.ProductID));
+                    }
 
                     #endregion
 
