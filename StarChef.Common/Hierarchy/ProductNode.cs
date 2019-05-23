@@ -134,7 +134,7 @@ namespace StarChef.Common.Hierarchy
                                         {
                                             price = ingredientPrice.Value;
                                         }
-                                        else
+                                        else if(RecipeKind != RecipeType.Choice)
                                         {
                                             total = null;
                                             break;
