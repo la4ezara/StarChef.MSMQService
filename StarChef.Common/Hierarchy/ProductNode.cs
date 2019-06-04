@@ -78,9 +78,17 @@ namespace StarChef.Common.Hierarchy
                         }
                         else
                         {
-                            for (int i = 0; i < Childs.Count; i++)
+                            //assign childrens to variable
+                            var orderedChildren = Childs;
+                            //if choise recipe get only marked as choise. Rest child item no need for price recalc
+                            if (RecipeKind == RecipeType.Choice)
                             {
-                                var child = Childs[i];
+                                orderedChildren = orderedChildren.Where((c => c.IsChoise)).ToList();
+                            }
+
+                            for (int i = 0; i < orderedChildren.Count; i++)
+                            {
+                                var child = orderedChildren[i];
                                 decimal price = 0;
 
                                 //need to check if child is ingredient is any of its alternates listed in access list
@@ -134,7 +142,7 @@ namespace StarChef.Common.Hierarchy
                                         {
                                             price = ingredientPrice.Value;
                                         }
-                                        else if(RecipeKind != RecipeType.Choice)
+                                        else// if(RecipeKind != RecipeType.Choice)
                                         {
                                             total = null;
                                             break;
@@ -149,7 +157,7 @@ namespace StarChef.Common.Hierarchy
                                             {
                                                 price = recipePrice.Value;
                                             }
-                                            else
+                                            else// if (RecipeKind != RecipeType.Choice)
                                             {
                                                 total = null;
                                                 break;
