@@ -169,7 +169,7 @@ namespace StarChef.SqlQueue.Service
                 { ArrivedTime = dateCreaded, ExternalId = userDatabase.ExternalId };
                 message.ExternalId = externalId;
 
-                if (!messages.Any(c => c.EntityTypeId == entityTypeId && c.ProductID == entityId))
+                if (!messages.Any(c => c.EntityTypeId == entityTypeId && c.ProductID == entityId && c.Action == (int)messageActionType))
                 {
                     messages.Add(message);
                 }
