@@ -326,9 +326,9 @@ namespace StarChef.SqlQueue.Service
                                         case Constants.MessageActionType.UpdatedProductNutrient:
                                             if (entityTypeWrapper.HasValue)
                                             {
-                                                entityTypeWrapper = EnumHelper.EntityTypeWrapper.ProductNutrition;
+                                                var localEntityTypeWrapper = EnumHelper.EntityTypeWrapper.ProductNutrition;
                                                 Console.WriteLine($"Message sending start Entity ID {entityMessage.ProductID} {entityMessage.EntityTypeId} DataBase {userDatabase.DatabaseId}");
-                                                Send(entityTypeWrapper.Value, connectionString, entityMessage, userDatabase.DatabaseId);
+                                                Send(localEntityTypeWrapper, connectionString, entityMessage, userDatabase.DatabaseId);
                                                 Console.WriteLine("Message was sent");
                                             }
                                             else
@@ -340,9 +340,9 @@ namespace StarChef.SqlQueue.Service
                                         default:
                                             if ((Constants.EntityType)entityTypeId == Constants.EntityType.User)
                                             {
-                                                entityTypeWrapper = EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand;
+                                                var localEntityTypeWrapper = EnumHelper.EntityTypeWrapper.SendUserUpdatedEventAndCommand;
                                                 Console.WriteLine($"Message sending start Entity ID {entityMessage.ProductID} {entityMessage.EntityTypeId} DataBase {userDatabase.DatabaseId}");
-                                                Send(entityTypeWrapper.Value, connectionString, entityMessage, userDatabase.DatabaseId);
+                                                Send(localEntityTypeWrapper, connectionString, entityMessage, userDatabase.DatabaseId);
                                                 Console.WriteLine("Message was sent");
                                             }
                                             else
