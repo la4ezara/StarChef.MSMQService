@@ -103,7 +103,6 @@ namespace StarChef.Orchestrate
                 {
                     ingredientSets = GetIngredientSets(reader);
                 }
-
                 BuildIngredientSets(builder, ingredientSets);
             }
 

@@ -162,7 +162,6 @@ namespace StarChef.Orchestrate
             {
                 recipeSets = GetRecipeSets(reader);
             }
-
             BuildRecipeSets(builder, recipeSets);
 
             return true;

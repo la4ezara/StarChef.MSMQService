@@ -134,7 +134,7 @@ namespace StarChef.Orchestrate
                 _recepiNutritionUpdatedSetter.SetForUpdate((Events.RecipeNutritionUpdated.Builder)builderObj, connectionString, entityId, databaseId);
 
             // the builder object is initialized since it was passed to initializes as referenced object
-            return builder.Build();      
+            return builder.Build();
         }
 
         #endregion
