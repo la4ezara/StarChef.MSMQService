@@ -104,9 +104,6 @@ namespace StarChef.Orchestrate
                     ingredientSets = GetIngredientSets(reader);
                 }
 
-                if (!ingredientSets.Any() || !ingredientSets.Any(s => s.SetTypeId == 2 || s.SetTypeId == 4))
-                    return false;
-
                 ingredientSets = ingredientSets.Where(s => s.SetTypeId == 2).ToList(); //Only Live sets
 
                 BuildIngredientSets(builder, ingredientSets);

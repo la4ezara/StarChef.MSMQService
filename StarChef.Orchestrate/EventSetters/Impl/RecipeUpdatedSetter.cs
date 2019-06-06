@@ -163,9 +163,6 @@ namespace StarChef.Orchestrate
                 recipeSets = GetRecipeSets(reader);
             }
 
-            if (!recipeSets.Any() || !recipeSets.Any(s => s.SetTypeId == 2 || s.SetTypeId == 4))
-                return false;
-
             recipeSets = recipeSets.Where(s => s.SetTypeId == 2).ToList(); //Only Live sets
 
             BuildRecipeSets(builder, recipeSets);

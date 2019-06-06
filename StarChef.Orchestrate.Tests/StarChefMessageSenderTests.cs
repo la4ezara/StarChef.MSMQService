@@ -11,6 +11,7 @@ using Fourth.StarChef.Invariables;
 using Google.ProtocolBuffers;
 using Microsoft.WindowsAzure.Storage.Table;
 using Xunit;
+using Fourth.Orchestration.Model.Menus;
 
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
 using SupplierUpdated = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated;
@@ -212,7 +213,58 @@ namespace StarChef.Orchestrate.Tests
             var databaseManager = new Mock<IDatabaseManager>();
             databaseManager.Setup(m => m.IsSsoEnabled(It.IsAny<string>())).Returns(false);
             databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
-            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            IEventFactory eventFactory = Mock.Of<IEventFactory>();
+            switch (entityTypeWrapper)
+            {
+                case EnumHelper.EntityTypeWrapper.Recipe:
+                {
+                    var eventSetter = new Mock<IEventSetter<RecipeUpdatedBuilder>>();
+                    eventSetter
+                        .Setup(m => m.SetForUpdate(It.IsAny<RecipeUpdatedBuilder>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+                        .Callback<RecipeUpdatedBuilder, string, int, int>(
+                            (builder, s, i1, i2) =>
+                            {
+                                SetMandatoryFields_forUpdate(builder, 22, i2);
+                                builder.ChangeType = Events.ChangeType.ARCHIVE;
+                            });
+
+                    eventFactory = new EventFactory(
+                        Mock.Of<IEventSetter<IngredientUpdatedBuilder>>(),
+                        eventSetter.Object,                     
+                        Mock.Of<IEventSetter<GroupUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<MenuUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
+                    }; break;
+                case EnumHelper.EntityTypeWrapper.Ingredient:
+                {
+                    var eventSetter = new Mock<IEventSetter<IngredientUpdatedBuilder>>();
+                    eventSetter
+                        .Setup(m => m.SetForUpdate(It.IsAny<IngredientUpdatedBuilder>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+                        .Callback<IngredientUpdatedBuilder, string, int, int>(
+                            (builder, s, i1, i2) =>
+                            {
+                                SetMandatoryFields_forUpdate(builder, 22, i2);
+                                builder.ChangeType = Events.ChangeType.ARCHIVE;
+                            });
+
+                    eventFactory = new EventFactory(
+                        eventSetter.Object,
+                        Mock.Of<IEventSetter<RecipeUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<GroupUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<MenuUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<MealPeriodUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<SupplierUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
+                        Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
+                    }; break;
+            }
+
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, eventFactory, commandFactory);
             // the message which is received from MSMQ
             const int ANY_INT = 0;
             const string ANY_TEXT = "any";
