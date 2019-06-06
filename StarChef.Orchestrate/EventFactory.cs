@@ -117,7 +117,7 @@ namespace StarChef.Orchestrate
             if (typeof (TBuilder) == typeof (Events.IngredientUpdated.Builder))
                 _ingredientUpdatedSetter.SetForUpdate((Events.IngredientUpdated.Builder) builderObj, connectionString, entityId, databaseId);
             else if (typeof (TBuilder) == typeof (Events.RecipeUpdated.Builder))
-                 _recipeUpdatedSetter.SetForUpdate((Events.RecipeUpdated.Builder) builderObj, connectionString, entityId, databaseId);
+                _recipeUpdatedSetter.SetForUpdate((Events.RecipeUpdated.Builder) builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.MenuUpdated.Builder))
                 _menuUpdatedSetter.SetForUpdate((Events.MenuUpdated.Builder)builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.GroupUpdated.Builder))
@@ -133,8 +133,8 @@ namespace StarChef.Orchestrate
             else if (typeof(TBuilder) == typeof(Events.RecipeNutritionUpdated.Builder))
                 _recepiNutritionUpdatedSetter.SetForUpdate((Events.RecipeNutritionUpdated.Builder)builderObj, connectionString, entityId, databaseId);
 
-                // the builder object is initialized since it was passed to initializes as referenced object
-                return builder.Build();      
+            // the builder object is initialized since it was passed to initializes as referenced object
+            return builder.Build();      
         }
 
         #endregion
