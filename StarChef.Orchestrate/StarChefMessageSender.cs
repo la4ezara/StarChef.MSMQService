@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Fourth.Orchestration.Model.Menus;
 using Google.ProtocolBuffers;
 
 #region Orchestration types
@@ -132,7 +133,16 @@ namespace StarChef.Orchestrate
                                     _logger.Debug("enter createEventUpdate");
                                     var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
                                     _logger.Debug("exit createEventUpdate");
-                                    result = Publish(bus, payload);
+
+                                    if (payload.ChangeType == Events.ChangeType.ARCHIVE || (payload.ChangeType == Events.ChangeType.UPDATE && payload.SetsCount > 0))
+                                    {
+                                        result = Publish(bus, payload);
+                                    }
+                                    else 
+                                    {
+                                        result = true;
+                                    }
+
                                     _logger.Debug("exit publish recipe");
                                 }
                                 break;
@@ -237,7 +247,14 @@ namespace StarChef.Orchestrate
                             case EnumHelper.EntityTypeWrapper.Ingredient:
                                 {
                                     var payload = _eventFactory.CreateUpdateEvent<IngredientUpdated, IngredientUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                    result = Publish(bus, payload);
+                                    if (payload.ChangeType == Events.ChangeType.ARCHIVE || (payload.ChangeType == Events.ChangeType.UPDATE && payload.SetsCount > 0))
+                                    {
+                                        result = Publish(bus, payload);
+                                    }
+                                    else
+                                    {
+                                        result = true;
+                                    }
                                 }
                                 break;
                             case EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent:
