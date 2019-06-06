@@ -238,7 +238,8 @@ namespace StarChef.Orchestrate.Tests
                         Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
                         Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
                         Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
-                    }; break;
+                }
+                break;
                 case EnumHelper.EntityTypeWrapper.Ingredient:
                 {
                     var eventSetter = new Mock<IEventSetter<IngredientUpdatedBuilder>>();
@@ -261,7 +262,8 @@ namespace StarChef.Orchestrate.Tests
                         Mock.Of<IEventSetter<UserUpdatedBuilder>>(),
                         Mock.Of<IEventSetter<SetUpdatedBuilder>>(),
                         Mock.Of<IEventSetter<RecipeNutritionUpdatedBuilder>>());
-                    }; break;
+                }
+                 break;
             }
 
             var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, eventFactory, commandFactory);
