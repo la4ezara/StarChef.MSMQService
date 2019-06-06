@@ -162,6 +162,12 @@ namespace StarChef.Orchestrate
             {
                 recipeSets = GetRecipeSets(reader);
             }
+
+            if (!recipeSets.Any() || !recipeSets.Any(s => s.SetTypeId == 2 || s.SetTypeId == 4))
+                return false;
+
+            recipeSets = recipeSets.Where(s => s.SetTypeId == 2).ToList(); //Only Live sets
+
             BuildRecipeSets(builder, recipeSets);
 
             return true;
@@ -176,7 +182,8 @@ namespace StarChef.Orchestrate
                 var recipeSet = new RecipeSet
                 {
                     Id = reader.GetValueOrDefault<int>("pset_id"),
-                    Name = reader.GetValueOrDefault<string>("pset_name")
+                    Name = reader.GetValueOrDefault<string>("pset_name"),
+                    SetTypeId = reader.GetValueOrDefault<byte>("set_type_id")
                 };
                 recipeSets.Add(recipeSet);
             }
@@ -311,6 +318,7 @@ namespace StarChef.Orchestrate
         {
             public int Id { get; set; }
             public string Name { get; set; }
+            public long SetTypeId { get; set; }
         }
     }
 }

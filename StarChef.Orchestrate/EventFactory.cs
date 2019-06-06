@@ -113,11 +113,12 @@ namespace StarChef.Orchestrate
         {
             var builder = CreateBuilder<TMessage, TBuilder>(Events.ChangeType.UPDATE);
             object builderObj = builder; // builder cannot be cast directly to event builder for specific events
+            var sendMessage = true;
 
             if (typeof (TBuilder) == typeof (Events.IngredientUpdated.Builder))
-                _ingredientUpdatedSetter.SetForUpdate((Events.IngredientUpdated.Builder) builderObj, connectionString, entityId, databaseId);
+                sendMessage = _ingredientUpdatedSetter.SetForUpdate((Events.IngredientUpdated.Builder) builderObj, connectionString, entityId, databaseId);
             else if (typeof (TBuilder) == typeof (Events.RecipeUpdated.Builder))
-                _recipeUpdatedSetter.SetForUpdate((Events.RecipeUpdated.Builder) builderObj, connectionString, entityId, databaseId);
+                sendMessage = _recipeUpdatedSetter.SetForUpdate((Events.RecipeUpdated.Builder) builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.MenuUpdated.Builder))
                 _menuUpdatedSetter.SetForUpdate((Events.MenuUpdated.Builder)builderObj, connectionString, entityId, databaseId);
             else if (typeof(TBuilder) == typeof(Events.GroupUpdated.Builder))
@@ -133,8 +134,13 @@ namespace StarChef.Orchestrate
             else if (typeof(TBuilder) == typeof(Events.RecipeNutritionUpdated.Builder))
                 _recepiNutritionUpdatedSetter.SetForUpdate((Events.RecipeNutritionUpdated.Builder)builderObj, connectionString, entityId, databaseId);
 
-            // the builder object is initialized since it was passed to initializes as referenced object
-            return builder.Build();
+            if (sendMessage)
+            {
+                // the builder object is initialized since it was passed to initializes as referenced object
+                return builder.Build();
+            }
+
+            return null;           
         }
 
         #endregion

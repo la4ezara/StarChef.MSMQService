@@ -132,7 +132,7 @@ namespace StarChef.Orchestrate
                                     _logger.Debug("enter createEventUpdate");
                                     var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
                                     _logger.Debug("exit createEventUpdate");
-                                    result = Publish(bus, payload);
+                                    result = payload == null || Publish(bus, payload);
                                     _logger.Debug("exit publish recipe");
                                 }
                                 break;
@@ -237,7 +237,7 @@ namespace StarChef.Orchestrate
                             case EnumHelper.EntityTypeWrapper.Ingredient:
                                 {
                                     var payload = _eventFactory.CreateUpdateEvent<IngredientUpdated, IngredientUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                    result = Publish(bus, payload);
+                                    result = payload == null || Publish(bus, payload);
                                 }
                                 break;
                             case EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent:
