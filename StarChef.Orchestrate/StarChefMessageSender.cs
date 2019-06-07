@@ -134,13 +134,32 @@ namespace StarChef.Orchestrate
                                     var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
                                     _logger.Debug("exit createEventUpdate");
 
+                                   
                                     if (payload.ChangeType == Events.ChangeType.ARCHIVE || (payload.ChangeType == Events.ChangeType.UPDATE && payload.SetsCount > 0))
                                     {
                                         result = Publish(bus, payload);
+
+                                        if (result)
+                                        {
+                                            //TODO update orchestration_sent_date
+                                        }
                                     }
                                     else 
                                     {
-                                        result = true;
+                                        var isSetOrchestrationSendDate = _databaseManager.IsSetOrchestrationSendDate(dbConnectionString, entityId);
+                                        if (isSetOrchestrationSendDate)
+                                        {
+                                            result = Publish(bus, payload);
+
+                                            if (result)
+                                            {
+                                                //TODO update orchestration_sent_date
+                                            }
+                                        }
+                                        else
+                                        {
+                                            result = true;
+                                        }                                     
                                     }
 
                                     _logger.Debug("exit publish recipe");
@@ -250,10 +269,28 @@ namespace StarChef.Orchestrate
                                     if (payload.ChangeType == Events.ChangeType.ARCHIVE || (payload.ChangeType == Events.ChangeType.UPDATE && payload.SetsCount > 0))
                                     {
                                         result = Publish(bus, payload);
+
+                                        if (result)
+                                        {
+                                            //TODO update orchestration_sent_date
+                                        }
                                     }
                                     else
                                     {
-                                        result = true;
+                                        var isSetOrchestrationSendDate = _databaseManager.IsSetOrchestrationSendDate(dbConnectionString, entityId);
+                                        if (isSetOrchestrationSendDate)
+                                        {
+                                            result = Publish(bus, payload);
+
+                                            if (result)
+                                            {
+                                                //TODO update orchestration_sent_date
+                                            }
+                                        }
+                                        else
+                                        {
+                                            result = true;
+                                        }
                                     }
                                 }
                                 break;

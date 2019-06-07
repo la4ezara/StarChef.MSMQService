@@ -46,5 +46,7 @@ namespace StarChef.Common
         bool IsSsoEnabled(string connectionString);
 
         IDictionary<string, ImportTypeSettings> GetImportSettings(string connectionString, int organizationId);
+
+        bool IsSetOrchestrationSendDate(string connectionString, int entityId);
     }
 }
