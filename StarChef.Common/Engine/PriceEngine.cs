@@ -198,9 +198,15 @@ namespace StarChef.Common.Engine
                     foreach (var group in result)
                     {
                         var calculatedGroupId = group.Key == 0 ? new Nullable<int>() : group.Key;
-                        await _pricingRepo.ClearPrices(calculatedGroupId);
+                        
                         var msgStart = $"Start saving group {group.Key} total prices {group.Value.Prices.Count} at {DateTime.UtcNow}";
                         DebugLog(msgStart);
+                        //clear prices for group only if we do not have any
+                        if (!group.Value.Prices.Any())
+                        {
+                            await _pricingRepo.ClearPrices(calculatedGroupId);
+                        }
+                        //in all other cases insert prices will clear old prices and will insert new one
                         bool saveResult = _pricingRepo.InsertPrices(group.Value.Prices, calculatedGroupId, logId, dt);
                         ErrorLog(group.Value.Errors.ToString());
                         var msgEnd = $"End saving group {group.Key} total prices {group.Value.Prices.Count} at {DateTime.UtcNow}";
