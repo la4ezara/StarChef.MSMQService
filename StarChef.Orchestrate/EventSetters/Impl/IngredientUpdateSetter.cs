@@ -30,7 +30,7 @@ namespace StarChef.Orchestrate
                     {
                         changeType = Events.ChangeType.ARCHIVE;
                     }
-                              
+
                     builder
                         .SetExternalId(reader[0].ToString())
                         .SetCustomerId(cust.ExternalId)
@@ -64,6 +64,16 @@ namespace StarChef.Orchestrate
                 if (reader.NextResult())
                 {
                     suppliedPackList = GetSuppliedPackSizes(reader);
+                }
+
+                //update UoM from Supply UoM if it's not specified
+                if (string.IsNullOrEmpty(reader[3].ToString()))
+                {
+                    var defaultUOMItem = suppliedPackList.Where(x => x.IsDefault == true).FirstOrDefault();
+                    if (defaultUOMItem != null)
+                    {
+                        builder.SetUnitSizeUom(defaultUOMItem.SupplyQuantityUom);
+                    }
                 }
 
                 var categoryTypes = new List<CategoryType>();
@@ -148,8 +158,7 @@ namespace StarChef.Orchestrate
             {
                 var suppliedPack = new IngredientSuppliedPackSize
                 {
-
-                    IsDefault = reader.GetValueOrDefault<bool>(0),
+                    RefRevision = reader.GetValueOrDefault<int>(0),
                     IsPreferred = reader.GetValueOrDefault<bool>(1),
                     DistributorName = reader[2].ToString(),
                     DistributorCode = reader[3].ToString(),
@@ -175,10 +184,13 @@ namespace StarChef.Orchestrate
                     ProductId = reader.GetValueOrDefault<int>(23),
                     InvoicePrice = reader.GetValueOrDefault<decimal>(25),
                     InvoiceUnitOfMeasure = reader.GetValueOrDefault<string>(26),
-                    IsVariableWeighted = reader.GetValueOrDefault<bool>(27),
+                    IsVariableWeighted = reader.GetValueOrDefault<bool>(27)
                 };
+
                 suppliedPackList.Add(suppliedPack);
             }
+
+            suppliedPackList = SetIsDefault(suppliedPackList);
 
             return suppliedPackList;
         }
@@ -279,7 +291,7 @@ namespace StarChef.Orchestrate
                     Func<dynamic> createCategory = () => Events.IngredientUpdated.Types.CategoryType.Types.Category.CreateBuilder();
                     BuilderHelpers.BuildCategoryTypes(suppliedPackSizeBuilder, createCategoryType, createCategory, productCategoryTypes);
 
-                    BuildPriceBands(suppliedPackSizeBuilder, priceBands.Where(p=>p.ProductId == suppliedPack.ProductId).ToList());
+                    BuildPriceBands(suppliedPackSizeBuilder, priceBands.Where(p => p.ProductId == suppliedPack.ProductId).ToList());
 
                     builder.AddSuppliedPackSizes(suppliedPackSizeBuilder);
                 }
@@ -332,6 +344,34 @@ namespace StarChef.Orchestrate
             }
         }
 
+        private static List<IngredientSuppliedPackSize> SetIsDefault(List<IngredientSuppliedPackSize> suppliedPackList)
+        {
+            //Check if restrict by vendor is applied
+            if (suppliedPackList.Any(x => x.RefRevision == 0 && x.RankOrder == 0))
+            {
+                var alternates = suppliedPackList.Where(x => x.RefRevision != 0).ToList();
+
+                if (alternates.Any())
+                {
+                    var minMasterRef = alternates.Min(x => x.RefRevision);
+                    var item = alternates.FirstOrDefault(i => i.RefRevision == minMasterRef);
+                    item.IsDefault = true;
+                }
+                else
+                {
+                    alternates = suppliedPackList.Where(x => x.RefRevision == 0).ToList();
+                    var item = alternates.FirstOrDefault();
+                    item.IsDefault = true;
+                }
+            }
+            else
+            {
+                suppliedPackList.ForEach(x => x.IsDefault = x.RefRevision == 0);
+            }
+
+            return suppliedPackList;
+        }
+
         public bool SetForDelete(Events.IngredientUpdated.Builder builder, string entityExternalId, int databaseId)
         {
             if (builder == null) return false;
@@ -374,6 +414,7 @@ namespace StarChef.Orchestrate
             public decimal InvoicePrice { get; set; }
             public string InvoiceUnitOfMeasure { get; set; }
             public bool IsVariableWeighted { get; set; }
+            public int RefRevision { get; set; }
 
         }
 
