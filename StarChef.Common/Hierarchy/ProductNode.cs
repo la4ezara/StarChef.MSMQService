@@ -137,16 +137,7 @@ namespace StarChef.Common.Hierarchy
 
                                     if (child.NodeType == ProductType.Ingredient)
                                     {
-                                        var ingredientPrice = GetIngredientPrice(priceStorage, errors, child, workChildProductId, product, productConvertion);
-                                        if(ingredientPrice.HasValue)
-                                        {
-                                            price = ingredientPrice.Value;
-                                        }
-                                        else// if(RecipeKind != RecipeType.Choice)
-                                        {
-                                            total = null;
-                                            break;
-                                        }
+                                        price = GetIngredientPrice(priceStorage, errors, child, workChildProductId, product, productConvertion);
                                     }
                                     else
                                     {
@@ -212,38 +203,34 @@ namespace StarChef.Common.Hierarchy
             }
         }
 
-        protected virtual decimal? GetIngredientPrice(Dictionary<int, decimal> priceStorage, StringBuilder errors, ProductNode child,
+        protected virtual decimal GetIngredientPrice(Dictionary<int, decimal> priceStorage, StringBuilder errors, ProductNode child,
             int workChildProductId, Product product, decimal productConvertion)
         {
-            decimal? price = null;
-            if (RecipeKind != RecipeType.Choice || child.IsChoise)
+            //need to check if child is ingredient is any of its alternates listed in price storage
+            //this case is used when feature Restrict by Supplier access is enable
+            if (!priceStorage.ContainsKey(workChildProductId))
             {
-                //need to check if child is ingredient is any of its alternates listed in price storage
-                //this case is used when feature Restrict by Supplier access is enable
-                if (!priceStorage.ContainsKey(workChildProductId))
+                string msg =
+                    $"ProductId {workChildProductId} not found in list with priceStorage. Calculated productId {ProductId}, childProductId {child.ProductId}, workChildProductId {workChildProductId}";
+                if (errors != null)
                 {
-                    string msg =
-                        $"ProductId {workChildProductId} not found in list with priceStorage. Calculated productId {ProductId}, childProductId {child.ProductId}, workChildProductId {workChildProductId}";
-                    if (errors != null)
-                    {
-                        errors.AppendLine(msg);
-                    }
-
-                    throw new KeyNotFoundException(msg);
+                    errors.AppendLine(msg);
                 }
 
-                var baseIngredientPrice = priceStorage[workChildProductId];
-                decimal ingredientEpPrice = baseIngredientPrice;
-                if (child.Portion == PortionType.EP && product.Wastage.HasValue &&
-                    product.Wastage <= 100 && product.Wastage > 0)
-                {
-                    ingredientEpPrice =
-                        baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
-                }
-
-                var apPrice = ingredientEpPrice * child.Quantity;
-                price = apPrice / productConvertion;
+                throw new KeyNotFoundException(msg);
             }
+
+            var baseIngredientPrice = priceStorage[workChildProductId];
+            decimal ingredientEpPrice = baseIngredientPrice;
+            if (child.Portion == PortionType.EP && product.Wastage.HasValue &&
+                product.Wastage <= 100 && product.Wastage > 0)
+            {
+                ingredientEpPrice =
+                    baseIngredientPrice * 100.0m / (100.0m - product.Wastage.Value);
+            }
+
+            var apPrice = ingredientEpPrice * child.Quantity;
+            decimal price = apPrice / productConvertion;
 
             return price;
         }

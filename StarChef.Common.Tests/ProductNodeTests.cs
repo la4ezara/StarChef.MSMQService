@@ -420,6 +420,84 @@ namespace StarChef.Common.Tests
         }
 
         [Fact]
+        public void PriceRecalcBaseRecipeChoiseChildRecipeNoPrice()
+        {
+            //handle scenario when we have a recipe
+            //in that recipe we have choise subrecipe and for single ingredient in that choise sub recipe we do not have access and prices
+            StringBuilder sbErrors = new StringBuilder();
+            ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
+            node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Choice;
+            var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);
+            childNode.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Batch;
+            childNode.IsChoise = true;
+
+            var subChildOne = new ProductNode(3, 2, 2, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.EP);
+            var subChildTwo = new ProductNode(4, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
+            childNode.Childs.Add(subChildOne);
+            childNode.Childs.Add(subChildTwo);
+
+            node.Childs.Add(childNode);
+
+            Dictionary<int, decimal> priceStorate = new Dictionary<int, decimal>();
+            //priceStorate.Add(subChildOne.ProductId, 0);
+            priceStorate.Add(subChildTwo.ProductId, 4);
+
+            Dictionary<int, Product> forest = new Dictionary<int, Product>();
+            forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
+            forest.Add(childNode.ProductId, new Product() { ProductId = childNode.ProductId, Wastage = 0, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+            forest.Add(subChildOne.ProductId, new Product() { ProductId = subChildOne.ProductId, Wastage = 50, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+            forest.Add(subChildTwo.ProductId, new Product() { ProductId = subChildTwo.ProductId, Wastage = 50, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+
+            HashSet<int> accessList = new HashSet<int>();
+            accessList.Add(node.ProductId);
+            accessList.Add(childNode.ProductId);
+            accessList.Add(subChildOne.ProductId);
+            accessList.Add(subChildTwo.ProductId);
+
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void PriceRecalcBaseRecipeOptionChildRecipeNoPrice()
+        {
+            //handle scenario when we have a recipe
+            //in that recipe we have choise subrecipe and for single ingredient in that choise sub recipe we do not have access and prices
+            StringBuilder sbErrors = new StringBuilder();
+            ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
+            node.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Option;
+            var childNode = new ProductNode(2, 2, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);
+            childNode.RecipeKind = Fourth.StarChef.Invariables.Constants.RecipeType.Batch;
+            childNode.IsChoise = true;
+
+            var subChildOne = new ProductNode(3, 2, 2, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.EP);
+            var subChildTwo = new ProductNode(4, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
+            childNode.Childs.Add(subChildOne);
+            childNode.Childs.Add(subChildTwo);
+
+            node.Childs.Add(childNode);
+
+            Dictionary<int, decimal> priceStorate = new Dictionary<int, decimal>();
+            //priceStorate.Add(subChildOne.ProductId, 0);
+            priceStorate.Add(subChildTwo.ProductId, 4);
+
+            Dictionary<int, Product> forest = new Dictionary<int, Product>();
+            forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
+            forest.Add(childNode.ProductId, new Product() { ProductId = childNode.ProductId, Wastage = 0, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+            forest.Add(subChildOne.ProductId, new Product() { ProductId = subChildOne.ProductId, Wastage = 50, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+            forest.Add(subChildTwo.ProductId, new Product() { ProductId = subChildTwo.ProductId, Wastage = 50, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+
+            HashSet<int> accessList = new HashSet<int>();
+            accessList.Add(node.ProductId);
+            accessList.Add(childNode.ProductId);
+            accessList.Add(subChildOne.ProductId);
+            accessList.Add(subChildTwo.ProductId);
+
+            var result = node.GetPrice(priceStorate, forest, accessList, sbErrors);
+            Assert.Null(result);
+        }
+
+        [Fact]
         public void PriceRecalcBaseRecipeChoiseChildRecipeBroken()
         {
             StringBuilder sbErrors = new StringBuilder();
