@@ -140,6 +140,8 @@ namespace StarChef.Orchestrate
                                     {
                                         result = Publish(bus, payload);
 
+                                        _logger.Debug("exit publish recipe");
+
                                         if (result)
                                         {
                                             _databaseManager.UpdateOrchestrationSentDate(dbConnectionString, entityId);
@@ -148,9 +150,9 @@ namespace StarChef.Orchestrate
                                     else
                                     {
                                         result = true;
-                                    }
 
-                                    _logger.Debug("exit publish recipe");
+                                        _logger.Warn("RecipeUpdated message was not published, because OrchestrationSentDate is not set or ChangeType is Archive");
+                                    }
                                 }
                                 break;
                             case EnumHelper.EntityTypeWrapper.MealPeriod:
@@ -269,6 +271,8 @@ namespace StarChef.Orchestrate
                                     else
                                     {
                                         result = true;
+
+                                        _logger.Warn("IngredientUpdated message was not published, because OrchestrationSentDate is not set or ChangeType is Archive");
                                     }
                                 }
                                 break;
