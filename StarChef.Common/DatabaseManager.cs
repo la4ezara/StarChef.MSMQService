@@ -262,6 +262,29 @@ namespace StarChef.Common
             return isEnabled;
         }
 
+        public bool IsSetOrchestrationSentDate(string connectionString, int entityId)
+        {
+            var result = false;
+
+            var reader = ExecuteReader(connectionString, "sc_get_product_orchestration_sent_date",
+                new SqlParameter("@product_id", entityId));
+
+            if (reader.Read() && !reader.IsDBNull(0))
+            {
+                result = true;
+            }
+
+            return result;
+        }
+
+        public void UpdateOrchestrationSentDate(string connectionString, int entityId)
+        {
+            Execute(connectionString, "sc_update_product_orchestration_sent_date",
+                new SqlParameter("@product_id", entityId),
+                new SqlParameter("@orchestration_sent_date", DateTime.UtcNow));
+        }
+
+
         public bool IsSsoEnabled(string connectionString)
         {
             var value = GetSetting(connectionString, Constants.CONFIG_ALLOW_SINGLE_SIGN_ON);

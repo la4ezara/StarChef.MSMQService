@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Fourth.Orchestration.Model.Menus;
 using Google.ProtocolBuffers;
 
 #region Orchestration types
@@ -132,8 +133,26 @@ namespace StarChef.Orchestrate
                                     _logger.Debug("enter createEventUpdate");
                                     var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
                                     _logger.Debug("exit createEventUpdate");
-                                    result = Publish(bus, payload);
-                                    _logger.Debug("exit publish recipe");
+
+                                    var isSetOrchestrationSentDate = _databaseManager.IsSetOrchestrationSentDate(dbConnectionString, entityId);
+
+                                    if (isSetOrchestrationSentDate || payload.ChangeType == Events.ChangeType.UPDATE)
+                                    {
+                                        result = Publish(bus, payload);
+
+                                        _logger.Debug("exit publish recipe");
+
+                                        if (result)
+                                        {
+                                            _databaseManager.UpdateOrchestrationSentDate(dbConnectionString, entityId);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result = true;
+
+                                        _logger.Warn("RecipeUpdated message was not published, because OrchestrationSentDate is not set or ChangeType is Archive");
+                                    }
                                 }
                                 break;
                             case EnumHelper.EntityTypeWrapper.MealPeriod:
@@ -237,7 +256,24 @@ namespace StarChef.Orchestrate
                             case EnumHelper.EntityTypeWrapper.Ingredient:
                                 {
                                     var payload = _eventFactory.CreateUpdateEvent<IngredientUpdated, IngredientUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                    result = Publish(bus, payload);
+
+                                    var isSetOrchestrationSentDate = _databaseManager.IsSetOrchestrationSentDate(dbConnectionString, entityId);
+
+                                    if (isSetOrchestrationSentDate || payload.ChangeType == Events.ChangeType.UPDATE)
+                                    {
+                                        result = Publish(bus, payload);
+
+                                        if (result)
+                                        {
+                                            _databaseManager.UpdateOrchestrationSentDate(dbConnectionString, entityId);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        result = true;
+
+                                        _logger.Warn("IngredientUpdated message was not published, because OrchestrationSentDate is not set or ChangeType is Archive");
+                                    }
                                 }
                                 break;
                             case EnumHelper.EntityTypeWrapper.SendSupplierUpdatedEvent:

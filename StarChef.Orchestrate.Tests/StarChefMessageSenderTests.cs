@@ -11,6 +11,7 @@ using Fourth.StarChef.Invariables;
 using Google.ProtocolBuffers;
 using Microsoft.WindowsAzure.Storage.Table;
 using Xunit;
+using Fourth.Orchestration.Model.Menus;
 
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
 using SupplierUpdated = Fourth.Orchestration.Model.Menus.Events.SupplierUpdated;
@@ -212,7 +213,17 @@ namespace StarChef.Orchestrate.Tests
             var databaseManager = new Mock<IDatabaseManager>();
             databaseManager.Setup(m => m.IsSsoEnabled(It.IsAny<string>())).Returns(false);
             databaseManager.Setup(m => m.IsPublishEnabled(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
-            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, Mock.Of<IEventFactory>(), commandFactory);
+            
+            IEventFactory eventFactory = Mock.Of<IEventFactory>();
+            switch (entityTypeWrapper)
+            {
+                case EnumHelper.EntityTypeWrapper.Recipe:                
+                case EnumHelper.EntityTypeWrapper.Ingredient:
+                    databaseManager.Setup(m => m.IsSetOrchestrationSentDate(It.IsAny<string>(), It.IsAny<int>())).Returns(true);
+                    break;
+            }
+
+            var sender = new StarChefMessageSender(messagingFactory.Object, databaseManager.Object, eventFactory, commandFactory);
             // the message which is received from MSMQ
             const int ANY_INT = 0;
             const string ANY_TEXT = "any";
