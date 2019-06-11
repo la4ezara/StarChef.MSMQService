@@ -134,33 +134,20 @@ namespace StarChef.Orchestrate
                                     var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
                                     _logger.Debug("exit createEventUpdate");
 
-                                   
-                                    if (payload.ChangeType == Events.ChangeType.ARCHIVE || (payload.ChangeType == Events.ChangeType.UPDATE && payload.SetsCount > 0))
+                                    var isSetOrchestrationSentDate = _databaseManager.IsSetOrchestrationSentDate(dbConnectionString, entityId);
+
+                                    if (isSetOrchestrationSentDate || payload.ChangeType == Events.ChangeType.UPDATE)
                                     {
                                         result = Publish(bus, payload);
 
                                         if (result)
                                         {
-                                            _databaseManager.UpdateOrchestrationSendDate(dbConnectionString, entityId);
+                                            _databaseManager.UpdateOrchestrationSentDate(dbConnectionString, entityId);
                                         }
                                     }
-                                    else 
+                                    else
                                     {
-                                        var isSetOrchestrationSendDate = _databaseManager.IsSetOrchestrationSendDate(dbConnectionString, entityId);
-
-                                        if (isSetOrchestrationSendDate)
-                                        {
-                                            result = Publish(bus, payload);
-
-                                            if (result)
-                                            {
-                                                _databaseManager.UpdateOrchestrationSendDate(dbConnectionString, entityId);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            result = true;
-                                        }                                     
+                                        result = true;
                                     }
 
                                     _logger.Debug("exit publish recipe");
@@ -267,32 +254,21 @@ namespace StarChef.Orchestrate
                             case EnumHelper.EntityTypeWrapper.Ingredient:
                                 {
                                     var payload = _eventFactory.CreateUpdateEvent<IngredientUpdated, IngredientUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                    if (payload.ChangeType == Events.ChangeType.ARCHIVE || (payload.ChangeType == Events.ChangeType.UPDATE && payload.SetsCount > 0))
+
+                                    var isSetOrchestrationSentDate = _databaseManager.IsSetOrchestrationSentDate(dbConnectionString, entityId);
+
+                                    if (isSetOrchestrationSentDate || payload.ChangeType == Events.ChangeType.UPDATE)
                                     {
                                         result = Publish(bus, payload);
 
                                         if (result)
                                         {
-                                            _databaseManager.UpdateOrchestrationSendDate(dbConnectionString, entityId);
+                                            _databaseManager.UpdateOrchestrationSentDate(dbConnectionString, entityId);
                                         }
                                     }
                                     else
                                     {
-                                        var isSetOrchestrationSendDate = _databaseManager.IsSetOrchestrationSendDate(dbConnectionString, entityId);
-
-                                        if (isSetOrchestrationSendDate)
-                                        {
-                                            result = Publish(bus, payload);
-
-                                            if (result)
-                                            {
-                                                _databaseManager.UpdateOrchestrationSendDate(dbConnectionString, entityId);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            result = true;
-                                        }
+                                        result = true;
                                     }
                                 }
                                 break;

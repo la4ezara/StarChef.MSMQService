@@ -162,6 +162,12 @@ namespace StarChef.Orchestrate
             {
                 recipeSets = GetRecipeSets(reader);
             }
+
+            if (!recipeSets.Any())
+            {
+                builder.SetChangeType(Events.ChangeType.ARCHIVE);
+            }
+
             BuildRecipeSets(builder, recipeSets);
 
             return true;

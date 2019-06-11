@@ -103,6 +103,12 @@ namespace StarChef.Orchestrate
                 {
                     ingredientSets = GetIngredientSets(reader);
                 }
+
+                if (!ingredientSets.Any())
+                {
+                    builder.SetChangeType(Events.ChangeType.ARCHIVE);
+                }
+
                 BuildIngredientSets(builder, ingredientSets);
             }
 
