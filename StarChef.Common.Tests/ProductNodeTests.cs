@@ -821,5 +821,48 @@ namespace StarChef.Common.Tests
             Assert.Equal(2, result);
             Assert.Equal(0, sbErrors.Length);
         }
+
+
+        [Fact]
+        public void PriceRecalcBaseRecipe_RestrictBySupplierOptionWithZeroQuantity()
+        {
+            StringBuilder sbErrors = new StringBuilder();
+            //core scenario where we have access to used ingredient and no list with alternates
+            var ingredientA = new ProductNode(3, 2, 2, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 2, Fourth.StarChef.Invariables.Constants.PortionType.EP);
+            var ingredientB = new ProductNode(4, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Ingredient, 1, Fourth.StarChef.Invariables.Constants.PortionType.AP);
+
+            var childNode = new ProductNode(2, 2, 0, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 1, Fourth.StarChef.Invariables.Constants.PortionType.EP);
+            childNode.RecipeKind = Constants.RecipeType.Option;
+            childNode.Childs.Add(ingredientA);
+            childNode.Childs.Add(ingredientB);
+
+            ProductNode node = new ProductNode(1, 1, 1, Fourth.StarChef.Invariables.Constants.ProductType.Dish, 2, Fourth.StarChef.Invariables.Constants.PortionType.AP);
+            node.RecipeKind = Constants.RecipeType.Standard;
+            node.Childs.Add(childNode);
+            node.Childs.Add(ingredientA);
+
+            Dictionary<int, decimal> priceStorate = new Dictionary<int, decimal>();
+            priceStorate.Add(ingredientA.ProductId, 2);
+            priceStorate.Add(ingredientB.ProductId, 4);
+
+            Dictionary<int, Product> forest = new Dictionary<int, Product>();
+            forest.Add(node.ProductId, new Product() { ProductId = node.ProductId, Wastage = 0, ScopeId = 1 });
+            forest.Add(childNode.ProductId, new Product() { ProductId = childNode.ProductId, Wastage = 0, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+            forest.Add(ingredientA.ProductId, new Product() { ProductId = ingredientA.ProductId, Wastage = 50, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+            forest.Add(ingredientB.ProductId, new Product() { ProductId = ingredientB.ProductId, Wastage = 50, ScopeId = 1, Quantity = 1, UnitId = 1, Number = 2 });
+
+            HashSet<int> accessList = new HashSet<int>();
+            accessList.Add(node.ProductId);
+            accessList.Add(childNode.ProductId);
+            accessList.Add(ingredientA.ProductId);
+            accessList.Add(ingredientB.ProductId);
+
+            List<IngredientAlternate> alternates = new List<IngredientAlternate>();
+
+            var result = node.GetPrice(priceStorate, forest, accessList, true, alternates, sbErrors);
+            //expected price of node recipe is 2
+            Assert.Equal(2, result);
+            Assert.Equal(0, sbErrors.Length);
+        }
     }
 }

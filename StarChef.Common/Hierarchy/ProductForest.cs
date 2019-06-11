@@ -30,6 +30,16 @@ namespace StarChef.Common.Hierarchy
         public ProductForest(List<Product> products, List<ProductPart> parts, List<IngredientAlternate> alternates)
         {
             _products = products;
+
+            foreach (var product in products)
+            {
+                //all option recipes comes with 0 quantity which is not fine for engine
+                if(product.ProductTypeId == ProductType.Dish && product.RecipeTypeId == RecipeType.Option && product.Quantity == 0)
+                {
+                    product.Quantity = 1;
+                }
+            }
+
             _products_dict = products.ToDictionary(key => key.ProductId, value => value);
             _privateProducts = products.Where(p => p.ScopeId > 1).ToDictionary(key => key.ProductId, value => value);
             _parts = parts;
