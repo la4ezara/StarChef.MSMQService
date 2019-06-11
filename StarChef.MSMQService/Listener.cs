@@ -264,10 +264,17 @@ namespace StarChef.MSMQService
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductNutrient:
                         ProcessProductNutrientUpdate(msg);
+                        
                         //extend processing to orchestration
                         msg.Action = (int)Constants.MessageActionType.UpdatedProductNutrient;
-                        msg.EntityTypeId = (int)Constants.EntityType.Dish;
-                        ProcessStarChefEventsUpdated(msg);
+                        if (msg.EntityTypeId == (int)Constants.EntityType.Dish)
+                        {
+                            ProcessStarChefEventsUpdated(msg);
+                        }else if(msg.EntityTypeId == 0)
+                        {
+                            msg.EntityTypeId = (int)Constants.EntityType.Dish;
+                            ProcessStarChefEventsUpdated(msg);
+                        }
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductIntolerance:
                         ProcessProductIntoleranceUpdate(msg);
@@ -312,17 +319,15 @@ namespace StarChef.MSMQService
                 case (int) Constants.MessageSubActionType.ImportedIngredient:
 
                     #region Ingredient
-
-                {
-                    var importTypeSettings = importSettings.Ingredient();
+                    {
+                        var importTypeSettings = importSettings.Ingredient();
+                        _databaseManager.Execute(msg.DSN, "sc_product_run_rankreorder", new SqlParameter("@product_id", msg.ProductID));
+                        //check when to trigger price recalculation for each affected item
                         if (importTypeSettings.AutoCalculateCost)
                         {
-                            _databaseManager.Execute(msg.DSN, "sc_calculate_dish_pricing", new SqlParameter("@product_id", msg.ProductID));
+                            ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
                         }
-                        
-                        _databaseManager.Execute(msg.DSN, "sc_product_run_rankreorder", new SqlParameter("@product_id", msg.ProductID));
                     }
-
                     #endregion
 
                     break;
@@ -398,25 +403,28 @@ namespace StarChef.MSMQService
 
                     #region IngredientPriceBand
 
-                {
-                    var importTypeSettings = importSettings.IngredientPriceBand();
-                    if (importTypeSettings.AutoCalculateCost)
                     {
-                        string priceBands;
-                        var properties = msg.ExtendedProperties.Pairs();
-                        if (properties.TryGetValue("PRICE_BANDS", out priceBands))
+                        var importTypeSettings = importSettings.IngredientPriceBand();
+                        if (importTypeSettings.AutoCalculateCost)
                         {
-                            var priceBandsArray = priceBands.Split(',').Cast<int>().ToArray();
-                            for (var i = 0; i < priceBandsArray.Count(); i++)
+                            string priceBands;
+                            var properties = msg.ExtendedProperties.Pairs();
+                            if (properties.TryGetValue("PRICE_BANDS", out priceBands))
                             {
-                                _databaseManager.Execute(msg.DSN, "_sc_recalculate_nutrient_fibre",
-                                    new SqlParameter("@product_id", msg.ProductID),
-                                    new SqlParameter("@pband_id", priceBandsArray[i])
-                                    );
+                                //do recalculation for each affected product
+                                var priceBandsArray = priceBands.Split(',').Cast<int>().ToArray();
+                                for (var i = 0; i < priceBandsArray.Count(); i++)
+                                {
+                                    ProcessPriceRecalculation(msg.DSN, 0, priceBandsArray[i], 0, 0, 0, msg.ArrivedTime);
+                                }
+                            }
+                            else
+                            {
+                                //if empty trigger global price recalc
+                                ProcessPriceRecalculation(msg.DSN, 0, 0, 0, 0, 0, msg.ArrivedTime);
                             }
                         }
                     }
-                }
 
                     #endregion
 
