@@ -134,16 +134,25 @@ namespace StarChef.Orchestrate
                                     var payload = _eventFactory.CreateUpdateEvent<RecipeUpdated, RecipeUpdatedBuilder>(dbConnectionString, entityId, databaseId);
                                     _logger.Debug("exit createEventUpdate");
 
-                                    if (payload.ChangeType == Events.ChangeType.ARCHIVE || (payload.ChangeType == Events.ChangeType.UPDATE && payload.SetsCount > 0))
+                                    var isSetOrchestrationSentDate = _databaseManager.IsSetOrchestrationSentDate(dbConnectionString, entityId);
+
+                                    if (isSetOrchestrationSentDate || payload.ChangeType == Events.ChangeType.UPDATE)
                                     {
                                         result = Publish(bus, payload);
+
+                                        _logger.Debug("exit publish recipe");
+
+                                        if (result)
+                                        {
+                                            _databaseManager.UpdateOrchestrationSentDate(dbConnectionString, entityId);
+                                        }
                                     }
-                                    else 
+                                    else
                                     {
                                         result = true;
-                                    }
 
-                                    _logger.Debug("exit publish recipe");
+                                        _logger.Warn("RecipeUpdated message was not published, because OrchestrationSentDate is not set or ChangeType is Archive");
+                                    }
                                 }
                                 break;
                             case EnumHelper.EntityTypeWrapper.MealPeriod:
@@ -247,13 +256,23 @@ namespace StarChef.Orchestrate
                             case EnumHelper.EntityTypeWrapper.Ingredient:
                                 {
                                     var payload = _eventFactory.CreateUpdateEvent<IngredientUpdated, IngredientUpdatedBuilder>(dbConnectionString, entityId, databaseId);
-                                    if (payload.ChangeType == Events.ChangeType.ARCHIVE || (payload.ChangeType == Events.ChangeType.UPDATE && payload.SetsCount > 0))
+
+                                    var isSetOrchestrationSentDate = _databaseManager.IsSetOrchestrationSentDate(dbConnectionString, entityId);
+
+                                    if (isSetOrchestrationSentDate || payload.ChangeType == Events.ChangeType.UPDATE)
                                     {
                                         result = Publish(bus, payload);
+
+                                        if (result)
+                                        {
+                                            _databaseManager.UpdateOrchestrationSentDate(dbConnectionString, entityId);
+                                        }
                                     }
                                     else
                                     {
                                         result = true;
+
+                                        _logger.Warn("IngredientUpdated message was not published, because OrchestrationSentDate is not set or ChangeType is Archive");
                                     }
                                 }
                                 break;
