@@ -264,7 +264,7 @@ namespace StarChef.Common
 
         public bool IsSetOrchestrationSendDate(string connectionString, int entityId)
         {
-            var result = true;
+            var result = false;
 
             var reader = ExecuteReader(connectionString, "sc_get_product_orchestration_sent_date",
                 new SqlParameter("@product_id", entityId));
@@ -272,14 +272,22 @@ namespace StarChef.Common
             if (reader.Read() && !reader.IsDBNull(0))
             {
                 var orchestrationSentDate = reader.GetValueOrDefault<DateTime>("orchestration_sent_date");
-                if (orchestrationSentDate == default(DateTime))
+                if (orchestrationSentDate != default(DateTime))
                 {
-                    result = false;
+                    result = true;
                 }
             }
 
             return result;
         }
+
+        public void UpdateOrchestrationSendDate(string connectionString, int entityId)
+        {
+            Execute(connectionString, "sc_update_product_orchestration_sent_date",
+                new SqlParameter("@product_id", entityId),
+                new SqlParameter("@orchestration_sent_date", DateTime.UtcNow));
+        }
+
 
         public bool IsSsoEnabled(string connectionString)
         {
@@ -303,6 +311,6 @@ namespace StarChef.Common
                 result.Add(settings.Name, settings);
             }
             return result;
-        }      
+        }
     }
 }

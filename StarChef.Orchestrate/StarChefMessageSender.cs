@@ -141,19 +141,20 @@ namespace StarChef.Orchestrate
 
                                         if (result)
                                         {
-                                            //TODO update orchestration_sent_date
+                                            _databaseManager.UpdateOrchestrationSendDate(dbConnectionString, entityId);
                                         }
                                     }
                                     else 
                                     {
                                         var isSetOrchestrationSendDate = _databaseManager.IsSetOrchestrationSendDate(dbConnectionString, entityId);
+
                                         if (isSetOrchestrationSendDate)
                                         {
                                             result = Publish(bus, payload);
 
                                             if (result)
                                             {
-                                                //TODO update orchestration_sent_date
+                                                _databaseManager.UpdateOrchestrationSendDate(dbConnectionString, entityId);
                                             }
                                         }
                                         else
@@ -272,19 +273,20 @@ namespace StarChef.Orchestrate
 
                                         if (result)
                                         {
-                                            //TODO update orchestration_sent_date
+                                            _databaseManager.UpdateOrchestrationSendDate(dbConnectionString, entityId);
                                         }
                                     }
                                     else
                                     {
                                         var isSetOrchestrationSendDate = _databaseManager.IsSetOrchestrationSendDate(dbConnectionString, entityId);
+
                                         if (isSetOrchestrationSendDate)
                                         {
                                             result = Publish(bus, payload);
 
                                             if (result)
                                             {
-                                                //TODO update orchestration_sent_date
+                                                _databaseManager.UpdateOrchestrationSendDate(dbConnectionString, entityId);
                                             }
                                         }
                                         else

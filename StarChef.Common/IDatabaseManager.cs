@@ -48,5 +48,6 @@ namespace StarChef.Common
         IDictionary<string, ImportTypeSettings> GetImportSettings(string connectionString, int organizationId);
 
         bool IsSetOrchestrationSendDate(string connectionString, int entityId);
+        void UpdateOrchestrationSendDate(string connectionString, int entityId);
     }
 }
