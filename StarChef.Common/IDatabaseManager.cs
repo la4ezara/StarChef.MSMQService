@@ -49,6 +49,6 @@ namespace StarChef.Common
 
         bool IsSetOrchestrationSentDate(string connectionString, int entityId);
         void UpdateOrchestrationSentDate(string connectionString, int entityId);
-        IEnumerable<T> Query<T>(string cn, string sql, object param, CommandType commandType);
+        IEnumerable<T> Query<T>(string connectionString, string sql, object param, CommandType commandType);
     }
 }

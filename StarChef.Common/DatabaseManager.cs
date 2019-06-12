@@ -310,17 +310,17 @@ namespace StarChef.Common
             return result;
         }
 
-        public IEnumerable<T> Query<T>(string cs, string sql, object param, CommandType commandType)
+        public IEnumerable<T> Query<T>(string connectionString, string sql, object param, CommandType commandType)
         {
 
-            var scsb = new SqlConnectionStringBuilder(cs)
+            var scsb = new SqlConnectionStringBuilder(connectionString)
             {
                 MultipleActiveResultSets = true
             };
 
-            cs = scsb.ConnectionString;
+            connectionString = scsb.ConnectionString;
 
-            var connection = new SqlConnection(cs);
+            var connection = new SqlConnection(connectionString);
             connection.Open();
 
             var result = connection.Query<T>(

@@ -275,15 +275,7 @@ namespace StarChef.MSMQService
                                 ProcessStarChefEventsUpdated(msg);
                             }
 
-                            var affectedRecipies = _databaseManager.Query<int>(msg.DSN, "sc_list_usage_affectedProducts", new { product_id = msg.ProductID }, CommandType.StoredProcedure);
-
-                            foreach (var recipeId in affectedRecipies)
-                            {
-                                var parms1 = new SqlParameter[2];
-                                parms1[0] = new SqlParameter("@entity_id", recipeId);
-                                parms1[1] = new SqlParameter("@message_type", (int)Constants.MessageActionType.UpdatedProductNutrient);
-                                _databaseManager.Execute(msg.DSN, "add_affected_recipe_entity_to_orchestration_queue", parms1);
-                            }
+                            this.AddOrchestrationMessageForAffectedRecipes(msg.ProductID, msg.DSN);
                         }
                         else if (msg.EntityTypeId == 0)
                         {
@@ -694,6 +686,19 @@ namespace StarChef.MSMQService
                     new SqlParameter("@message_arrived_time", arrivedTime));
                 sw.Stop();
                 _logger.Info($"{customer} Old engine finish in {sw.Elapsed.TotalSeconds}");
+            }
+        }
+
+        private void AddOrchestrationMessageForAffectedRecipes(int productId, string connectionString)
+        {
+            var affectedRecipies = _databaseManager.Query<int>(connectionString, "sc_list_usage_affectedProducts", new { product_id = productId }, CommandType.StoredProcedure);
+
+            foreach (var recipeId in affectedRecipies)
+            {
+                var parms1 = new SqlParameter[2];
+                parms1[0] = new SqlParameter("@entity_id", recipeId);
+                parms1[1] = new SqlParameter("@message_type", (int)Constants.MessageActionType.UpdatedProductNutrient);
+                _databaseManager.Execute(connectionString, "add_affected_recipe_entity_to_orchestration_queue", parms1);
             }
         }
     }
