@@ -359,9 +359,11 @@ namespace StarChef.Orchestrate
 
                 if (alternates.Any())
                 {
-                    var minMasterRef = alternates.Min(x => x.RefRevision);
-                    var item = alternates.FirstOrDefault(i => i.RefRevision == minMasterRef);
-                    item.IsDefault = true;
+                    var item = alternates.FirstOrDefault(i => i.RankOrder == 1);
+                    if (item != null)
+                    {
+                        item.IsDefault = true;
+                    }
                 }
                 else
                 {
