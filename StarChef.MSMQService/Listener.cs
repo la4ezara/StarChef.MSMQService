@@ -15,6 +15,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StarChef.Common.Engine;
+using System.Data;
 
 namespace StarChef.MSMQService
 {
@@ -86,7 +87,7 @@ namespace StarChef.MSMQService
                                 }
 
                                 updmsg.ArrivedTime = arrivalTime;
-                                
+
                                 ThreadContext.Properties["OrganisationId"] = databaseId;
 
                                 activeDatabases.Add(databaseId, arrivalTime);
@@ -154,7 +155,7 @@ namespace StarChef.MSMQService
                         activeDatabases.Remove(updmsg.DatabaseID);
                     }
                     ThreadContext.Properties.Remove("OrganisationId");
-                    
+
                     _messageManager.mqDisconnect();
                 }
             }
@@ -264,13 +265,27 @@ namespace StarChef.MSMQService
                         break;
                     case (int)Constants.MessageActionType.UpdatedProductNutrient:
                         ProcessProductNutrientUpdate(msg);
-                        
+
                         //extend processing to orchestration
                         msg.Action = (int)Constants.MessageActionType.UpdatedProductNutrient;
-                        if (msg.EntityTypeId == (int)Constants.EntityType.Dish)
+                        if (msg.EntityTypeId == (int)Constants.EntityType.Dish || msg.EntityTypeId == (int)Constants.EntityType.Ingredient)
                         {
-                            ProcessStarChefEventsUpdated(msg);
-                        }else if(msg.EntityTypeId == 0)
+                            if (msg.EntityTypeId == (int)Constants.EntityType.Dish)
+                            {
+                                ProcessStarChefEventsUpdated(msg);
+                            }
+
+                            var affectedRecipies = _databaseManager.Query<int>(msg.DSN, "sc_list_usage_affectedProducts", new { product_id = msg.ProductID }, CommandType.StoredProcedure);
+
+                            foreach (var recipeId in affectedRecipies)
+                            {
+                                var parms1 = new SqlParameter[2];
+                                parms1[0] = new SqlParameter("@entity_id", recipeId);
+                                parms1[1] = new SqlParameter("@message_type", (int)Constants.MessageActionType.UpdatedProductNutrient);
+                                _databaseManager.Execute(msg.DSN, "add_affected_recipe_entity_to_orchestration_queue", parms1);
+                            }
+                        }
+                        else if (msg.EntityTypeId == 0)
                         {
                             msg.EntityTypeId = (int)Constants.EntityType.Dish;
                             ProcessStarChefEventsUpdated(msg);
@@ -316,7 +331,7 @@ namespace StarChef.MSMQService
             var importSettings = _databaseManager.GetImportSettings(msg.DSN, msg.DatabaseID);
             switch (msg.SubAction)
             {
-                case (int) Constants.MessageSubActionType.ImportedIngredient:
+                case (int)Constants.MessageSubActionType.ImportedIngredient:
 
                     #region Ingredient
                     {
@@ -331,75 +346,75 @@ namespace StarChef.MSMQService
                     #endregion
 
                     break;
-                case (int) Constants.MessageSubActionType.ImportedIngredientIntolerance:
+                case (int)Constants.MessageSubActionType.ImportedIngredientIntolerance:
 
                     #region IngredientIntolerance
 
-                {
-                    var importTypeSettings = importSettings.IngredientIntolerance();
-                    if (importTypeSettings.AutoCalculateIntolerance)
                     {
-                        _databaseManager.Execute(msg.DSN, "sc_audit_log_nutrition_intolerance",
-                            new SqlParameter("@product_id", msg.ProductID),
-                            new SqlParameter("@db_entity_id", 20), // hardcoded
-                            new SqlParameter("@user_id", 1), // hardcoded
-                            new SqlParameter("@audit_type_id", 6) // hardcoded
-                            );
+                        var importTypeSettings = importSettings.IngredientIntolerance();
+                        if (importTypeSettings.AutoCalculateIntolerance)
+                        {
+                            _databaseManager.Execute(msg.DSN, "sc_audit_log_nutrition_intolerance",
+                                new SqlParameter("@product_id", msg.ProductID),
+                                new SqlParameter("@db_entity_id", 20), // hardcoded
+                                new SqlParameter("@user_id", 1), // hardcoded
+                                new SqlParameter("@audit_type_id", 6) // hardcoded
+                                );
 
-                        _databaseManager.Execute(msg.DSN, "utils_recalc_parent_intol_by_product",
-                            new SqlParameter("@ProductID", msg.ProductID));
+                            _databaseManager.Execute(msg.DSN, "utils_recalc_parent_intol_by_product",
+                                new SqlParameter("@ProductID", msg.ProductID));
 
-                        _databaseManager.Execute(msg.DSN, "sc_batch_product_labelling_update",
-                            new SqlParameter("@product_id", msg.ProductID),
-                            new SqlParameter("@disable_msmq_log", 1) // hardcoded
-                            );
+                            _databaseManager.Execute(msg.DSN, "sc_batch_product_labelling_update",
+                                new SqlParameter("@product_id", msg.ProductID),
+                                new SqlParameter("@disable_msmq_log", 1) // hardcoded
+                                );
+                        }
                     }
-                }
 
                     #endregion
 
                     break;
-                case (int) Constants.MessageSubActionType.ImportedIngredientNutrient:
+                case (int)Constants.MessageSubActionType.ImportedIngredientNutrient:
 
                     #region IngredientNutrient
 
-                {
-                    var importTypeSettings = importSettings.IngredientNutrient();
-                    if (importTypeSettings.AutoCalculateIntolerance)
                     {
-
-                        _databaseManager.Execute(msg.DSN, "sc_audit_log_nutrition_intolerance",
-                            new SqlParameter("@product_id", msg.ProductID),
-                            new SqlParameter("@db_entity_id", 20), // hardcoded
-                            new SqlParameter("@user_id", 1), // hardcoded
-                            new SqlParameter("@audit_type_id", 6) // hardcoded
-                            );
-
-                        // first try to recalculate fibre if need
-                        string fiberFlag;
-                        var properties = msg.ExtendedProperties.Pairs();
-                        if (properties.TryGetValue("FIBER_RECALC_REQUIRED", out fiberFlag) && Convert.ToBoolean(fiberFlag))
+                        var importTypeSettings = importSettings.IngredientNutrient();
+                        if (importTypeSettings.AutoCalculateIntolerance)
                         {
-                            _databaseManager.Execute(msg.DSN, "_sc_recalculate_nutrient_fibre",
+
+                            _databaseManager.Execute(msg.DSN, "sc_audit_log_nutrition_intolerance",
+                                new SqlParameter("@product_id", msg.ProductID),
+                                new SqlParameter("@db_entity_id", 20), // hardcoded
+                                new SqlParameter("@user_id", 1), // hardcoded
+                                new SqlParameter("@audit_type_id", 6) // hardcoded
+                                );
+
+                            // first try to recalculate fibre if need
+                            string fiberFlag;
+                            var properties = msg.ExtendedProperties.Pairs();
+                            if (properties.TryGetValue("FIBER_RECALC_REQUIRED", out fiberFlag) && Convert.ToBoolean(fiberFlag))
+                            {
+                                _databaseManager.Execute(msg.DSN, "_sc_recalculate_nutrient_fibre",
+                                    new SqlParameter("@product_id", msg.ProductID));
+                            }
+
+                            //calculate summary for ingredient
+                            _databaseManager.Execute(msg.DSN, "_sc_update_calorie_details",
                                 new SqlParameter("@product_id", msg.ProductID));
+
+                            //calculate nutrition data for related recipes
+                            _databaseManager.Execute(msg.DSN, "_sc_update_dish_yield",
+                                new SqlParameter("@product_id", msg.ProductID),
+                                new SqlParameter("@include_self", false) // hardcoded
+                                );
                         }
-
-                        //calculate summary for ingredient
-                        _databaseManager.Execute(msg.DSN, "_sc_update_calorie_details",
-                            new SqlParameter("@product_id", msg.ProductID));
-
-                        //calculate nutrition data for related recipes
-                        _databaseManager.Execute(msg.DSN, "_sc_update_dish_yield",
-                            new SqlParameter("@product_id", msg.ProductID),
-                            new SqlParameter("@include_self", false) // hardcoded
-                            );
                     }
-                }
 
                     #endregion
 
                     break;
-                case (int) Constants.MessageSubActionType.ImportedIngredientPriceBand:
+                case (int)Constants.MessageSubActionType.ImportedIngredientPriceBand:
 
                     #region IngredientPriceBand
 
@@ -429,22 +444,22 @@ namespace StarChef.MSMQService
                     #endregion
 
                     break;
-                case (int) Constants.MessageSubActionType.ImportedIngredientConversion:
+                case (int)Constants.MessageSubActionType.ImportedIngredientConversion:
 
                     #region IngredientConversion
 
-                {
-                    _databaseManager.Execute(msg.DSN, "sc_audit_history_single_log",
-                        new SqlParameter("@entity_id", msg.ProductID),
-                        new SqlParameter("@modified_columns", "Pack Size"),
-                        new SqlParameter("@db_entity_id", 20)); // hardcoded
-                }
+                    {
+                        _databaseManager.Execute(msg.DSN, "sc_audit_history_single_log",
+                            new SqlParameter("@entity_id", msg.ProductID),
+                            new SqlParameter("@modified_columns", "Pack Size"),
+                            new SqlParameter("@db_entity_id", 20)); // hardcoded
+                    }
 
                     #endregion
 
                     break;
-                case (int) Constants.MessageSubActionType.ImportedUsers:
-                case (int) Constants.MessageSubActionType.ImportedIngredientCategory:
+                case (int)Constants.MessageSubActionType.ImportedUsers:
+                case (int)Constants.MessageSubActionType.ImportedIngredientCategory:
                 default:
                     // do nothing
                     break;
@@ -520,36 +535,36 @@ namespace StarChef.MSMQService
             var productIds = new List<int>();
             switch (msg.EntityTypeId)
             {
-                case (int) Constants.EntityType.User:
-                    entityTypeId = (int) Constants.EntityType.User;
+                case (int)Constants.EntityType.User:
+                    entityTypeId = (int)Constants.EntityType.User;
                     entityId = msg.ProductID;
                     break;
                 case (int)Constants.EntityType.UserGroup:
                     entityTypeId = (int)Constants.EntityType.UserGroup;
                     entityId = msg.ProductID;
                     break;
-                case (int) Constants.EntityType.Ingredient:
-                    entityTypeId = (int) Constants.EntityType.Ingredient;
+                case (int)Constants.EntityType.Ingredient:
+                    entityTypeId = (int)Constants.EntityType.Ingredient;
                     entityId = msg.ProductID;
                     if (!string.IsNullOrEmpty(msg.ExtendedProperties))
                     {
                         productIds = JsonConvert.DeserializeObject<List<int>>(msg.ExtendedProperties);
                     }
                     break;
-                case (int) Constants.EntityType.Dish:
-                    entityTypeId = (int) Constants.EntityType.Dish;
+                case (int)Constants.EntityType.Dish:
+                    entityTypeId = (int)Constants.EntityType.Dish;
                     entityId = msg.ProductID;
                     if (!string.IsNullOrEmpty(msg.ExtendedProperties))
                     {
                         productIds = JsonConvert.DeserializeObject<List<int>>(msg.ExtendedProperties);
                     }
                     break;
-                case (int) Constants.EntityType.Menu:
-                    entityTypeId = (int) Constants.EntityType.Menu;
+                case (int)Constants.EntityType.Menu:
+                    entityTypeId = (int)Constants.EntityType.Menu;
                     entityId = msg.ProductID;
                     break;
-                case (int) Constants.EntityType.MealPeriodManagement:
-                    entityTypeId = (int) Constants.EntityType.MealPeriodManagement;
+                case (int)Constants.EntityType.MealPeriodManagement:
+                    entityTypeId = (int)Constants.EntityType.MealPeriodManagement;
                     entityId = msg.ProductID;
                     break;
                 case (int)Constants.EntityType.Group:
@@ -587,12 +602,14 @@ namespace StarChef.MSMQService
             return result;
         }
 
-        private void ProcessUpdatedInventoryValidation(UpdateMessage msg) {
+        private void ProcessUpdatedInventoryValidation(UpdateMessage msg)
+        {
             ExecuteStoredProc(msg.DSN, "sc_switch_invisible_validation");
         }
 
-        private void AddOrchestrationMessageToQueue(string dsn, int entityId, int entityTypeId, string externalId, Constants.MessageActionType messageActionTypeId) {
-            
+        private void AddOrchestrationMessageToQueue(string dsn, int entityId, int entityTypeId, string externalId, Constants.MessageActionType messageActionTypeId)
+        {
+
             ExecuteStoredProc(dsn,
                 "sc_calculation_enqueue",
                 new SqlParameter("@EntityId", entityId),
@@ -611,7 +628,8 @@ namespace StarChef.MSMQService
             return engine;
         }
 
-        public string GetCustomerFromDsn(string dsn) {
+        public string GetCustomerFromDsn(string dsn)
+        {
             string result = string.Empty;
             var dsnParts = dsn.ToLower().Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             var customer = dsnParts.FirstOrDefault(x => x.Contains("initial catalog"));
@@ -632,7 +650,7 @@ namespace StarChef.MSMQService
 
             _logger.Info($"{customer} sc_calculate_dish_pricing @group_id = {groupId}, @product_id = {productId}, @pset_id = {psetId}, @pband_id = {pbandId}, @unit_id = {unitId}, @message_arrived_time = {arrivedTime.ToString()}");
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            
+
             var engine = GetPriceEngine(dsn);
             bool newPriceEngineOn = engine.IsEngineEnabled().Result;
             bool runGlobalRecalculation = true;
@@ -643,7 +661,8 @@ namespace StarChef.MSMQService
             }
 
             //always run old algo for product price recalculation
-            if (newPriceEngineOn) {
+            if (newPriceEngineOn)
+            {
 
                 _logger.Info($"{customer} New engine is used");
                 _logger.Info($"Recalculate Product {productId}");
