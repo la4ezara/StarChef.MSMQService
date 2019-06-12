@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using Fourth.StarChef.Invariables;
 using StarChef.Common.Types;
 using System.Runtime.Caching;
+using Dapper;
 
 namespace StarChef.Common
 {
@@ -306,6 +307,30 @@ namespace StarChef.Common
                 };
                 result.Add(settings.Name, settings);
             }
+            return result;
+        }
+
+        public IEnumerable<T> Query<T>(string connectionString, string sql, object param, CommandType commandType)
+        {
+
+            var scsb = new SqlConnectionStringBuilder(connectionString)
+            {
+                MultipleActiveResultSets = true
+            };
+
+            connectionString = scsb.ConnectionString;
+
+            var connection = new SqlConnection(connectionString);
+            connection.Open();
+
+            var result = connection.Query<T>(
+                    sql,
+                    param,
+                    commandType: commandType,
+                    commandTimeout: 120);
+
+            connection.Close();
+
             return result;
         }
     }
