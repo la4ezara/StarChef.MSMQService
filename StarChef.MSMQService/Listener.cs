@@ -334,6 +334,9 @@ namespace StarChef.MSMQService
                         {
                             ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
                         }
+                        
+                        //when import new alternate/ingredient we should copy ingredient values to alternates in terms of nutrition and intolerances.
+                        _databaseManager.Execute(msg.DSN, "sc_alternate_ingredient_update", new SqlParameter("@product_id", msg.ProductID));
                     }
                     #endregion
 
