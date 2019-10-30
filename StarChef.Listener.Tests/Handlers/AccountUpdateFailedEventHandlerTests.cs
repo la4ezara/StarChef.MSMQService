@@ -42,27 +42,27 @@ namespace StarChef.Listener.Tests.Handlers
             messagingLogger.Verify(m => m.ReceivedFailedMessage(It.IsAny<FailedTransferObject>(), It.IsAny<string>()), Times.Once);
         }
 
-        [Fact]
-        public void Should_do_nothing_for_nonStarchef_event()
-        {
-            var builder = AccountUpdateFailed.CreateBuilder();
-            builder
-                .SetCommandId("1")
-                .SetExternalId("1")
-                .SetReason(AccountUpdateFailedReason.INVALID_UPDATE_DATA)
-                .SetSource(SourceSystem.ADACO);
-            var payload = builder.Build();
+        //[Fact]
+        //public void Should_do_nothing_for_nonStarchef_event()
+        //{
+        //    var builder = AccountUpdateFailed.CreateBuilder();
+        //    builder
+        //        .SetCommandId("1")
+        //        .SetExternalId("1")
+        //        .SetReason(AccountUpdateFailedReason.INVALID_UPDATE_DATA)
+        //        .SetSource(SourceSystem.ADACO);
+        //    var payload = builder.Build();
 
-            var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict);
-            var validator = new AccountUpdateFailedValidator(dbCommands.Object);
-            var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
-            var handler = new AccountUpdateFailedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
+        //    var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict);
+        //    var validator = new AccountUpdateFailedValidator(dbCommands.Object);
+        //    var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
+        //    var handler = new AccountUpdateFailedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
 
-            var result = handler.HandleAsync(payload, "1").Result;
+        //    var result = handler.HandleAsync(payload, "1").Result;
 
-            // assertions
-            Assert.Equal(MessageHandlerResult.Success, result);
-        }
+        //    // assertions
+        //    Assert.Equal(MessageHandlerResult.Success, result);
+        //}
         
         [Fact]
         public void Should_not_have_log_for_non_starchef_events()

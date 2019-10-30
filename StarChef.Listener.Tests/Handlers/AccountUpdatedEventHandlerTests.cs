@@ -20,30 +20,30 @@ namespace StarChef.Listener.Tests.Handlers
 {
     public class AccountUpdatedEventHandlerTests : IClassFixture<ObjectMappingFixture>
     {
-        [Fact]
-        public void Should_do_nothing_for_nonStarchef_event()
-        {
-            var builder = AccountUpdated.CreateBuilder();
-            builder
-                .SetUsername("1")
-                .SetFirstName("1")
-                .SetLastName("1")
-                .SetEmailAddress("1")
-                .SetSource(SourceSystem.ADACO)
-                .SetExternalId(Guid.Empty.ToString());
-            var payload = builder.Build();
+        //[Fact]
+        //public void Should_do_nothing_for_nonStarchef_event()
+        //{
+        //    var builder = AccountUpdated.CreateBuilder();
+        //    builder
+        //        .SetUsername("1")
+        //        .SetFirstName("1")
+        //        .SetLastName("1")
+        //        .SetEmailAddress("1")
+        //        .SetSource(SourceSystem.ADACO)
+        //        .SetExternalId(Guid.Empty.ToString());
+        //    var payload = builder.Build();
 
-            var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict);
-            var validator = new AccountUpdatedValidator(dbCommands.Object);
-            var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
+        //    var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict);
+        //    var validator = new AccountUpdatedValidator(dbCommands.Object);
+        //    var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
 
-            var handler = new AccountUpdatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
+        //    var handler = new AccountUpdatedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
 
-            var result = handler.HandleAsync(payload, "1").Result;
+        //    var result = handler.HandleAsync(payload, "1").Result;
 
-            // assertions
-            Assert.Equal(MessageHandlerResult.Success, result);
-        }
+        //    // assertions
+        //    Assert.Equal(MessageHandlerResult.Success, result);
+        //}
 
         [Fact]
         public void Should_register_error_with_model()

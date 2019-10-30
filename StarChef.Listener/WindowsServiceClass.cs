@@ -18,8 +18,31 @@ namespace StarChef.Listener
 
         static void Main()
         {
-            var servicesToRun = new ServiceBase[] {new WindowsServiceClass()};
-            Run(servicesToRun);
+            if (!Environment.UserInteractive)
+            {
+                var servicesToRun = new ServiceBase[] { new WindowsServiceClass() };
+                Run(servicesToRun);
+            }
+            else
+            {
+                var servicesToRun = new WindowsServiceClass();
+                servicesToRun.StartService(null);
+                Console.WriteLine("The listener is running - press any key to stop...");
+                Console.ReadKey(true);
+                servicesToRun.StopService();
+            }
+        }
+
+        /// <inheritdoc />
+        public void StartService(string[] args)
+        {
+            this.OnStart(args);
+        }
+
+        /// <inheritdoc />
+        public void StopService()
+        {
+            this.OnStop();
         }
 
         protected override void OnStart(string[] args)
