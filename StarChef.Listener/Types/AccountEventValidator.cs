@@ -29,9 +29,18 @@ namespace StarChef.Listener.Types
                 typeof (AccountStatusChanged),
                 typeof (AccountStatusChangeFailed),
             };
-            if (payload == null) return false;
 
-            if (!supportedEvents.Contains(payload.GetType())) return false;
+            if (payload == null)
+            {
+                return false;
+            }
+
+            if (!supportedEvents.Contains(payload.GetType()))
+            {
+                return false;
+            }
+
+            return true;
 
             dynamic p = payload; // Let's assign to dynamic var because there is no common type for the events, but they have common properties
             return p.HasSource && new[] { SourceSystem.STARCHEF /* other allowed source systems */}.Contains((SourceSystem)p.Source);

@@ -41,26 +41,26 @@ namespace StarChef.Listener.Tests.Handlers
             messagingLogger.Verify(m => m.ReceivedFailedMessage(It.IsAny<FailedTransferObject>(), It.IsAny<string>()), Times.Once);
         }
 
-        [Fact]
-        public void Should_do_nothing_for_nonStarchef_event()
-        {
-            var builder = AccountCreateFailed.CreateBuilder();
-            builder
-                .SetInternalId("1")
-                .SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA)
-                .SetSource(SourceSystem.ADACO);
-            var payload = builder.Build();
+        //[Fact]
+        //public void Should_do_nothing_for_nonStarchef_event()
+        //{
+        //    var builder = AccountCreateFailed.CreateBuilder();
+        //    builder
+        //        .SetInternalId("1")
+        //        .SetReason(AccountCreateFailedReason.INVALID_CREATE_DATA)
+        //        .SetSource(SourceSystem.ADACO);
+        //    var payload = builder.Build();
 
-            var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict);
-            var validator = new AccountCreateFailedValidator(dbCommands.Object);
-            var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
-            var handler = new AccountCreateFailedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
+        //    var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict);
+        //    var validator = new AccountCreateFailedValidator(dbCommands.Object);
+        //    var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
+        //    var handler = new AccountCreateFailedEventHandler(dbCommands.Object, validator, messagingLogger.Object);
 
-            var result = handler.HandleAsync(payload, "1").Result;
+        //    var result = handler.HandleAsync(payload, "1").Result;
 
-            // assertions
-            Assert.Equal(MessageHandlerResult.Success, result);
-        }
+        //    // assertions
+        //    Assert.Equal(MessageHandlerResult.Success, result);
+        //}
         
         [Fact]
         public void Should_not_have_log_for_non_starchef_events()

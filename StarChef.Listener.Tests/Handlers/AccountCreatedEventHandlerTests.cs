@@ -60,30 +60,30 @@ namespace StarChef.Listener.Tests.Handlers
             messagingLogger.Verify(m => m.MessageProcessedSuccessfully(It.Is<object>(p => ReferenceEquals(p, payload)), It.IsAny<string>()), Times.Once);
         }
 
-        [Fact]
-        public void Should_do_nothing_for_nonStarchef_event()
-        {
-            var builder = AccountCreated.CreateBuilder();
-            builder
-                .SetInternalId("1")
-                .SetFirstName("1")
-                .SetLastName("1")
-                .SetEmailAddress("1")
-                .SetSource(SourceSystem.ADACO)
-                .SetExternalId(Guid.Empty.ToString());
-            var payload = builder.Build();
+        //[Fact]
+        //public void Should_do_nothing_for_nonStarchef_event()
+        //{
+        //    var builder = AccountCreated.CreateBuilder();
+        //    builder
+        //        .SetInternalId("1")
+        //        .SetFirstName("1")
+        //        .SetLastName("1")
+        //        .SetEmailAddress("1")
+        //        .SetSource(SourceSystem.ADACO)
+        //        .SetExternalId(Guid.Empty.ToString());
+        //    var payload = builder.Build();
 
-            var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict); // ensure there is no setup, this  object should not been called
-            var validator = new AccountCreatedValidator(dbCommands.Object);
-            var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
-            var config = new Mock<IConfiguration>();
-            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, config.Object, messagingLogger.Object);
+        //    var dbCommands = new Mock<IDatabaseCommands>(MockBehavior.Strict); // ensure there is no setup, this  object should not been called
+        //    var validator = new AccountCreatedValidator(dbCommands.Object);
+        //    var messagingLogger = new Mock<IMessagingLogger>(MockBehavior.Strict);
+        //    var config = new Mock<IConfiguration>();
+        //    var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, config.Object, messagingLogger.Object);
 
-            var result = handler.HandleAsync(payload, "1").Result;
+        //    var result = handler.HandleAsync(payload, "1").Result;
 
-            // assertions
-            Assert.Equal(MessageHandlerResult.Success, result);
-        }
+        //    // assertions
+        //    Assert.Equal(MessageHandlerResult.Success, result);
+        //}
 
         [Fact]
         public void Should_register_error_with_model()
