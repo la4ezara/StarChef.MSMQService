@@ -76,7 +76,7 @@ namespace StarChef.MSMQService
                         {
                             msg.Formatter = _messageFormat;
                             updmsg = (UpdateMessage)msg.Body;
-                            _logger.Debug("message: " + msg.Body.ToString());
+                            _logger.Debug("message: " + updmsg.ToString());
                             int databaseId = updmsg.DatabaseID;
                             if (!activeDatabases.Contains(databaseId) && updmsg != null)
                             {
@@ -127,7 +127,7 @@ namespace StarChef.MSMQService
                             else
                             {
                                 OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.ParallelDatabaseId));
-                                _logger.Debug("exists in active hastable");
+                                _logger.Debug("exists in active hashtable");
                             }
                         }
                         else
@@ -362,8 +362,7 @@ namespace StarChef.MSMQService
 
                             _databaseManager.Execute(msg.DSN, "sc_batch_product_labelling_update",
                                 new SqlParameter("@product_id", msg.ProductID),
-                                new SqlParameter("@disable_msmq_log", 1) // hardcoded
-                                );
+                                new SqlParameter("@msmq_log_id", msg.TrackId));
                         }
 
                         //when import new alternate/ingredient we should copy ingredient values to alternates in terms of nutrition and intolerances.
@@ -514,7 +513,9 @@ namespace StarChef.MSMQService
         {
             ExecuteStoredProc(msg.DSN,
                 "sc_batch_product_labelling_update",
-                new SqlParameter("@product_id", msg.ProductID));
+                new SqlParameter[] {
+                    new SqlParameter("@product_id", msg.ProductID),
+                    new SqlParameter("@msmq_log_id", msg.TrackId)});
         }
 
         private void ProcessGlobalUpdate(UpdateMessage msg)
