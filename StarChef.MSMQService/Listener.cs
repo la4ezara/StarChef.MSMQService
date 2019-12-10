@@ -350,19 +350,27 @@ namespace StarChef.MSMQService
 
                         if (importTypeSettings.AutoCalculateIntolerance)
                         {
-                            _databaseManager.Execute(msg.DSN, "sc_audit_log_nutrition_intolerance",
+                            int userId = 1;
+                            if (msg.UserId != 0)
+                            {
+                                userId = msg.UserId;
+                            }
+
+                            ExecuteStoredProc(msg.DSN, "sc_audit_log_nutrition_intolerance",
                                 new SqlParameter("@product_id", msg.ProductID),
                                 new SqlParameter("@db_entity_id", 20), // hardcoded
-                                new SqlParameter("@user_id", 1), // hardcoded
+                                new SqlParameter("@user_id", userId), // hardcoded
                                 new SqlParameter("@audit_type_id", 6) // hardcoded
                                 );
 
-                            _databaseManager.Execute(msg.DSN, "utils_recalc_parent_intol_by_product",
-                                new SqlParameter("@ProductID", msg.ProductID));
-
-                            _databaseManager.Execute(msg.DSN, "sc_batch_product_labelling_update",
+                            ExecuteStoredProc(msg.DSN, "utils_recalc_parent_intol_by_product",
                                 new SqlParameter("@product_id", msg.ProductID),
-                                new SqlParameter("@msmq_log_id", msg.TrackId));
+                                new SqlParameter("@user_id", userId));
+
+                            ExecuteStoredProc(msg.DSN, "sc_batch_product_labelling_update",
+                                new SqlParameter("@product_id", msg.ProductID),
+                                new SqlParameter("@msmq_log_id", msg.TrackId),
+                                new SqlParameter("@user_id", userId));
                         }
 
                         //when import new alternate/ingredient we should copy ingredient values to alternates in terms of nutrition and intolerances.
@@ -515,7 +523,9 @@ namespace StarChef.MSMQService
                 "sc_batch_product_labelling_update",
                 new SqlParameter[] {
                     new SqlParameter("@product_id", msg.ProductID),
-                    new SqlParameter("@msmq_log_id", msg.TrackId)});
+                    new SqlParameter("@msmq_log_id", msg.TrackId),
+                    new SqlParameter("@user_id", msg.UserId)
+                });
         }
 
         private void ProcessGlobalUpdate(UpdateMessage msg)
@@ -530,12 +540,16 @@ namespace StarChef.MSMQService
 
         private void ProcessAlternateIngredientUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN, "sc_alternate_ingredient_update", new SqlParameter("@product_id", msg.ProductID));
+            ExecuteStoredProc(msg.DSN, "sc_alternate_ingredient_update", new SqlParameter[] { 
+                new SqlParameter("@product_id", msg.ProductID),
+                new SqlParameter("@user_id", msg.UserId)});
         }
 
         private void ProcessImportAlternateIngredientUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN, "import_api_alternate_ingredient_update", new SqlParameter("@product_id", msg.ProductID));
+            ExecuteStoredProc(msg.DSN, "import_api_alternate_ingredient_update", 
+                new SqlParameter("@product_id", msg.ProductID), 
+                new SqlParameter("@user_id", msg.UserId));
         }
 
         private void ProcessStarChefEventsUpdated(UpdateMessage msg)
