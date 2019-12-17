@@ -3,6 +3,7 @@ using System.Data.SqlClient;
 using System;
 using System.Configuration;
 using Commands = Fourth.Orchestration.Model.People.Commands;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 
 namespace StarChef.Orchestrate.Models
 {
@@ -36,7 +37,7 @@ namespace StarChef.Orchestrate.Models
 
             builder.SetExternalId(sfAccoutnId)
                 .SetCommandId(new Random().Next(1, int.MaxValue).ToString())
-                .SetSource(Commands.SourceSystem.STARCHEF);
+                .SetSource(SourceSystem.STARCHEF);
             return builder;
         }
 
@@ -61,7 +62,7 @@ namespace StarChef.Orchestrate.Models
                         .SetEmailAddress(reader[1].ToString())
                         .SetFirstName(reader[3].ToString())
                         .SetLastName(reader[4].ToString())
-                        .SetSource(Commands.SourceSystem.STARCHEF);
+                        .SetSource(SourceSystem.STARCHEF);
 
                 foreach (var app in addApplicationsToAdd)
                 {
@@ -102,7 +103,7 @@ namespace StarChef.Orchestrate.Models
                         .SetFirstName(reader[3].ToString())
                         .SetLastName(reader[4].ToString())
                         .SetCommandId(rand.Next(1, int.MaxValue).ToString())                        
-                        .SetSource(Commands.SourceSystem.STARCHEF);
+                        .SetSource(SourceSystem.STARCHEF);
 
                 foreach (var app in addApplicationsToAdd)
                 {

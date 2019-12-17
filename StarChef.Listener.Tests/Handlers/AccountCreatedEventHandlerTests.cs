@@ -5,7 +5,7 @@ using Moq;
 using StarChef.Listener.Commands;
 using Xunit;
 using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
-using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Tests.Fixtures;
 using StarChef.Listener.Validators;

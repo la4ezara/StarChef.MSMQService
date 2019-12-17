@@ -12,7 +12,7 @@ using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.Accou
 using AccountCreateFailedReason = Fourth.Orchestration.Model.People.Events.AccountCreateFailedReason;
 using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.AccountUpdateFailedReason;
 using AccountStatus = Fourth.Orchestration.Model.People.Events.AccountStatus;
-using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 using StarChef.Listener.Commands;
 using Moq;
 using StarChef.Listener.Validators;

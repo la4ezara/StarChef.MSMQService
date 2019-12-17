@@ -7,7 +7,7 @@ using StarChef.Listener.Commands;
 using StarChef.Listener.Exceptions;
 using StarChef.Orchestrate.Models.TransferObjects;
 using StarChef.Listener.Extensions;
-using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 using AccountCreated = Fourth.Orchestration.Model.People.Events.AccountCreated;
 
 namespace StarChef.Listener.Handlers

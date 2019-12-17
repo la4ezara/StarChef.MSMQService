@@ -2,7 +2,8 @@
 using System;
 using Google.ProtocolBuffers;
 using Commands = Fourth.Orchestration.Model.People.Commands;
-using SourceSystem = Fourth.Orchestration.Model.People.Commands.SourceSystem;
+
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
 using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
 using Fourth.StarChef.Invariables;

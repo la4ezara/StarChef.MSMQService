@@ -8,7 +8,7 @@ using AccountUpdated = Fourth.Orchestration.Model.People.Events.AccountUpdated;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
 using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountStatusChanged;
 using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.AccountStatusChangeFailed;
-using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 
 namespace StarChef.Listener.Types
 {

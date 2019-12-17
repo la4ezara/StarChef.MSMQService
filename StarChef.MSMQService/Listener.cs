@@ -314,6 +314,9 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UpdatedInventoryValidation:
                         ProcessUpdatedInventoryValidation(msg);
                         break;
+                    case (int)Constants.MessageActionType.UpdatedProductABV:
+                        ProcessProductAbvUpdate(msg);
+                        break;
                 }
             }
         }
@@ -630,6 +633,17 @@ namespace StarChef.MSMQService
         private void ProcessUpdatedInventoryValidation(UpdateMessage msg)
         {
             ExecuteStoredProc(msg.DSN, "sc_switch_invisible_validation");
+        }
+
+        private void ProcessProductAbvUpdate(UpdateMessage msg)
+        {
+            ExecuteStoredProc(msg.DSN,
+                "sc_batch_product_abv_update",
+                new SqlParameter[] {
+                    new SqlParameter("@product_id", msg.ProductID),
+                    new SqlParameter("@msmq_log_id", msg.TrackId),
+                    new SqlParameter("@user_id", msg.UserId)
+                });
         }
 
         private void AddOrchestrationMessageToQueue(string dsn, int entityId, int entityTypeId, string externalId, Constants.MessageActionType messageActionTypeId)

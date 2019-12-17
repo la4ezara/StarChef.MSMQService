@@ -3,7 +3,7 @@ using Moq;
 using Xunit;
 using DeactivateAccount = Fourth.Orchestration.Model.People.Commands.DeactivateAccount;
 using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
-using SourceSystem = Fourth.Orchestration.Model.People.Commands.SourceSystem;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 
 namespace StarChef.Orchestrate.Tests
 {

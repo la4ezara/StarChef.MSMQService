@@ -10,6 +10,7 @@ using System;
 using System.Linq;
 using Xunit;
 using static Fourth.Orchestration.Model.People.Events;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 
 namespace StarChef.Listener.Tests.Handlers
 {

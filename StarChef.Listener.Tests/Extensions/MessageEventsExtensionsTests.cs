@@ -15,7 +15,7 @@ using AccountStatusChanged = Fourth.Orchestration.Model.People.Events.AccountSta
 using AccountStatusChangeFailed = Fourth.Orchestration.Model.People.Events.AccountStatusChangeFailed;
 using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.AccountUpdateFailedReason;
 using IMessage = Google.ProtocolBuffers.IMessage;
-using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 
 
 namespace StarChef.Listener.Tests.Extensions
