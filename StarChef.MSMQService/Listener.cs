@@ -317,6 +317,9 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.UpdatedProductABV:
                         ProcessProductAbvUpdate(msg);
                         break;
+                    case (int)Constants.MessageActionType.EnabledAbv:
+                        //TODO:: Recalculate all ingredients abv
+                        break;
                 }
             }
         }
