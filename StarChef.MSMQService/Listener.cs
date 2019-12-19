@@ -318,7 +318,7 @@ namespace StarChef.MSMQService
                         ProcessProductAbvUpdate(msg);
                         break;
                     case (int)Constants.MessageActionType.EnabledAbv:
-                        //TODO:: Recalculate all ingredients abv
+                        ProcessFullABVIngredientRecalculation(msg);
                         break;
                 }
             }
@@ -684,6 +684,16 @@ namespace StarChef.MSMQService
                 }
             }
             return result;
+        }
+
+        public void ProcessFullABVIngredientRecalculation(UpdateMessage msg)
+        {
+            ExecuteStoredProc(msg.DSN,
+                 "sc_full_recipe_abv_recalculation",
+                 new SqlParameter[] {
+                    new SqlParameter("@user_id", msg.UserId)
+                 });
+
         }
 
         private void ProcessPriceRecalculation(string dsn, int groupId, int productId, int psetId, int pbandId, int unitId, DateTime arrivedTime)
