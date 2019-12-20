@@ -6,7 +6,7 @@ using StarChef.Listener.Commands;
 using Xunit;
 using AccountUpdateFailedReason = Fourth.Orchestration.Model.People.Events.AccountUpdateFailedReason;
 using AccountUpdateFailed = Fourth.Orchestration.Model.People.Events.AccountUpdateFailed;
-using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 using StarChef.Listener.Tests.Fixtures;
 using StarChef.Listener.Types;
 using StarChef.Listener.Validators;

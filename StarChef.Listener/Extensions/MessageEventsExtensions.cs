@@ -7,7 +7,7 @@ using Fourth.Orchestration.Model.Recipes;
 using Google.ProtocolBuffers;
 using Newtonsoft.Json;
 using StarChef.Listener.Exceptions;
-using SourceSystem = Fourth.Orchestration.Model.People.Events.SourceSystem;
+using SourceSystem = Fourth.Orchestration.Model.Common.SourceSystemId;
 
 namespace StarChef.Listener.Extensions
 {
