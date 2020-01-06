@@ -470,7 +470,7 @@ namespace StarChef.MSMQService
                             new SqlParameter("@db_entity_id", 20)); // hardcoded
 
                         //when import new alternate/ingredient we should copy ingredient values to alternates in terms of nutrition and intolerances.
-                        ProcessImportAlternateIngredientUpdate(msg);
+                        ProcessImportAlternateIngredientUpdate(msg, true);
                     }
 
                     #endregion
@@ -553,9 +553,15 @@ namespace StarChef.MSMQService
 
         private void ProcessImportAlternateIngredientUpdate(UpdateMessage msg)
         {
-            ExecuteStoredProc(msg.DSN, "import_api_alternate_ingredient_update", 
-                new SqlParameter("@product_id", msg.ProductID), 
-                new SqlParameter("@user_id", msg.UserId));
+            ProcessImportAlternateIngredientUpdate(msg, false);
+        }
+
+        private void ProcessImportAlternateIngredientUpdate(UpdateMessage msg, bool forceRecalculation)
+        {
+            ExecuteStoredProc(msg.DSN, "import_api_alternate_ingredient_update",
+                new SqlParameter("@product_id", msg.ProductID),
+                new SqlParameter("@user_id", msg.UserId),
+                new SqlParameter("@force_recalculation", Convert.ToInt16(forceRecalculation)));
         }
 
         private void ProcessStarChefEventsUpdated(UpdateMessage msg)
