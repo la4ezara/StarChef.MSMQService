@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StarChef.Common.Engine;
 using System.Data;
+using StarChef.Common.Repository;
 
 namespace StarChef.MSMQService
 {
@@ -320,7 +321,11 @@ namespace StarChef.MSMQService
                     case (int)Constants.MessageActionType.EnabledAbv:
                         ProcessFullABVIngredientRecalculation(msg);
                         break;
-                }
+					case (int)Constants.MessageActionType.UpdateAlternatesRank:
+						ProcessRankReorder(msg);
+						break;
+
+				}
             }
         }
 
@@ -460,10 +465,10 @@ namespace StarChef.MSMQService
 
                     break;
                 case (int)Constants.MessageSubActionType.ImportedIngredientConversion:
+				case (int)Constants.MessageSubActionType.ImportedIngredientAlternateSwitch:
+					#region IngredientConversion
 
-                    #region IngredientConversion
-
-                    {
+					{
                         _databaseManager.Execute(msg.DSN, "sc_audit_history_single_log",
                             new SqlParameter("@entity_id", msg.ProductID),
                             new SqlParameter("@modified_columns", "Pack Size"),
@@ -476,7 +481,7 @@ namespace StarChef.MSMQService
                     #endregion
 
                     break;
-                case (int)Constants.MessageSubActionType.ImportedUsers:
+				case (int)Constants.MessageSubActionType.ImportedUsers:
                 case (int)Constants.MessageSubActionType.ImportedIngredientCategory:
                 default:
                     // do nothing
@@ -702,7 +707,19 @@ namespace StarChef.MSMQService
 
         }
 
-        private void ProcessPriceRecalculation(string dsn, int groupId, int productId, int psetId, int pbandId, int unitId, DateTime arrivedTime)
+		public void ProcessRankReorder(UpdateMessage msg)
+		{
+			var repo = new IngredientRepository(_databaseManager);
+			var productIds = JsonConvert.DeserializeObject<List<int>>(msg.ExtendedProperties);
+
+			foreach (var productId in productIds)
+			{
+				repo.RunRankReorder(productId, msg.DSN);
+			}
+		}
+
+
+		private void ProcessPriceRecalculation(string dsn, int groupId, int productId, int psetId, int pbandId, int unitId, DateTime arrivedTime)
         {
             var customer = GetCustomerFromDsn(dsn);
 
