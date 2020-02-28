@@ -21,7 +21,9 @@ namespace StarChef.Listener.Tests.Validators
             const long MORE_THAN_INT = (((long)int.MaxValue)+1);
             builder.SetExternalId("mandatory")
                 .SetInternalId(MORE_THAN_INT.ToString());
-            var payload = builder.Build();
+
+			builder.AddPermissionSets("Star_Chef");
+			var payload = builder.Build();
 
             var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
             var result = validator.IsValidPayload(payload);
@@ -40,7 +42,9 @@ namespace StarChef.Listener.Tests.Validators
                 .SetLastName("1")
                 .SetEmailAddress("1")
                 .SetExternalId("1");
-            var accountCreated = builder.Build();
+			builder.AddPermissionSets("Star_Chef");
+
+			var accountCreated = builder.Build();
 
             var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValidPayload(accountCreated);
@@ -57,7 +61,8 @@ namespace StarChef.Listener.Tests.Validators
                 .SetLastName("1")
                 .SetEmailAddress("1")
                 .SetExternalId("1");
-            var accountCreated = builder.Build();
+			builder.AddPermissionSets("Star_Chef");
+			var accountCreated = builder.Build();
 
             var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValidPayload(accountCreated);
@@ -74,7 +79,8 @@ namespace StarChef.Listener.Tests.Validators
                 .SetLastName("1")
                 .SetEmailAddress("1")
                 .SetExternalId("1");
-            var accountCreated = builder.Build();
+			builder.AddPermissionSets("Menu_Cycles");
+			var accountCreated = builder.Build();
 
             var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValidPayload(accountCreated);
@@ -91,7 +97,8 @@ namespace StarChef.Listener.Tests.Validators
                 .SetFirstName("1")
                 .SetEmailAddress("1")
                 .SetExternalId("1");
-            var accountCreated = builder.Build();
+			builder.AddPermissionSets("Star_Chef");
+			var accountCreated = builder.Build();
 
             var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValidPayload(accountCreated);
@@ -108,7 +115,8 @@ namespace StarChef.Listener.Tests.Validators
                 .SetFirstName("1")
                 .SetLastName("1")
                 .SetExternalId("1");
-            var accountCreated = builder.Build();
+			builder.AddPermissionSets("Star_Chef");
+			var accountCreated = builder.Build();
 
             var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValidPayload(accountCreated);
@@ -129,7 +137,8 @@ namespace StarChef.Listener.Tests.Validators
                 .SetLastName("any")
                 .SetEmailAddress("any")
                 .SetExternalId("any");
-            var accountCreated = builder.Build();
+			builder.AddPermissionSets("Star_Chef");
+			var accountCreated = builder.Build();
 
             var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
             var actual = validator.IsValidPayload(accountCreated);
@@ -137,5 +146,28 @@ namespace StarChef.Listener.Tests.Validators
             Assert.False(actual);
             Assert.Equal("Username exceeds the maximum length of 50 characters.", validator.GetErrors());
         }
+
+		[Fact]
+		public void Should_return_false_when_PermissionSets_donot_contain_StarchefOrMenuCycle()
+		{
+			var builder = AccountCreated.CreateBuilder();
+			builder
+				.SetUsername("test")
+				.SetInternalId("1")
+				.SetFirstName("any")
+				.SetLastName("any")
+				.SetEmailAddress("any")
+				.SetExternalId("any");
+
+			builder.AddPermissionSets("Star_Char");
+
+			var accountCreated = builder.Build();
+
+			var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+			var actual = validator.IsValidPayload(accountCreated);
+
+			Assert.False(actual);
+			Assert.Equal("PermissionSets don't contain Star_Chef or Menu_Cycles set.", validator.GetErrors());
+		}
     }
 }
