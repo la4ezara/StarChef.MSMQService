@@ -38,7 +38,10 @@ namespace StarChef.Listener.Tests.Handlers
                 .SetEmailAddress(EMAIL_ADDRESS)
                 .SetSource(SourceSystem.STARCHEF)
                 .SetExternalId(externalId);
-            var payload = builder.Build();
+
+			builder.AddPermissionSets("Star_Chef");
+
+			var payload = builder.Build();
 
             var dbCommands = new Mock<IDatabaseCommands>();
             dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(true));

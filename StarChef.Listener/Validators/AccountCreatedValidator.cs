@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
+using Fourth.StarChef.Invariables;
 using log4net;
 using StarChef.Listener.Commands;
 using StarChef.Listener.Types;
@@ -74,6 +76,12 @@ namespace StarChef.Listener.Validators
                 SetLastError("Username exceeds the maximum length of 50 characters.");
                 return false;
             }
+
+			if(!e.PermissionSetsList.Any(s => s.ToLower() == Constants.STARCHEF_APP_NAME.ToLower()) && !e.PermissionSetsList.Any(s => s.ToLower() == Constants.MENUCYCLES_APP_NAME.ToLower()))
+			{
+				SetLastError("PermissionSets don't contain Star_Chef or Menu_Cycles set.");
+				return false;
+			}
 
             _logger.Info("Payload is valid");
             return true;
