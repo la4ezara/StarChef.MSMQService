@@ -28,6 +28,7 @@ namespace StarChef.Listener.Tests.Handlers
             const string FIRST_NAME = "first_name";
             const string LAST_NAME = "last_name";
             const string EMAIL_ADDRESS = "email";
+            const string UserGroupId = "234";
             var externalId = Guid.NewGuid().ToString();
             var builder = AccountCreated.CreateBuilder();
             builder
