@@ -4,7 +4,7 @@ using StarChef.Listener.Exceptions;
 
 namespace StarChef.Listener.Commands
 {
-    internal interface IConnectionStringProvider
+    public interface IConnectionStringProvider
     {
         /// <summary>
         /// Get connection string Login DB
