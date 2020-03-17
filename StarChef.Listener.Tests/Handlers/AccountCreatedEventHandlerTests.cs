@@ -15,6 +15,8 @@ using StarChef.Listener.Exceptions;
 using System.Linq;
 using log4net;
 using System.Threading.Tasks;
+using StarChef.Listener.Commands.Impl;
+using System.Collections.Generic;
 
 namespace StarChef.Listener.Tests.Handlers
 {
@@ -317,5 +319,5 @@ namespace StarChef.Listener.Tests.Handlers
                 && p.ExternalLoginId == externalId
                 )), Times.Once);
         }
-    }
+}
 }
