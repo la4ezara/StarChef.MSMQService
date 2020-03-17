@@ -96,7 +96,10 @@ namespace StarChef.Listener.Commands.Impl
             var dbDetails = await _csProvider.GetCustomerDbDetails(user.ExternalCustomerId, loginDbConnectionString);
             var orgId = dbDetails.Item1;
             var connectionString = dbDetails.Item2;
+
             var applicationsToAdd = string.Empty;
+            int defaultUserGroupId = GetDefaultUserGroup(Guid.Parse(user.CustomerCanonicallId)).Result;
+            if (defaultUserGroupId == 0) defaultUserGroupId = 1; //set default user group to SC Administrators
             if (user.PermissionSets.Any())
             {
                 applicationsToAdd = String.Join(",", user.PermissionSets.ToArray());
@@ -110,8 +113,7 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@login_name", user.Username);
                 p.AddWithValue("@forename", user.FirstName);
                 p.AddWithValue("@lastname", user.LastName);
-                p.AddWithValue("@ugroup_id", user.UserGroupId);
-                p.AddWithValue("@ugroup_id", values["ugroup_id"]);
+                p.AddWithValue("@ugroup_id", defaultUserGroupId);
                 p.AddWithValue("@language_id", values["language_id"]);
                 p.AddWithValue("@set_default", true); // required to add default group
                 p.AddWithValue("@applications_to_add", applicationsToAdd);
@@ -385,6 +387,21 @@ namespace StarChef.Listener.Commands.Impl
                 return new Tuple<int, int, bool, bool, int>(dbUserId, dbUserConfig, isEnabled, isDeleted, modifiedBy);
             };
             var result = await UseReader(connectionString, "get_user_data", addParametersAction, processReader);
+            return result;
+        }
+
+        public async Task<int> GetDefaultUserGroup(Guid organisationId)
+        {
+            var loginDbConnectionString = await _csProvider.GetLoginDb();
+            if (string.IsNullOrEmpty(loginDbConnectionString))
+                throw new ConnectionStringNotFoundException("Login connection string is not found");
+
+            var customerDbConnectionString = await _csProvider.GetCustomerDb(organisationId, loginDbConnectionString);
+            if (string.IsNullOrEmpty(customerDbConnectionString))
+                throw new ConnectionStringNotFoundException("Customer DB connection string is not found");
+
+            var result = await ExecWithScalar<string>(customerDbConnectionString, "sc_get_default_user_group");
+
             return result;
         }
 

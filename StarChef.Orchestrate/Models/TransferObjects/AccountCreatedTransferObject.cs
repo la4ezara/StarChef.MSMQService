@@ -13,6 +13,6 @@ namespace StarChef.Orchestrate.Models.TransferObjects
         public string EmailAddress { get; set; }
         public string ExternalCustomerId { get; set; }
         public IEnumerable<string> PermissionSets { get; set; }
-        public int UserGroupId { get; set; }
+        public string CustomerCanonicallId { get; set; }
     }
 }
