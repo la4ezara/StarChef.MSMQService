@@ -4,7 +4,7 @@ using StarChef.Listener.Exceptions;
 
 namespace StarChef.Listener.Commands
 {
-    internal interface IConnectionStringProvider
+    public interface IConnectionStringProvider
     {
         /// <summary>
         /// Get connection string Login DB
@@ -35,6 +35,6 @@ namespace StarChef.Listener.Commands
         /// <param name="connectionStringLoginDb"></param>
         /// <exception cref="ConnectionStringLookupException">Error is occurred while getting a customer DB</exception>
         /// <returns></returns>
-        Task<Tuple<int, string, Guid>> GetCustomerDbDetails(string externalDatabaseId, string connectionStringLoginDb);
+        Task<Tuple<int, string>> GetCustomerDbDetails(string externalDatabaseId, string connectionStringLoginDb);
     }
 }
