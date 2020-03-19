@@ -96,11 +96,10 @@ namespace StarChef.Listener.Commands.Impl
             var dbDetails = await _csProvider.GetCustomerDbDetails(user.ExternalCustomerId, loginDbConnectionString);
             var orgId = dbDetails.Item1;
             var connectionString = dbDetails.Item2;
-            var dbGuid = dbDetails.Item3;
 
             var applicationsToAdd = string.Empty;
-            if(dbGuid == null || dbGuid == Guid.Empty) throw new ConnectionStringNotFoundException("db_database_guid is not found");
-            int defaultUserGroupId = GetDefaultUserGroup(dbGuid).Result;
+
+            int defaultUserGroupId = GetDefaultUserGroup(connectionString).Result;
             if (defaultUserGroupId == 0) defaultUserGroupId = 1; //set default user group to SC Administrators
             if (user.PermissionSets.Any())
             {
@@ -392,16 +391,8 @@ namespace StarChef.Listener.Commands.Impl
             return result;
         }
 
-        public async Task<int> GetDefaultUserGroup(Guid organisationId)
+        public async Task<int> GetDefaultUserGroup(string customerDbConnectionString)
         {
-            var loginDbConnectionString = await _csProvider.GetLoginDb();
-            if (string.IsNullOrEmpty(loginDbConnectionString))
-                throw new ConnectionStringNotFoundException("Login connection string is not found");
-
-            var customerDbConnectionString = await _csProvider.GetCustomerDb(organisationId, loginDbConnectionString);
-            if (string.IsNullOrEmpty(customerDbConnectionString))
-                throw new ConnectionStringNotFoundException("Customer DB connection string is not found");
-
             var result = await ExecWithScalar<string>(customerDbConnectionString, "sc_get_default_user_group");
 
             return result;

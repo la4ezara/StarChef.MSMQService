@@ -15,7 +15,7 @@ namespace StarChef.Listener.Commands.Impl
     {
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public async Task<Tuple<int, string, Guid>> GetCustomerDbDetails(string externalDatabaseId, string connectionStringLoginDb)
+        public async Task<Tuple<int, string>> GetCustomerDbDetails(string externalDatabaseId, string connectionStringLoginDb)
         {
             using (var sqlConnection = new SqlConnection(connectionStringLoginDb))
             {
@@ -32,8 +32,7 @@ namespace StarChef.Listener.Commands.Impl
                         {
                             var dbId = reader.GetValue<int>("db_database_id");
                             var connStr = reader.GetValue<string>("database_connection_string");
-                            var dbGuid = reader.GetValue<Guid>("db_database_guid");
-                            return new Tuple<int, string, Guid>(dbId, connStr, dbGuid);
+                            return new Tuple<int, string>(dbId, connStr);
                         }
                         throw new ConnectionStringLookupException("Connection string not found for DB with external ID = " + externalDatabaseId);
                     }
