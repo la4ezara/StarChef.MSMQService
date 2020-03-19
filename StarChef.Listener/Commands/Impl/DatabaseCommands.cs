@@ -98,7 +98,8 @@ namespace StarChef.Listener.Commands.Impl
             var connectionString = dbDetails.Item2;
 
             var applicationsToAdd = string.Empty;
-            int defaultUserGroupId = GetDefaultUserGroup(Guid.Parse(user.CustomerCanonicallId)).Result;
+
+            int defaultUserGroupId = GetDefaultUserGroup(connectionString).Result;
             if (defaultUserGroupId == 0) defaultUserGroupId = 1; //set default user group to SC Administrators
             if (user.PermissionSets.Any())
             {
@@ -390,16 +391,8 @@ namespace StarChef.Listener.Commands.Impl
             return result;
         }
 
-        public async Task<int> GetDefaultUserGroup(Guid organisationId)
+        public async Task<int> GetDefaultUserGroup(string customerDbConnectionString)
         {
-            var loginDbConnectionString = await _csProvider.GetLoginDb();
-            if (string.IsNullOrEmpty(loginDbConnectionString))
-                throw new ConnectionStringNotFoundException("Login connection string is not found");
-
-            var customerDbConnectionString = await _csProvider.GetCustomerDb(organisationId, loginDbConnectionString);
-            if (string.IsNullOrEmpty(customerDbConnectionString))
-                throw new ConnectionStringNotFoundException("Customer DB connection string is not found");
-
             var result = await ExecWithScalar<string>(customerDbConnectionString, "sc_get_default_user_group");
 
             return result;
