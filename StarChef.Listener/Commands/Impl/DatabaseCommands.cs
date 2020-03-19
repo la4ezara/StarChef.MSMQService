@@ -96,9 +96,11 @@ namespace StarChef.Listener.Commands.Impl
             var dbDetails = await _csProvider.GetCustomerDbDetails(user.ExternalCustomerId, loginDbConnectionString);
             var orgId = dbDetails.Item1;
             var connectionString = dbDetails.Item2;
+            var dbGuid = dbDetails.Item3;
 
             var applicationsToAdd = string.Empty;
-            int defaultUserGroupId = GetDefaultUserGroup(Guid.Parse(user.CustomerCanonicallId)).Result;
+            if(dbGuid == null || dbGuid == Guid.Empty) throw new ConnectionStringNotFoundException("db_database_guid is not found");
+            int defaultUserGroupId = GetDefaultUserGroup(dbGuid).Result;
             if (defaultUserGroupId == 0) defaultUserGroupId = 1; //set default user group to SC Administrators
             if (user.PermissionSets.Any())
             {
