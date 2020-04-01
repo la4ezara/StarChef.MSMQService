@@ -481,6 +481,14 @@ namespace StarChef.MSMQService
                     #endregion
 
                     break;
+				case (int)Constants.MessageSubActionType.ImportedIngredientCost:
+					#region IngredientCost
+					{
+						ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
+					}
+
+					#endregion
+					break;
 				case (int)Constants.MessageSubActionType.ImportedUsers:
                 case (int)Constants.MessageSubActionType.ImportedIngredientCategory:
                 default:
