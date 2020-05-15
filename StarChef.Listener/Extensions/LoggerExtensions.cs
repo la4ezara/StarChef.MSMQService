@@ -46,7 +46,7 @@ namespace StarChef.Listener.Extensions
         
         public static void UpdatingUserExternalId(this ILog logger, AccountCreatedTransferObject user)
         {
-            logger.InfoFormat("Set externalId ({0}) to user with loginId={1}", user.ExternalLoginId, user.LoginId);
+            logger.InfoFormat("Set externalId ({0}) to user with loginId={1}", user.ExternalLoginId, user.InternalLoginId);
         }
 
         public static void AddingUser(this ILog logger, AccountCreatedTransferObject user)

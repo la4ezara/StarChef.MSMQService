@@ -41,7 +41,7 @@ namespace StarChef.Listener.Validators
                 return false;
             }
             int internalId;
-            if (!int.TryParse(e.InternalId, out internalId))
+            if (!int.TryParse(e.InternalId, out internalId) && e.Source == Fourth.Orchestration.Model.Common.SourceSystemId.STARCHEF)
             {
                 SetLastError("InternalId is not Int32: " + e.InternalId);
                 return false;

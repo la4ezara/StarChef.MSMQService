@@ -93,7 +93,7 @@ namespace StarChef.Listener
 
             try
             {
-                var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.LoginId);
+                var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.InternalLoginId);
 
                 ThreadContext.Properties["OrganisationId"] = userDetail.Item2;
 

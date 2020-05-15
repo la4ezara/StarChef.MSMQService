@@ -23,6 +23,7 @@ namespace StarChef.Listener.Tests.Validators
                 .SetInternalId(MORE_THAN_INT.ToString());
 
 			builder.AddPermissionSets("Star_Chef");
+            builder.SetSource(Fourth.Orchestration.Model.Common.SourceSystemId.STARCHEF);
 			var payload = builder.Build();
 
             var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
@@ -31,6 +32,29 @@ namespace StarChef.Listener.Tests.Validators
             Assert.False(result);
             Assert.Equal("InternalId is not Int32: "+ MORE_THAN_INT, validator.GetErrors());
         }
+
+        [Fact]
+        public void Should_catch_nonInt_IntenalId2()
+        {
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                 .SetInternalId("1sdsdsd")
+                 .SetUsername("1")
+                 .SetFirstName("1")
+                 .SetLastName("1")
+                 .SetEmailAddress("1")
+                 .SetExternalId("1");
+            builder.AddPermissionSets("Star_Chef");
+            builder.SetSource(Fourth.Orchestration.Model.Common.SourceSystemId.USER_MANAGEMENT);
+            var payload = builder.Build();
+
+            var validator = new AccountCreatedValidator(Mock.Of<IDatabaseCommands>());
+            var result = validator.IsValidPayload(payload);
+
+            Assert.True(result);
+            //Assert.Equal("InternalId is not Int32: " + MORE_THAN_INT, validator.GetErrors());
+        }
+
         [Fact]
         public void Should_return_true_for_valid_model()
         {

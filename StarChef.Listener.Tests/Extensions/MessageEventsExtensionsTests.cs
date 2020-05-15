@@ -96,7 +96,8 @@ namespace StarChef.Listener.Tests.Extensions
         {
             var obj = new AccountCreatedTransferObject
             {
-                LoginId = 1,
+                InternalLoginId = 1,
+                InternalId = "1",
                 FirstName = "1",
                 LastName = "1",
                 EmailAddress = "1",
@@ -107,7 +108,7 @@ namespace StarChef.Listener.Tests.Extensions
             };
 
             var actual = obj.ToJson();
-            const string expected = @"{""LoginId"":1,""ExternalLoginId"":""1"",""Username"":""1"",""FirstName"":""1"",""LastName"":""1"",""EmailAddress"":""1"",""ExternalCustomerId"":""1"",""PermissionSets"":[]}";
+            const string expected = @"{""InternalLoginId"":1,""ExternalLoginId"":""1"",""Username"":""1"",""FirstName"":""1"",""LastName"":""1"",""EmailAddress"":""1"",""ExternalCustomerId"":""1"",""PermissionSets"":[],""CustomerCanonicallId"":null,""InternalId"":""1""}";
             Assert.Equal(expected, actual);
         }
 

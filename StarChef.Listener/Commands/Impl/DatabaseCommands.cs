@@ -76,7 +76,7 @@ namespace StarChef.Listener.Commands.Impl
 
             await Exec(loginDbConnectionString, "sc_orchestration_update_login_external_id", p =>
             {
-                p.AddWithValue("@login_id", user.LoginId);
+                p.AddWithValue("@login_id", user.InternalLoginId);
                 p.AddWithValue("@external_login_id", user.ExternalLoginId);
             });
         }
