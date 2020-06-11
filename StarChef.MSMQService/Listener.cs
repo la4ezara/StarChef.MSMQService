@@ -489,7 +489,12 @@ namespace StarChef.MSMQService
 
 					#endregion
 					break;
-				case (int)Constants.MessageSubActionType.ImportedUsers:
+                case (int)Constants.MessageSubActionType.ImportedRecipe:
+                    break;
+                case (int)Constants.MessageSubActionType.ImportedRecipeIngredients:
+                    ProcessImportRecipeIngredients(msg);
+                    break;
+                case (int)Constants.MessageSubActionType.ImportedUsers:
                 case (int)Constants.MessageSubActionType.ImportedIngredientCategory:
                 default:
                     // do nothing
@@ -575,6 +580,14 @@ namespace StarChef.MSMQService
                 new SqlParameter("@product_id", msg.ProductID),
                 new SqlParameter("@user_id", msg.UserId),
                 new SqlParameter("@force_recalculation", Convert.ToInt16(forceRecalculation)));
+        }
+
+        private void ProcessImportRecipeIngredients(UpdateMessage msg)
+        {
+            ProcessProductIntoleranceUpdate(msg);
+            ProcessProductNutrientUpdate(msg);
+            ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
+            AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
         }
 
         private void ProcessStarChefEventsUpdated(UpdateMessage msg)
