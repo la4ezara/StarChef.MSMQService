@@ -586,6 +586,7 @@ namespace StarChef.MSMQService
         {
             ProcessProductIntoleranceUpdate(msg);
             ProcessProductNutrientUpdate(msg);
+            ProcessProductAbvUpdate(msg);
             ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
             AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
         }
