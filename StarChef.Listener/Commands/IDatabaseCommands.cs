@@ -122,5 +122,7 @@ namespace StarChef.Listener.Commands
         ///     Get userId and customerDB details
         /// </summary>
         Task<Tuple<int, int, string>> GetLoginUserIdAndCustomerDb(int loginId);
+
+        Task<int> GetDefaultUserGroup(string customerDbConnectionString);
     }
 }

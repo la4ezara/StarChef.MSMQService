@@ -29,7 +29,7 @@ namespace StarChef.Listener
                     {
                         #region AccountCreated => AccountCreatedTransferObject
                         c.CreateMap<AccountCreated, AccountCreatedTransferObject>()
-                                        .ForMember(dest => dest.LoginId, o => o.MapFrom(src => int.Parse(src.InternalId)))
+                                        .ForMember(dest => dest.InternalId, o => o.MapFrom(src => src.InternalId))
                                         .ForMember(dest => dest.FirstName, o => o.MapFrom(src => src.FirstName))
                                         .ForMember(dest => dest.LastName, o => o.MapFrom(src => src.LastName))
                                         .ForMember(dest => dest.EmailAddress, o => o.MapFrom(src => src.EmailAddress))

@@ -49,7 +49,15 @@ namespace StarChef.Listener.Handlers
                         try
                         {
                             user = Mapper.Map<AccountCreatedTransferObject>(payload);
-                            var isUserExists = await DbCommands.IsUserExists(user.LoginId, username: user.Username);
+
+                            if (payload.HasSource && payload.Source == SourceSystem.STARCHEF) {
+                                int userId = 0;
+                                if (int.TryParse(user.InternalId, out userId)) {
+                                    user.InternalLoginId = userId;
+                                }
+                            }
+
+                            var isUserExists = await DbCommands.IsUserExists(user.InternalLoginId, username: user.Username);
                             if (isUserExists)
                             {
                                 /* NOTE
@@ -59,14 +67,14 @@ namespace StarChef.Listener.Handlers
                                  * The operation to originate loginId will lookup database for the actual value.
                                  * NB: it should be originated always because User Management send event with StarChef source system.
                                  */
-                                user.LoginId = await DbCommands.OriginateLoginId(user.LoginId, user.Username);
+                                user.InternalLoginId = await DbCommands.OriginateLoginId(user.InternalLoginId, user.Username);
                                 _logger.UpdatingUserExternalId(user);
                                 await DbCommands.UpdateExternalId(user);
                             }
                             else
                             {
                                 _logger.AddingUser(user);
-                                user.LoginId = await DbCommands.AddUser(user);
+                                user.InternalLoginId = await DbCommands.AddUser(user);
                             }
 
                             await MessagingLogger.MessageProcessedSuccessfully(payload, trackingId);

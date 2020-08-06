@@ -76,7 +76,7 @@ namespace StarChef.Listener.Commands.Impl
 
             await Exec(loginDbConnectionString, "sc_orchestration_update_login_external_id", p =>
             {
-                p.AddWithValue("@login_id", user.LoginId);
+                p.AddWithValue("@login_id", user.InternalLoginId);
                 p.AddWithValue("@external_login_id", user.ExternalLoginId);
             });
         }
@@ -96,7 +96,11 @@ namespace StarChef.Listener.Commands.Impl
             var dbDetails = await _csProvider.GetCustomerDbDetails(user.ExternalCustomerId, loginDbConnectionString);
             var orgId = dbDetails.Item1;
             var connectionString = dbDetails.Item2;
+
             var applicationsToAdd = string.Empty;
+
+            int defaultUserGroupId = GetDefaultUserGroup(connectionString).Result;
+            if (defaultUserGroupId == 0) defaultUserGroupId = 1; //set default user group to SC Administrators
             if (user.PermissionSets.Any())
             {
                 applicationsToAdd = String.Join(",", user.PermissionSets.ToArray());
@@ -110,7 +114,7 @@ namespace StarChef.Listener.Commands.Impl
                 p.AddWithValue("@login_name", user.Username);
                 p.AddWithValue("@forename", user.FirstName);
                 p.AddWithValue("@lastname", user.LastName);
-                p.AddWithValue("@ugroup_id", values["ugroup_id"]);
+                p.AddWithValue("@ugroup_id", defaultUserGroupId);
                 p.AddWithValue("@language_id", values["language_id"]);
                 p.AddWithValue("@set_default", true); // required to add default group
                 p.AddWithValue("@applications_to_add", applicationsToAdd);
@@ -384,6 +388,13 @@ namespace StarChef.Listener.Commands.Impl
                 return new Tuple<int, int, bool, bool, int>(dbUserId, dbUserConfig, isEnabled, isDeleted, modifiedBy);
             };
             var result = await UseReader(connectionString, "get_user_data", addParametersAction, processReader);
+            return result;
+        }
+
+        public async Task<int> GetDefaultUserGroup(string customerDbConnectionString)
+        {
+            var result = await ExecWithScalar<string>(customerDbConnectionString, "sc_get_default_user_group");
+
             return result;
         }
 

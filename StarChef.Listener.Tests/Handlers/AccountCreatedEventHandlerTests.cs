@@ -15,6 +15,8 @@ using StarChef.Listener.Exceptions;
 using System.Linq;
 using log4net;
 using System.Threading.Tasks;
+using StarChef.Listener.Commands.Impl;
+using System.Collections.Generic;
 
 namespace StarChef.Listener.Tests.Handlers
 {
@@ -57,8 +59,53 @@ namespace StarChef.Listener.Tests.Handlers
             // assertions
             Assert.Equal(MessageHandlerResult.Success, result);
             dbCommands.Verify(m => m.UpdateExternalId(It.Is<AccountCreatedTransferObject>(p =>
-                p.LoginId == LOGIN_ID
+                p.InternalLoginId == LOGIN_ID
                 && p.ExternalLoginId == externalId
+                )), Times.Once);
+            messagingLogger.Verify(m => m.MessageProcessedSuccessfully(It.Is<object>(p => ReferenceEquals(p, payload)), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public void Should_updated_valid_data_and_log_to_messaging_events2()
+        {
+            string internalId = Guid.NewGuid().ToString();
+            int creted_loginId = 15;
+            string USERNAME = "username";
+            string FIRST_NAME = "first_name";
+            string LAST_NAME = "last_name";
+            string EMAIL_ADDRESS = "email";
+            var externalId = Guid.NewGuid().ToString();
+            var builder = AccountCreated.CreateBuilder();
+            builder
+                .SetInternalId(internalId)
+                .SetUsername(USERNAME)
+                .SetFirstName(FIRST_NAME)
+                .SetLastName(LAST_NAME)
+                .SetEmailAddress(EMAIL_ADDRESS)
+                .SetSource(SourceSystem.USER_MANAGEMENT)
+                .SetExternalId(externalId);
+
+            builder.AddPermissionSets("Star_Chef");
+
+            var payload = builder.Build();
+
+            var dbCommands = new Mock<IDatabaseCommands>();
+            dbCommands.Setup(m => m.IsUserExists(It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(false));
+            dbCommands.Setup(m => m.AddUser(It.IsAny<AccountCreatedTransferObject>())).Returns(Task.FromResult(creted_loginId));
+
+            var validator = new AccountCreatedValidator(dbCommands.Object);
+            var messagingLogger = new Mock<IMessagingLogger>();
+            var config = new Mock<IConfiguration>();
+            var handler = new AccountCreatedEventHandler(dbCommands.Object, validator, config.Object, messagingLogger.Object);
+
+            var result = handler.HandleAsync(payload, "1").Result;
+
+            // assertions
+            Assert.Equal(MessageHandlerResult.Success, result);
+            dbCommands.Verify(m => m.AddUser(It.Is<AccountCreatedTransferObject>(p =>
+                p.InternalLoginId == creted_loginId && 
+                p.InternalId.Equals(internalId, StringComparison.CurrentCultureIgnoreCase) &&
+                p.ExternalLoginId == externalId
                 )), Times.Once);
             messagingLogger.Verify(m => m.MessageProcessedSuccessfully(It.Is<object>(p => ReferenceEquals(p, payload)), It.IsAny<string>()), Times.Once);
         }
@@ -317,5 +364,5 @@ namespace StarChef.Listener.Tests.Handlers
                 && p.ExternalLoginId == externalId
                 )), Times.Once);
         }
-    }
+}
 }
