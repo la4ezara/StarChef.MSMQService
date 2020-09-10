@@ -1,14 +1,13 @@
-﻿using System;
-using System.ComponentModel;
-using System.Collections;
+﻿using Autofac;
 using log4net;
-using StarChef.MSMQService.Configuration;
-using Autofac;
 using log4net.Config;
-using StarChef.Common;
-using IContainer = Autofac.IContainer;
-using System.Threading;
+using StarChef.MSMQService.Configuration;
 using StarChef.MSMQService.Interface;
+using System;
+using System.Collections;
+using System.ComponentModel;
+using System.Threading;
+using IContainer = Autofac.IContainer;
 
 namespace StarChef.MSMQService
 {
@@ -42,6 +41,19 @@ namespace StarChef.MSMQService
 
             _appConfiguration = container.Resolve<IAppConfiguration>();
             _listener = container.Resolve<IListener>();
+            _listener.MessageNotProcessing += _listener_MessageNotProcessing;
+        }
+
+        private void _listener_MessageNotProcessing(object sender, MessageProcessEventArgs e)
+        {
+            if (e.Message != null)
+            {
+                _logger.Warn($"MessageNotProcessing status:{e.Status} , message: {e.Message}");
+            }
+            else
+            {
+                _logger.Warn($"MessageNotProcessing status:{e.Status} , message: null");
+            }
         }
 
         public void Start()

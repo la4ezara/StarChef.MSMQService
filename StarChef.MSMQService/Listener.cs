@@ -64,6 +64,7 @@ namespace StarChef.MSMQService
 
             while (CanProcess)
             {
+                int databaseId = 0;
                 try
                 {
                     msg = _messageManager.mqPeek(timeout);
@@ -78,7 +79,7 @@ namespace StarChef.MSMQService
                             msg.Formatter = _messageFormat;
                             updmsg = (UpdateMessage)msg.Body;
                             _logger.Debug("message: " + updmsg.ToString());
-                            int databaseId = updmsg.DatabaseID;
+                            databaseId = updmsg.DatabaseID;
                             if (!activeDatabases.Contains(databaseId) && updmsg != null)
                             {
                                 DateTime arrivalTime = DateTime.UtcNow;
@@ -104,6 +105,8 @@ namespace StarChef.MSMQService
                                         else
                                         {
                                             //do not process message - message is skipped and lost
+                                            OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.SkipAndLost));
+                                            this.SendPoisonMessage(msg, _messageFormat, _messageManager);
                                             updmsg = null;
                                         }
                                     }
@@ -121,13 +124,24 @@ namespace StarChef.MSMQService
                                     _logger.Debug("end processing");
                                     OnMessageProcessed(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Success));
                                 }
+                                else
+                                {
+                                    //message is skipped and lost
+                                    OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.Invalid));
+                                    this.SendPoisonMessage(msg, _messageFormat, _messageManager);
+                                }
                                 _logger.Debug("removing databaseId");
-                                activeDatabases.Remove(databaseId);
+                                if (activeDatabases.ContainsKey(databaseId))
+                                {
+                                    activeDatabases.Remove(databaseId);
+                                }
                                 _logger.Debug("end removing databaseId");
                             }
                             else
                             {
                                 OnMessageNotProcessing(new MessageProcessEventArgs(updmsg, MessageProcessStatus.ParallelDatabaseId));
+                                //return message back to queue
+                                _messageManager.mqSend(updmsg, msg.Priority);
                                 _logger.Debug("exists in active hashtable");
                             }
                         }
@@ -151,9 +165,9 @@ namespace StarChef.MSMQService
                 }
                 finally
                 {
-                    if (updmsg != null)
+                    if (activeDatabases.ContainsKey(databaseId))
                     {
-                        activeDatabases.Remove(updmsg.DatabaseID);
+                        activeDatabases.Remove(databaseId);
                     }
                     ThreadContext.Properties.Remove("OrganisationId");
 

@@ -44,13 +44,13 @@ namespace StarChef.MsmqService.Tests
             Hashtable timestamps = new Hashtable();
 
             //send 1 message to fake queue
-            var singleMessage = new UpdateMessage() { DatabaseID = 1, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            var singleMessage = new UpdateMessage() { DatabaseID = 1, ExternalId = "1", EntityTypeId = 20, DSN="a1", Action = (int)MessageActionType.UpdatedProductNutrient, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
             //check do we have message in queue
             normalQueue.Should().NotBeEmpty();
             normalQueue.Should().HaveCount(1, "single item send");
 
-            singleMessage = new UpdateMessage() { DatabaseID = 2, ExternalId = "2", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 2, ProductID = 2, ArrivedTime = DateTime.UtcNow };
+            singleMessage = new UpdateMessage() { DatabaseID = 2, ExternalId = "2", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductIntolerance, GroupID = 2, ProductID = 2, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
             //check do we have message in queue
@@ -62,6 +62,9 @@ namespace StarChef.MsmqService.Tests
 
             normalQueue.Should().BeEmpty();
             normalQueue.Should().HaveCount(0, "item processed");
+
+            poisonQueue.Should().NotBeEmpty();
+            poisonQueue.Should().HaveCount(1, "single poison item");
         }
 
         [Fact(DisplayName = "MSMQ Listener process multiple messages start/pause/countinue")]
@@ -87,10 +90,10 @@ namespace StarChef.MsmqService.Tests
             Hashtable timestamps = new Hashtable();
 
             //send 1 message to fake queue
-            var singleMessage = new UpdateMessage() { DatabaseID = 1, ExternalId = "1", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
+            var singleMessage = new UpdateMessage() { DatabaseID = 1, ExternalId = "1", DSN = "test", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductNutrient, GroupID = 1, ProductID = 1, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
-            singleMessage = new UpdateMessage() { DatabaseID = 2, ExternalId = "2", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 2, ProductID = 2, ArrivedTime = DateTime.UtcNow };
+            singleMessage = new UpdateMessage() { DatabaseID = 2, ExternalId = "2", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductIntolerance, GroupID = 2, ProductID = 2, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
             //check do we have message in queue
@@ -103,17 +106,38 @@ namespace StarChef.MsmqService.Tests
             normalQueue.Should().BeEmpty();
             normalQueue.Should().HaveCount(0, "item processed");
 
-            singleMessage = new UpdateMessage() { DatabaseID = 3, ExternalId = "2", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 2, ProductID = 3, ArrivedTime = DateTime.UtcNow };
+            poisonQueue.Should().NotBeEmpty();
+            poisonQueue.Should().HaveCount(1, "single poison item");
+            listener.CanProcess.Should().BeFalse("poison message");
+
+            singleMessage = new UpdateMessage() { DatabaseID = 3, ExternalId = "2", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductNutrientInclusive, GroupID = 2, ProductID = 3, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
-            singleMessage = new UpdateMessage() { DatabaseID = 4, ExternalId = "2", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductCost, GroupID = 2, ProductID = 4, ArrivedTime = DateTime.UtcNow };
+            singleMessage = new UpdateMessage() { DatabaseID = 4, ExternalId = "2", DSN="test", EntityTypeId = 20, Action = (int)MessageActionType.UpdatedProductIntolerance, GroupID = 2, ProductID = 4, ArrivedTime = DateTime.UtcNow };
             messageManager.Object.mqSend(singleMessage, MessagePriority.High);
 
             listener.CanProcess = true;
             listener.ExecuteAsync(activeDatabases, timestamps);
 
+            normalQueue.Should().NotBeEmpty();
+            normalQueue.Should().HaveCount(1, "single item remain");
+
+            poisonQueue.Should().NotBeEmpty();
+            poisonQueue.Should().HaveCount(2, "multiple poison items");
+
+            listener.CanProcess.Should().BeFalse("poison message");
+            listener.CanProcess = true;
+
+            listener.ExecuteAsync(activeDatabases, timestamps);
+
             normalQueue.Should().BeEmpty();
-            normalQueue.Should().HaveCount(0, "item processed");
+            normalQueue.Should().HaveCount(0, "items processed");
+
+            poisonQueue.Should().NotBeEmpty();
+            poisonQueue.Should().HaveCount(2, "multiple poison items");
+
+
+
         }
 
         [Fact(DisplayName = "MSMQ Listener do not process GlobalUpdate messages")]
@@ -411,7 +435,8 @@ namespace StarChef.MsmqService.Tests
             activeDatabases.Add(databaseId, DateTime.UtcNow);
             listener.ExecuteAsync(activeDatabases, timestamps);
 
-            normalQueue.Should().BeEmpty();
+            normalQueue.Should().NotBeEmpty();
+            normalQueue.Should().HaveCount(1, "single item send");
             poisonQueue.Should().BeEmpty();
             result.Should().NotBeNull();
             result.Status.Should().BeEquivalentTo<MessageProcessStatus>(MessageProcessStatus.ParallelDatabaseId);
