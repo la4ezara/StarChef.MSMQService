@@ -495,6 +495,17 @@ namespace StarChef.MSMQService
                     #endregion
 
                     break;
+				case (int)Constants.MessageSubActionType.ImportedIngredientAlternatesReorder:
+					#region IngredientAlternatesReorder
+					{
+						ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
+						ProcessProductNutrientUpdate(msg);
+						ProcessProductIntoleranceUpdate(msg);
+						ProcessProductAbvUpdate(msg);
+					}
+
+					#endregion
+					break;
 				case (int)Constants.MessageSubActionType.ImportedIngredientCost:
 					#region IngredientCost
 					{
