@@ -79,16 +79,9 @@ namespace StarChef.MSMQService
             _serviceRunner.Pause();
         }
 
-	    //protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
-	    //{
-     //       _logger.InfoFormat("Power event is occurred: {0}.", powerStatus);
-     //       return true;
-     //   }
-
 	    protected override void OnShutdown()
 	    {
-            _serviceRunner.Stop();
-            //_logger.Info("Service is shutdown.");
+            _serviceRunner.ShutDown();
         }
 
 	    /// <summary>

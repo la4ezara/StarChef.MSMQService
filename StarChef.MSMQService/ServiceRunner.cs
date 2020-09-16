@@ -82,6 +82,18 @@ namespace StarChef.MSMQService
             _logger.Info("Service is stopped.");
         }
 
+        public void ShutDown()
+        {
+            _logger.Info("Service is ShutDown.");
+            _listener.CanProcess = false;
+
+            while (!_isCompleted)
+            {
+                Thread.Sleep(2000);
+            }
+            _logger.Info("Service is ShutDown.");
+        }
+
         public void Pause()
         {
             _listener.CanProcess = false;
