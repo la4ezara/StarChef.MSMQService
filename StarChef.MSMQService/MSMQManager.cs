@@ -9,7 +9,7 @@ namespace StarChef.MSMQService
     {
         void mqDisconnect();
         void mqSend(UpdateMessage message, MessagePriority priority);
-        void mqSendToPoisonQueue(UpdateMessage message, MessagePriority priority);
+        void mqSendToPoisonQueue(object message, MessagePriority priority);
         Message mqReceive(string messageId, TimeSpan timeout);
         Message mqPeek(TimeSpan timeout);
     }
@@ -85,10 +85,11 @@ namespace StarChef.MSMQService
             mq.Send(msg, message.ToString());
         }
 
-        public void mqSendToPoisonQueue(UpdateMessage message, MessagePriority priority)
+        public void mqSendToPoisonQueue(object body, MessagePriority priority)
         {
             try
             {
+
                 if (MessageQueue.Exists(_poisonQueueName))
                 {
                     using (MessageQueue q = new MessageQueue(_poisonQueueName))
@@ -99,9 +100,17 @@ namespace StarChef.MSMQService
                         mf.AppSpecific = true;
                         q.MessageReadPropertyFilter = mf;
 
-                        var msg = new Message(message) { Priority = priority };
-
-                        q.Send(msg, message.ToString());
+                        var updmsg = (UpdateMessage)body;
+                        if (updmsg != null)
+                        {
+                            var msg = new Message(updmsg) { Priority = priority };
+                            q.Send(msg, updmsg.ToString());
+                        }
+                        else
+                        {
+                            var msg = new Message(body) { Priority = priority };
+                            q.Send(msg, body.ToString());
+                        }
                     }
                 }
                 else

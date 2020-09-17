@@ -209,21 +209,17 @@ namespace StarChef.MSMQService
             if (msg != null)
             {
                 msg.Formatter = format;
-                var updmsg = (UpdateMessage)msg.Body;
-                if (updmsg != null)
+                _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
+                mqManager.mqSendToPoisonQueue(msg, msg.Priority);
+                if (_appConfiguration.SendPoisonMessageNotification)
                 {
-                    _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
-                    mqManager.mqSendToPoisonQueue(updmsg, msg.Priority);
-                    if (_appConfiguration.SendPoisonMessageNotification)
-                    {
-                        _logger.Error(new Exception("StarChef MQ Service: SENDING POISON MESSAGE TO THE MAIL"));
-                        SendPoisonMessageMail(updmsg);
-                    }
+                    _logger.Error(new Exception("StarChef MQ Service: SENDING POISON MESSAGE TO THE MAIL"));
+                    SendPoisonMessageMail(msg);
                 }
             }
         }
 
-        private void SendPoisonMessageMail(UpdateMessage message)
+        private void SendPoisonMessageMail(object message)
         {
             try
             {
@@ -609,7 +605,12 @@ namespace StarChef.MSMQService
             ProcessProductNutrientUpdate(msg);
             ProcessProductAbvUpdate(msg);
             ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
-            AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
+
+            var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(msg.DSN, msg.EntityTypeId);
+            if (isOrchestrationEnabled)
+            {
+                AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
+            }
         }
 
         private void ProcessStarChefEventsUpdated(UpdateMessage msg)
@@ -666,17 +667,21 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (!productIds.Any())
+            var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(msg.DSN, entityTypeId);
+            if (isOrchestrationEnabled)
             {
-                _logger.Debug("enter send");
-                AddOrchestrationMessageToQueue(msg.DSN, entityId, entityTypeId, msg.ExternalId, (Constants.MessageActionType)msg.Action);
-                _logger.Debug("exit send");
-            }
-            else
-            {
-                foreach (int id in productIds)
+                if (!productIds.Any())
                 {
-                    AddOrchestrationMessageToQueue(msg.DSN, id, entityTypeId, string.Empty, (Constants.MessageActionType)msg.Action);
+                    _logger.Debug("enter send");
+                    AddOrchestrationMessageToQueue(msg.DSN, entityId, entityTypeId, msg.ExternalId, (Constants.MessageActionType)msg.Action);
+                    _logger.Debug("exit send");
+                }
+                else
+                {
+                    foreach (int id in productIds)
+                    {
+                        AddOrchestrationMessageToQueue(msg.DSN, id, entityTypeId, string.Empty, (Constants.MessageActionType)msg.Action);
+                    }
                 }
             }
         }
@@ -816,14 +821,19 @@ namespace StarChef.MSMQService
 
         private void AddOrchestrationMessageForAffectedRecipes(int productId, string connectionString)
         {
-            var affectedRecipies = _databaseManager.Query<int>(connectionString, "sc_list_usage_affectedProducts", new { product_id = productId }, CommandType.StoredProcedure);
 
-            foreach (var recipeId in affectedRecipies)
+            var isRecipeOrchestrationEnabled = _databaseManager.IsPublishEnabled(connectionString, (int)Constants.EntityType.Dish);
+            if (isRecipeOrchestrationEnabled)
             {
-                var parms1 = new SqlParameter[2];
-                parms1[0] = new SqlParameter("@entity_id", recipeId);
-                parms1[1] = new SqlParameter("@message_type", (int)Constants.MessageActionType.UpdatedProductNutrient);
-                ExecuteStoredProc(connectionString, "add_affected_recipe_entity_to_orchestration_queue", parms1);
+                var affectedRecipies = _databaseManager.Query<int>(connectionString, "sc_list_usage_affectedProducts", new { product_id = productId }, CommandType.StoredProcedure);
+
+                foreach (var recipeId in affectedRecipies)
+                {
+                    var parms1 = new SqlParameter[2];
+                    parms1[0] = new SqlParameter("@entity_id", recipeId);
+                    parms1[1] = new SqlParameter("@message_type", (int)Constants.MessageActionType.UpdatedProductNutrient);
+                    ExecuteStoredProc(connectionString, "add_affected_recipe_entity_to_orchestration_queue", parms1);
+                }
             }
         }
     }
