@@ -6,6 +6,7 @@ namespace StarChef.SqlQueue.Service
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.ServiceModel;
     using System.Threading;
     using System.Threading.Tasks;
     using Fourth.StarChef.Invariables;
@@ -133,10 +134,11 @@ namespace StarChef.SqlQueue.Service
             }
         }
 
-        public virtual HashSet<CalculateUpdateMessage> GetDatabaseMessages(UserDatabase userDatabase) {
+        public virtual HashSet<CalculateUpdateMessage> GetDatabaseMessages(UserDatabase userDatabase)
+        {
             HashSet<CalculateUpdateMessage> messages = new HashSet<CalculateUpdateMessage>();
             var sqlParam = new SqlParameter("@count", System.Data.SqlDbType.Int) { Value = _appConfiguration.MessagesCount };
-            var reader = _databaseManager.ExecuteReader(userDatabase.ConnectionString, "sc_calculation_dequeue", sqlParam);
+            var reader = _databaseManager.ExecuteReader(userDatabase.ConnectionString, "sc_calculation_dequeue", true, sqlParam);
 
             while (reader.Read())
             {
@@ -174,7 +176,6 @@ namespace StarChef.SqlQueue.Service
                     messages.Add(message);
                 }
             }
-
             return messages;
         }
 

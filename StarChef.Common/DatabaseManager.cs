@@ -44,12 +44,18 @@ namespace StarChef.Common
             return retval;
         }
 
-        public int Execute(
-            string connectionString,
-            string spName,
-            int timeout,
-            params SqlParameter[] parameterValues
-            )
+        public int Execute(string connectionString, string spName, bool retry, params SqlParameter[] parameterValues)
+        {
+            Func<int> delFunc = () => this.Execute(connectionString, spName, parameterValues);
+            if (retry)
+            {
+                return DeadlockRetryHelper(delFunc, 3);
+            }
+
+            return delFunc();
+        }
+
+        public int Execute(string connectionString, string spName, int timeout, params SqlParameter[] parameterValues)
         {
             int retval = 0;
 
@@ -76,6 +82,17 @@ namespace StarChef.Common
             }
 
             return retval;
+        }
+
+        public int Execute(string connectionString, string spName, int timeout, bool retry, params SqlParameter[] parameterValues)
+        {
+            Func<int> delFunc = () => this.Execute(connectionString, spName, timeout, parameterValues);
+            if (retry)
+            {
+                return DeadlockRetryHelper(delFunc, 3);
+            }
+
+            return delFunc();
         }
 
         public HashSet<UserDatabase> GetUserDatabases(string connectionString)
@@ -124,11 +141,7 @@ namespace StarChef.Common
             return result;
         }
 
-        public IDataReader ExecuteReaderMultiResultset(
-            string connectionString,
-            string spName,
-            params SqlParameter[] parameterValues
-            )
+        public IDataReader ExecuteReaderMultiResultset(string connectionString, string spName, params SqlParameter[] parameterValues)
         {
             //create & open a SqlConnection, and dispose of it after we are done.
             using (var cn = new SqlConnection(connectionString))
@@ -161,12 +174,8 @@ namespace StarChef.Common
             }
         }
 
-        public int ExecuteScalar(
-            string connectionString,
-            string spName,
-            params SqlParameter[] parameterValues
-        )
-        {
+        public int ExecuteScalar(string connectionString,string spName, params SqlParameter[] parameterValues)
+        { 
             int result;
             using (var cn = new SqlConnection(connectionString))
             {
@@ -194,11 +203,18 @@ namespace StarChef.Common
             return result;
         }
 
-        public IDataReader ExecuteReader(
-           string connectionString,
-           string spName,
-           params SqlParameter[] parameterValues
-           )
+        public int ExecuteScalar(string connectionString, string spName, bool retry, params SqlParameter[] parameterValues)
+        {
+            Func<int> delFunc = () => this.ExecuteScalar(connectionString, spName, parameterValues);
+            if (retry)
+            {
+                return DeadlockRetryHelper(delFunc, 3);
+            }
+
+            return delFunc();
+        }
+
+        public IDataReader ExecuteReader(string connectionString,string spName,params SqlParameter[] parameterValues)
         {
             //create & open a SqlConnection, and dispose of it after we are done.
             using (var cn = new SqlConnection(connectionString))
@@ -223,6 +239,17 @@ namespace StarChef.Common
                 dt.Load(reader);
                 return dt.CreateDataReader();
             }
+        }
+
+        public IDataReader ExecuteReader(string connectionString,string spName, bool retry, params SqlParameter[] parameterValues)
+        {
+            Func<IDataReader> delFunc = () => this.ExecuteReader(connectionString, spName, parameterValues);
+            if (retry)
+            {
+                return DeadlockRetryHelper(delFunc, 3);
+            }
+
+            return delFunc();
         }
 
         public IList<int> GetUsersInGroup(string connectionString, int groupId)
@@ -332,6 +359,33 @@ namespace StarChef.Common
             connection.Close();
 
             return result;
+        }
+
+        protected T DeadlockRetryHelper<T>(Func<T> repositoryMethod, int maxRetries)
+        {
+            int retryCount = 0;
+
+            while (retryCount < maxRetries)
+            {
+                try
+                {
+                    return repositoryMethod();
+                }
+                catch (SqlException e) // This example is for SQL Server, change the exception type/logic if you're using another DBMS
+                {
+                    if (e.Number == 1205)  // SQL Server error code for deadlock
+                    {
+                        retryCount++;
+                    }
+                    else
+                    {
+                        throw;  // Not a deadlock so throw the exception
+                    }
+                    // Add some code to do whatever you want with the exception once you've exceeded the max. retries
+                }
+            }
+
+            return default(T);
         }
     }
 }

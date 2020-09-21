@@ -382,6 +382,8 @@ namespace StarChef.Common.Repository
             if (!prices.Any())
                 return true;
 
+            bool result = false;
+
             var param = new
             {
                 udt_prices = ToSqlDataRecords(prices).AsTableValuedParameter("udt_product_price"),
@@ -393,9 +395,11 @@ namespace StarChef.Common.Repository
             var cmd = @"sc_insert_prices";
             using (var connection = GetOpenConnection())
             {
-                int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
-                return result == 0;
+                int res = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure, true);
+                result = res == 0;
             }
+
+            return result;
         }
 
         public bool UpdatePrices(Dictionary<int, decimal> prices, int? groupId, int logId, DateTime logDate)
@@ -404,6 +408,8 @@ namespace StarChef.Common.Repository
             {
                 return true;
             }
+
+            bool result = false;
 
             var param = new
             {
@@ -416,9 +422,12 @@ namespace StarChef.Common.Repository
             var cmd = @"sc_update_prices";
             using (var connection = GetOpenConnection())
             {
-                int result = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure);
-                return result == 0;
+                int res = ExecuteScalar<int>(connection, cmd, param, CommandType.StoredProcedure, true);
+                result = res == 0;
+                
             }
+
+            return result;
         }
 
         #endregion
@@ -524,6 +533,12 @@ namespace StarChef.Common.Repository
             }
         }
 
+        /// <summary>
+        /// Delete specified product prices
+        /// </summary>
+        /// <param name="prices">products which prices will be deleted</param>
+        /// <param name="groupId">Group scope of delete operation</param>
+        /// <returns></returns>
         public async Task ClearPrices(List<int> prices, int? groupId)
         {
             if (groupId.HasValue)
@@ -538,7 +553,7 @@ namespace StarChef.Common.Repository
 
                 using (var connection = GetOpenConnection())
                 {
-                    await Task.Run(() => { base.Execute(connection, cmd, param, CommandType.Text); });
+                    await Task.Run(() => { Execute(connection, cmd, param, CommandType.Text, true); });
                 }
             }
             else
@@ -550,12 +565,16 @@ namespace StarChef.Common.Repository
                 var cmd = "DELETE FROM db_product_calc WHERE group_Id IS NULL AND product_id IN (SELECT product_id FROM @udt_prices)";
                 using (var connection = GetOpenConnection())
                 {
-                    await Task.Run(() => { base.Execute(connection, cmd, param, CommandType.Text); });
+                    await Task.Run(() => { Execute(connection, cmd, param, CommandType.Text, true); });
                 }
             }
-
         }
 
+        /// <summary>
+        /// Delete product prices
+        /// </summary>
+        /// <param name="groupId">Group scope of delete operation</param>
+        /// <returns></returns>
         public async Task ClearPrices(int? groupId)
         {
             if (groupId.HasValue)
@@ -569,7 +588,7 @@ namespace StarChef.Common.Repository
 
                 using (var connection = GetOpenConnection())
                 {
-                    await Task.Run(() => { base.Execute(connection, cmd, param, CommandType.Text); });
+                    await Task.Run(() => { Execute(connection, cmd, param, CommandType.Text, true); });
                 }
             }
             else
@@ -577,7 +596,7 @@ namespace StarChef.Common.Repository
                 var cmd = "DELETE FROM db_product_calc WHERE group_Id IS NULL";
                 using (var connection = GetOpenConnection())
                 {
-                    await Task.Run(() => { base.Execute(connection, cmd, null, CommandType.Text); });
+                    await Task.Run(() => { Execute(connection, cmd, null, CommandType.Text, true); });
                 }
             }
         }
@@ -618,6 +637,57 @@ namespace StarChef.Common.Repository
                 var result = await Task.Run(() => { return Query<IngredientAlternate>(connection, cmd, null, CommandType.Text); });
                 return result;
             }
+        }
+
+        public int Execute(SqlConnection connection, string sql, object param, CommandType commandType, bool retry)
+        {
+
+            Func<int> delFunc = () => this.Execute(connection, sql, param, commandType);
+            if (retry)
+            {
+                return DeadlockRetryHelper<int>(delFunc, 3);
+            }
+
+            return delFunc();
+        }
+
+        public T ExecuteScalar<T>(SqlConnection connection, string sql, object param, CommandType commandType, bool retry)
+        {
+            Func<T> delFunc = () => this.ExecuteScalar<T>(connection, sql, param, commandType);
+            if (retry)
+            {
+                return DeadlockRetryHelper<T>(delFunc, 3);
+            }
+
+            return delFunc();
+            
+        }
+
+        protected T DeadlockRetryHelper<T>(Func<T> repositoryMethod, int maxRetries)
+        {
+            int retryCount = 0;
+
+            while (retryCount < maxRetries)
+            {
+                try
+                {
+                    return repositoryMethod();
+                }
+                catch (SqlException e) // This example is for SQL Server, change the exception type/logic if you're using another DBMS
+                {
+                    if (e.Number == 1205)  // SQL Server error code for deadlock
+                    {
+                        retryCount++;
+                    }
+                    else
+                    {
+                        throw;  // Not a deadlock so throw the exception
+                    }
+                    // Add some code to do whatever you want with the exception once you've exceeded the max. retries
+                }
+            }
+
+            return default(T);
         }
     }
 }

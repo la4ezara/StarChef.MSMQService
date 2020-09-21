@@ -13,7 +13,7 @@ namespace StarChef.Common.Repository
 
 		public void RunRankReorder(int product_id, string connectionString)
 		{
-			_databaseManager.Execute(connectionString, "sc_product_run_rankreorder", new SqlParameter("@product_id", product_id));
+			_databaseManager.Execute(connectionString, "sc_product_run_rankreorder", true, new SqlParameter("@product_id", product_id));
 		}
 	}
 }

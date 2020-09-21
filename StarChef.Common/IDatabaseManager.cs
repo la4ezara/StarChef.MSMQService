@@ -7,22 +7,16 @@ namespace StarChef.Common
 {
     public interface IDatabaseManager
     {
-        int Execute(
-                string connectionString,
-                string spName,
-                params SqlParameter[] parameterValues);
+        int Execute(string connectionString,string spName,params SqlParameter[] parameterValues);
+        int Execute(string connectionString, string spName, bool retry, params SqlParameter[] parameterValues);
 
-        int Execute(
-                string connectionString,
-                string spName,
-                int timeout,
-                params SqlParameter[] parameterValues);
+        int Execute(string connectionString,string spName,int timeout,params SqlParameter[] parameterValues);
 
-        IDataReader ExecuteReader(
-            string connectionString,
-            string spName,
-            params SqlParameter[] parameterValues
-            );
+        int Execute(string connectionString, string spName, int timeout,  bool retry, params SqlParameter[] parameterValues);
+
+        IDataReader ExecuteReader(string connectionString,string spName,params SqlParameter[] parameterValues);
+
+        IDataReader ExecuteReader(string connectionString, string spName, bool retry, params SqlParameter[] parameterValues);
 
         IDataReader ExecuteReaderMultiResultset(
             string connectionString,

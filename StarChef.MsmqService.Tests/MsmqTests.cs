@@ -483,7 +483,7 @@ namespace StarChef.MsmqService.Tests
                 normalQueue.Enqueue(mockMsg.Object);
             });
 
-            messageManager.Setup(x => x.mqSendToPoisonQueue(It.IsAny<UpdateMessage>(), It.IsAny<MessagePriority>())).Callback((UpdateMessage msg, MessagePriority priority) => {
+            messageManager.Setup(x => x.mqSendToPoisonQueue(It.IsAny<object>(), It.IsAny<MessagePriority>())).Callback((object msg, MessagePriority priority) => {
                 var mockMsg = new Mock<Message>(new object[] { msg });
                 poisonQueue.Enqueue(mockMsg.Object);
             });
@@ -511,6 +511,9 @@ namespace StarChef.MsmqService.Tests
             dbManager.Setup(x => x.GetImportSettings(It.IsAny<string>(), It.IsAny<int>())).Returns(new Dictionary<string, ImportTypeSettings>());
             dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
             dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
+            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, int timeout, bool retry, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
+            dbManager.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<SqlParameter[]>())).Callback((string connectionString, string spName, bool retry, SqlParameter[] parameters) => { calledStoredProcedures.Add(spName); }).Returns(1);
+
             return dbManager;
         }
     }

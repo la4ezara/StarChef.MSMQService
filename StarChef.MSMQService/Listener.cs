@@ -1,22 +1,21 @@
 using Fourth.StarChef.Invariables;
 using log4net;
+using Newtonsoft.Json;
 using StarChef.Common;
+using StarChef.Common.Engine;
 using StarChef.Common.Extensions;
+using StarChef.Common.Repository;
 using StarChef.Data.Extensions;
 using StarChef.MSMQService.Configuration;
-using StarChef.Orchestrate;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Messaging;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using StarChef.Common.Engine;
-using System.Data;
-using StarChef.Common.Repository;
 
 namespace StarChef.MSMQService
 {
@@ -210,21 +209,17 @@ namespace StarChef.MSMQService
             if (msg != null)
             {
                 msg.Formatter = format;
-                var updmsg = (UpdateMessage)msg.Body;
-                if (updmsg != null)
+                _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
+                mqManager.mqSendToPoisonQueue(msg, msg.Priority);
+                if (_appConfiguration.SendPoisonMessageNotification)
                 {
-                    _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
-                    mqManager.mqSendToPoisonQueue(updmsg, msg.Priority);
-                    if (_appConfiguration.SendPoisonMessageNotification)
-                    {
-                        _logger.Error(new Exception("StarChef MQ Service: SENDING POISON MESSAGE TO THE MAIL"));
-                        SendPoisonMessageMail(updmsg);
-                    }
+                    _logger.Error(new Exception("StarChef MQ Service: SENDING POISON MESSAGE TO THE MAIL"));
+                    SendPoisonMessageMail(msg);
                 }
             }
         }
 
-        private void SendPoisonMessageMail(UpdateMessage message)
+        private void SendPoisonMessageMail(object message)
         {
             try
             {
@@ -353,7 +348,7 @@ namespace StarChef.MSMQService
                     #region Ingredient
                     {
                         var importTypeSettings = importSettings.Ingredient();
-                        _databaseManager.Execute(msg.DSN, "sc_product_run_rankreorder", new SqlParameter("@product_id", msg.ProductID));
+                        ExecuteStoredProc(msg.DSN, "sc_product_run_rankreorder", new SqlParameter("@product_id", msg.ProductID));
                         //check when to trigger price recalculation for each affected item
                         if (importTypeSettings.AutoCalculateCost)
                         {
@@ -413,8 +408,7 @@ namespace StarChef.MSMQService
                         var importTypeSettings = importSettings.IngredientNutrient();
                         if (importTypeSettings.AutoCalculateIntolerance)
                         {
-
-                            _databaseManager.Execute(msg.DSN, "sc_audit_log_nutrition_intolerance",
+                            ExecuteStoredProc(msg.DSN, "sc_audit_log_nutrition_intolerance",
                                 new SqlParameter("@product_id", msg.ProductID),
                                 new SqlParameter("@db_entity_id", 20), // hardcoded
                                 new SqlParameter("@user_id", 1), // hardcoded
@@ -426,16 +420,14 @@ namespace StarChef.MSMQService
                             var properties = msg.ExtendedProperties.Pairs();
                             if (properties.TryGetValue("FIBER_RECALC_REQUIRED", out fiberFlag) && Convert.ToBoolean(fiberFlag))
                             {
-                                _databaseManager.Execute(msg.DSN, "_sc_recalculate_nutrient_fibre",
-                                    new SqlParameter("@product_id", msg.ProductID));
+                                ExecuteStoredProc(msg.DSN, "_sc_recalculate_nutrient_fibre", new SqlParameter("@product_id", msg.ProductID));
                             }
 
                             //calculate summary for ingredient
-                            _databaseManager.Execute(msg.DSN, "_sc_update_calorie_details",
-                                new SqlParameter("@product_id", msg.ProductID));
+                            ExecuteStoredProc(msg.DSN, "_sc_update_calorie_details", new SqlParameter("@product_id", msg.ProductID));
 
                             //calculate nutrition data for related recipes
-                            _databaseManager.Execute(msg.DSN, "_sc_update_dish_yield",
+                            ExecuteStoredProc(msg.DSN, "_sc_update_dish_yield",
                                 new SqlParameter("@product_id", msg.ProductID),
                                 new SqlParameter("@include_self", false) // hardcoded
                                 );
@@ -483,7 +475,7 @@ namespace StarChef.MSMQService
 					#region IngredientConversion
 
 					{
-                        _databaseManager.Execute(msg.DSN, "sc_audit_history_single_log",
+                        ExecuteStoredProc(msg.DSN, "sc_audit_history_single_log",
                             new SqlParameter("@entity_id", msg.ProductID),
                             new SqlParameter("@modified_columns", "Pack Size"),
                             new SqlParameter("@db_entity_id", 20)); // hardcoded
@@ -613,7 +605,12 @@ namespace StarChef.MSMQService
             ProcessProductNutrientUpdate(msg);
             ProcessProductAbvUpdate(msg);
             ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
-            AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
+
+            var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(msg.DSN, msg.EntityTypeId);
+            if (isOrchestrationEnabled)
+            {
+                AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
+            }
         }
 
         private void ProcessStarChefEventsUpdated(UpdateMessage msg)
@@ -670,24 +667,27 @@ namespace StarChef.MSMQService
                     break;
             }
 
-            if (!productIds.Any())
+            var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(msg.DSN, entityTypeId);
+            if (isOrchestrationEnabled)
             {
-                _logger.Debug("enter send");
-                AddOrchestrationMessageToQueue(msg.DSN, entityId, entityTypeId, msg.ExternalId, (Constants.MessageActionType)msg.Action);
-                _logger.Debug("exit send");
-            }
-            else
-            {
-                foreach (int id in productIds)
+                if (!productIds.Any())
                 {
-                    AddOrchestrationMessageToQueue(msg.DSN, id, entityTypeId, string.Empty, (Constants.MessageActionType)msg.Action);
+                    _logger.Debug("enter send");
+                    AddOrchestrationMessageToQueue(msg.DSN, entityId, entityTypeId, msg.ExternalId, (Constants.MessageActionType)msg.Action);
+                    _logger.Debug("exit send");
+                }
+                else
+                {
+                    foreach (int id in productIds)
+                    {
+                        AddOrchestrationMessageToQueue(msg.DSN, id, entityTypeId, string.Empty, (Constants.MessageActionType)msg.Action);
+                    }
                 }
             }
         }
-
         private int ExecuteStoredProc(string connectionString, string spName, params SqlParameter[] parameterValues)
         {
-            var result = _databaseManager.Execute(connectionString, spName, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC, parameterValues);
+            var result = _databaseManager.Execute(connectionString, spName, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC, true, parameterValues);
             return result;
         }
 
@@ -821,14 +821,19 @@ namespace StarChef.MSMQService
 
         private void AddOrchestrationMessageForAffectedRecipes(int productId, string connectionString)
         {
-            var affectedRecipies = _databaseManager.Query<int>(connectionString, "sc_list_usage_affectedProducts", new { product_id = productId }, CommandType.StoredProcedure);
 
-            foreach (var recipeId in affectedRecipies)
+            var isRecipeOrchestrationEnabled = _databaseManager.IsPublishEnabled(connectionString, (int)Constants.EntityType.Dish);
+            if (isRecipeOrchestrationEnabled)
             {
-                var parms1 = new SqlParameter[2];
-                parms1[0] = new SqlParameter("@entity_id", recipeId);
-                parms1[1] = new SqlParameter("@message_type", (int)Constants.MessageActionType.UpdatedProductNutrient);
-                _databaseManager.Execute(connectionString, "add_affected_recipe_entity_to_orchestration_queue", parms1);
+                var affectedRecipies = _databaseManager.Query<int>(connectionString, "sc_list_usage_affectedProducts", new { product_id = productId }, CommandType.StoredProcedure);
+
+                foreach (var recipeId in affectedRecipies)
+                {
+                    var parms1 = new SqlParameter[2];
+                    parms1[0] = new SqlParameter("@entity_id", recipeId);
+                    parms1[1] = new SqlParameter("@message_type", (int)Constants.MessageActionType.UpdatedProductNutrient);
+                    ExecuteStoredProc(connectionString, "add_affected_recipe_entity_to_orchestration_queue", parms1);
+                }
             }
         }
     }
