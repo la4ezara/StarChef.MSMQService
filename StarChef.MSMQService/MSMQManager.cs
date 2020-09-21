@@ -101,8 +101,7 @@ namespace StarChef.MSMQService
                             mf.AppSpecific = true;
                             q.MessageReadPropertyFilter = mf;
 
-                            var updmsg = (UpdateMessage)message;
-                            if (updmsg != null)
+                            if (message is UpdateMessage updmsg)
                             {
                                 var msg = new Message(updmsg) { Priority = priority };
                                 q.Send(msg, updmsg.ToString());
