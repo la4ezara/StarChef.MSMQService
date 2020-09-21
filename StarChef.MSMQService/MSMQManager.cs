@@ -85,37 +85,39 @@ namespace StarChef.MSMQService
             mq.Send(msg, message.ToString());
         }
 
-        public void mqSendToPoisonQueue(object body, MessagePriority priority)
+        public void mqSendToPoisonQueue(object message, MessagePriority priority)
         {
             try
             {
-
-                if (MessageQueue.Exists(_poisonQueueName))
+                if (message != null)
                 {
-                    using (MessageQueue q = new MessageQueue(_poisonQueueName))
+                    if (MessageQueue.Exists(_poisonQueueName))
                     {
-                        q.DefaultPropertiesToSend.Recoverable = true;
-                        MessagePropertyFilter mf = new MessagePropertyFilter();
-                        mf.SetAll();
-                        mf.AppSpecific = true;
-                        q.MessageReadPropertyFilter = mf;
+                        using (MessageQueue q = new MessageQueue(_poisonQueueName))
+                        {
+                            q.DefaultPropertiesToSend.Recoverable = true;
+                            MessagePropertyFilter mf = new MessagePropertyFilter();
+                            mf.SetAll();
+                            mf.AppSpecific = true;
+                            q.MessageReadPropertyFilter = mf;
 
-                        var updmsg = (UpdateMessage)body;
-                        if (updmsg != null)
-                        {
-                            var msg = new Message(updmsg) { Priority = priority };
-                            q.Send(msg, updmsg.ToString());
-                        }
-                        else
-                        {
-                            var msg = new Message(body) { Priority = priority };
-                            q.Send(msg, body.ToString());
+                            var updmsg = (UpdateMessage)message;
+                            if (updmsg != null)
+                            {
+                                var msg = new Message(updmsg) { Priority = priority };
+                                q.Send(msg, updmsg.ToString());
+                            }
+                            else
+                            {
+                                var msg = new Message(message) { Priority = priority };
+                                q.Send(msg, message.ToString());
+                            }
                         }
                     }
-                }
-                else
-                {
-                    Logger.Error(new Exception("StarChef Message Queue: " + _poisonQueueName + " does not exist. Please check MSMQ Setup"));
+                    else
+                    {
+                        Logger.Error(new Exception("StarChef Message Queue: " + _poisonQueueName + " does not exist. Please check MSMQ Setup"));
+                    }
                 }
             }
             catch (Exception ex)
