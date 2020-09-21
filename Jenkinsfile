@@ -7,7 +7,8 @@ def onReleaseBranch() {
 }
 
 def buildVersion = ""
-def webhookUrl = "https://hooks.slack.com/services/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"
+def webhookUrl = "https://hooks.slack.com/services/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"
+
 def jobUrl = "${env.RUN_DISPLAY_URL}"
 def projectName = "${env.JOB_NAME}"
 
