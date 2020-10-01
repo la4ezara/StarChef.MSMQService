@@ -1,11 +1,16 @@
 ﻿using Autofac;
+using Hangfire;
+using Hangfire.Logging;
+using Hangfire.SqlServer;
 using log4net;
 using log4net.Config;
+using StarChef.BackgroundServices.Common.Jobs;
 using StarChef.MSMQService.Configuration;
 using StarChef.MSMQService.Interface;
 using System;
 using System.Collections;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using IContainer = Autofac.IContainer;
 
@@ -18,12 +23,15 @@ namespace StarChef.MSMQService
 
         public IAppConfiguration Configuration { get { return _appConfiguration; } }
 
-        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private Container _components;
 
         private readonly Hashtable _globalUpdateTimeStamps;
         private readonly Hashtable _activeTaskDatabaseIDs;
+
+        private BackgroundJobServer _server;
+        private BackgroundJobServerOptions _options;
 
         public ServiceRunner()
         {
@@ -42,6 +50,39 @@ namespace StarChef.MSMQService
             _appConfiguration = container.Resolve<IAppConfiguration>();
             _listener = container.Resolve<IListener>();
             _listener.MessageNotProcessing += _listener_MessageNotProcessing;
+
+
+            // Recommended in: https://docs.hangfire.io/en/latest/configuration/using-sql-server.html
+            var configuration = GlobalConfiguration.Configuration
+                .UseAutofacActivator(container)
+                .UseSqlServerStorage("SL_login", new SqlServerStorageOptions
+                {
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true,
+                    UsePageLocksOnDequeue = true
+                })
+                .UseLog4NetLogProvider();
+
+            if (Environment.UserInteractive)
+                configuration.UseColouredConsoleLogProvider(LogLevel.Debug);
+
+            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute
+            {
+                Attempts = 15,
+                DelaysInSeconds = new[] { 60 },
+                OnAttemptsExceeded = AttemptsExceededAction.Fail,
+                LogEvents = true
+            });
+
+            _options = new BackgroundJobServerOptions
+            {
+                WorkerCount = Environment.ProcessorCount * 5,
+                Queues = Enum.GetNames(typeof(JobQueue))
+                    .Select(x => x.ToLowerInvariant())
+                    .ToArray(),
+            };
         }
 
         private void _listener_MessageNotProcessing(object sender, MessageProcessEventArgs e)
@@ -59,6 +100,7 @@ namespace StarChef.MSMQService
         public void Start()
         {
             ThreadPool.QueueUserWorkItem(StartProcessing);
+            //_server = new BackgroundJobServer(_options);
         }
 
         private bool _isCompleted;
@@ -79,6 +121,9 @@ namespace StarChef.MSMQService
             {
                 Thread.Sleep(2000);
             }
+
+            //_server.Dispose();
+
             _logger.Info("Service is stopped.");
         }
 

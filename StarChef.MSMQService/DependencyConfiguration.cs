@@ -11,19 +11,33 @@ using StarChef.MSMQService.Configuration;
 using StarChef.MSMQService.Configuration.Impl;
 using Events = Fourth.Orchestration.Model.Menus.Events;
 using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
+using System.Reflection;
+using StarChef.BackgroundServices.Common.Jobs;
 
 namespace StarChef.MSMQService
 {
     /// <summary>
     /// Responsible for setting up and configuring the dependencies.
     /// </summary>
-    public class DependencyConfiguration : Module
+    public class DependencyConfiguration : Autofac.Module
     {
         private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
 
         protected override void Load(ContainerBuilder builder)
         {
+            // Setup global DI
+            var assemblies = new[]
+            {
+                Assembly.GetExecutingAssembly(),              // The current assembly
+                typeof(IBackgroundJob).Assembly              // Setup jobs from Inventory.BackgroundJobsRunner.Common
+            };
+
+            builder.RegisterAssemblyTypes(assemblies)
+                .AsImplementedInterfaces()
+                .InstancePerLifetimeScope();
+
+
             builder.RegisterType<Listener>().As<IListener>().InstancePerLifetimeScope();
             builder.RegisterType<AppConfiguration>().As<IAppConfiguration>().InstancePerLifetimeScope();
 

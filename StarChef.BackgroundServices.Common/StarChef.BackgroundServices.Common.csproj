@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Product />
+    <Company />
+    <Authors />
+    <PackageId />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hangfire.Core" Version="1.7.14" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+  </ItemGroup>
+
+</Project>
