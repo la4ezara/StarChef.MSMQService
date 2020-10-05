@@ -264,6 +264,7 @@
     <Compile Include="DependencyConfiguration.cs" />
     <Compile Include="Interface\IListener.cs" />
     <Compile Include="Jobs\ReccuringJobs\CoreProcessingJob.cs" />
+    <Compile Include="Jobs\ReccuringJobs\FileImportProcessJob.cs" />
     <Compile Include="Listener.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -342,6 +343,10 @@
     </PublishFile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fourth.Import.Process\Fourth.Import.Process.csproj">
+      <Project>{C58F421A-5EF0-4A78-9449-D96E34934DFB}</Project>
+      <Name>Fourth.Import.Process</Name>
+    </ProjectReference>
     <ProjectReference Include="..\StarChef.BackgroundServices.Common\StarChef.BackgroundServices.Common.csproj">
       <Project>{ecfbba31-c274-45ca-810b-3d446f8845cc}</Project>
       <Name>StarChef.BackgroundServices.Common</Name>
