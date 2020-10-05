@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Configuration;
 using System.Threading;
 using IContainer = Autofac.IContainer;
 
@@ -78,7 +79,8 @@ namespace StarChef.MSMQService
 
             _options = new BackgroundJobServerOptions
             {
-                WorkerCount = Environment.ProcessorCount * 5,
+                //WorkerCount = Environment.ProcessorCount * 5,
+                WorkerCount = Environment.ProcessorCount,
                 Queues = Enum.GetNames(typeof(JobQueue))
                     .Select(x => x.ToLowerInvariant())
                     .ToArray(),
@@ -99,8 +101,15 @@ namespace StarChef.MSMQService
 
         public void Start()
         {
-            ThreadPool.QueueUserWorkItem(StartProcessing);
-            //_server = new BackgroundJobServer(_options);
+            //ThreadPool.QueueUserWorkItem(StartProcessing);
+            _server = new BackgroundJobServer(_options);
+
+            StarChef.BackgroundServices.Common.BackgroundJobManager mng = new BackgroundServices.Common.BackgroundJobManager();
+            var exist = mng.IsRecurringJobExists<StarChef.BackgroundServices.Common.Jobs.IBackgroundJob>(224);
+            if (!exist)
+            {
+                mng.ScheduleRecurring<StarChef.BackgroundServices.Common.Jobs.IBackgroundJob>(224, "15 0 0 ? * * *");
+            }
         }
 
         private bool _isCompleted;
@@ -114,7 +123,7 @@ namespace StarChef.MSMQService
 
         public void Stop()
         {
-            _logger.Info("Service is stoping.");
+            _logger.Info("Service is stopping.");
             _listener.CanProcess = false;
 
             while (!_isCompleted)
@@ -161,12 +170,12 @@ namespace StarChef.MSMQService
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        // NOTE: Leave out the finalizer altogether if this class doesn't   
+        // NOTE: Leave out the finalize altogether if this class doesn't   
         // own unmanaged resources itself, but leave the other methods  
         // exactly as they are.   
         ~ServiceRunner()
         {
-            // Finalizer calls Dispose(false)  
+            // Finalize calls Dispose(false)  
             Dispose(false);
         }
         // The bulk of the clean-up code is implemented in Dispose(bool)  

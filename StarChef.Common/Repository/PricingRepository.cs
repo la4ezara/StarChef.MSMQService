@@ -638,56 +638,5 @@ namespace StarChef.Common.Repository
                 return result;
             }
         }
-
-        public int Execute(SqlConnection connection, string sql, object param, CommandType commandType, bool retry)
-        {
-
-            Func<int> delFunc = () => this.Execute(connection, sql, param, commandType);
-            if (retry)
-            {
-                return DeadlockRetryHelper<int>(delFunc, 3);
-            }
-
-            return delFunc();
-        }
-
-        public T ExecuteScalar<T>(SqlConnection connection, string sql, object param, CommandType commandType, bool retry)
-        {
-            Func<T> delFunc = () => this.ExecuteScalar<T>(connection, sql, param, commandType);
-            if (retry)
-            {
-                return DeadlockRetryHelper<T>(delFunc, 3);
-            }
-
-            return delFunc();
-            
-        }
-
-        protected T DeadlockRetryHelper<T>(Func<T> repositoryMethod, int maxRetries)
-        {
-            int retryCount = 0;
-
-            while (retryCount < maxRetries)
-            {
-                try
-                {
-                    return repositoryMethod();
-                }
-                catch (SqlException e) // This example is for SQL Server, change the exception type/logic if you're using another DBMS
-                {
-                    if (e.Number == 1205)  // SQL Server error code for deadlock
-                    {
-                        retryCount++;
-                    }
-                    else
-                    {
-                        throw;  // Not a deadlock so throw the exception
-                    }
-                    // Add some code to do whatever you want with the exception once you've exceeded the max. retries
-                }
-            }
-
-            return default(T);
-        }
     }
 }
