@@ -42,25 +42,25 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                 if (org != null && !string.IsNullOrEmpty(org.ConnectionString))
                 {
                     IBackgroundTaskManager taskManager = new BackgroundTaskManager(org.ConnectionString);
-                    var tasks = taskManager.ListTasks(null, null, null, 100, 1);
-                    BackgroundTaskProcessor processor = new BackgroundTaskProcessor(databaseId, org.ConnectionString, _databaseManager, Logger);
+                    //var tasks = taskManager.ListTasks(null, null, null, 100, 1);
+                    //BackgroundTaskProcessor processor = new BackgroundTaskProcessor(databaseId, org.ConnectionString, _databaseManager, Logger);
 
-                    foreach(var t in tasks)
-                    {
-                        try
-                        {
-                            Logger.Info($"Task {t.Id} Processing");
-                            var res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.InProgress, string.Empty).Result;
-                            processor.ProcessMessage(t);
-                            res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Completed, string.Empty).Result;
-                            Logger.Info($"Task {t.Id} Processing Complete");
-                        }
-                        catch(Exception ex)
-                        {
-                            var res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Failed, ex.Message).Result;
+                    //foreach(var t in tasks)
+                    //{
+                    //    try
+                    //    {
+                    //        Logger.Info($"Task {t.Id} Processing");
+                    //        var res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.InProgress, string.Empty).Result;
+                    //        processor.ProcessMessage(t);
+                    //        res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Completed, string.Empty).Result;
+                    //        Logger.Info($"Task {t.Id} Processing Complete");
+                    //    }
+                    //    catch(Exception ex)
+                    //    {
+                    //        var res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Failed, ex.Message).Result;
 
-                        }
-                    }
+                    //    }
+                    //}
                 }
                 else
                 {
