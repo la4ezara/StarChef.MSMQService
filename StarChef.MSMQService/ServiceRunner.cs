@@ -105,10 +105,19 @@ namespace StarChef.MSMQService
             _server = new BackgroundJobServer(_options);
 
             StarChef.BackgroundServices.Common.BackgroundJobManager mng = new BackgroundServices.Common.BackgroundJobManager();
+            
             var exist = mng.IsRecurringJobExists<StarChef.BackgroundServices.Common.Jobs.IBackgroundJob>(224);
             if (!exist)
             {
-                mng.ScheduleRecurring<StarChef.BackgroundServices.Common.Jobs.IBackgroundJob>(224, "15 0 0 ? * * *");
+                exist = mng.IsRecurringJobExists<StarChef.BackgroundServices.Common.Jobs.ICoreProcessingJob>(224);
+                if (!exist)
+                {
+                    var z = Cron.Minutely();
+                    mng.ScheduleRecurring<StarChef.BackgroundServices.Common.Jobs.ICoreProcessingJob>(224, "15 * * * * *");
+                }
+            }
+            else {
+                mng.Delete<StarChef.BackgroundServices.Common.Jobs.IBackgroundJob>(224);
             }
         }
 

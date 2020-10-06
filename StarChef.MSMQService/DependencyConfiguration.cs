@@ -4,15 +4,14 @@ using Fourth.Orchestration.Messaging.Azure;
 using Fourth.Orchestration.Storage;
 using Fourth.Orchestration.Storage.Azure;
 using log4net;
+using StarChef.BackgroundServices.Common.Jobs;
 using StarChef.Common;
-using StarChef.Orchestrate;
-using StarChef.Orchestrate.EventSetters.Impl;
 using StarChef.MSMQService.Configuration;
 using StarChef.MSMQService.Configuration.Impl;
-using Events = Fourth.Orchestration.Model.Menus.Events;
+using StarChef.Orchestrate;
+using StarChef.Orchestrate.EventSetters.Impl;
 using DeactivateAccountBuilder = Fourth.Orchestration.Model.People.Commands.DeactivateAccount.Builder;
-using System.Reflection;
-using StarChef.BackgroundServices.Common.Jobs;
+using Events = Fourth.Orchestration.Model.Menus.Events;
 
 namespace StarChef.MSMQService
 {
@@ -26,18 +25,6 @@ namespace StarChef.MSMQService
 
         protected override void Load(ContainerBuilder builder)
         {
-            // Setup global DI
-            var assemblies = new[]
-            {
-                Assembly.GetExecutingAssembly(),              // The current assembly
-                typeof(IBackgroundJob).Assembly              // Setup jobs from Inventory.BackgroundJobsRunner.Common
-            };
-
-            builder.RegisterAssemblyTypes(assemblies)
-                .AsImplementedInterfaces()
-                .InstancePerLifetimeScope();
-
-
             builder.RegisterType<Listener>().As<IListener>().InstancePerLifetimeScope();
             builder.RegisterType<AppConfiguration>().As<IAppConfiguration>().InstancePerLifetimeScope();
 
@@ -63,6 +50,21 @@ namespace StarChef.MSMQService
             builder.RegisterType<UserUpdatedSetter>().As<IEventSetter<Events.UserUpdated.Builder>>().InstancePerLifetimeScope();
             builder.RegisterType<SetUpdatedSetter>().As<IEventSetter<Events.SetUpdated.Builder>>().InstancePerLifetimeScope();
             builder.RegisterType<RecipeNutritionUpdatedSetter>().As<IEventSetter<Events.RecipeNutritionUpdated.Builder>>().InstancePerLifetimeScope();
+
+            // Setup global DI
+            var assemblies = new[]
+            {
+                typeof(IBackgroundJob).Assembly              
+            };
+
+            builder.RegisterAssemblyTypes(assemblies)
+                .AsImplementedInterfaces()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<StarChef.MSMQService.Jobs.ReccuringJobs.CoreProcessingJob>().As<ICoreProcessingJob>().InstancePerLifetimeScope();
+            builder.RegisterType<StarChef.MSMQService.Jobs.ReccuringJobs.FileImportProcessJob>().As<IFileImportJob>().InstancePerLifetimeScope();
+
+
             #endregion
 
             _logger.Info("Dependencies are configured.");

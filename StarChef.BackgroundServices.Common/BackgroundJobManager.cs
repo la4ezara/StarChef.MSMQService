@@ -103,6 +103,17 @@ namespace StarChef.BackgroundServices.Common
             return reccuringJob;
         }
 
+        public RecurringJobDto GetRecurringJobs<T>() where T : IBackgroundJob
+        {
+            var job = Job.FromExpression<T>(x => x.Execute(0));
+            var recurringJobId = GetRecurringJobId(job) + "_";
+
+            var reccuringJob = Hangfire.JobStorage.Current.GetConnection().GetRecurringJobs()
+                                                    .FirstOrDefault(x => x.Id.StartsWith(recurringJobId));
+
+            return reccuringJob;
+        }
+
         private string GetRecurringJobId(Job job)
         {
             return job.Type.ToGenericTypeString() + "." + job.Method.Name;

@@ -10,6 +10,15 @@ namespace StarChef.BackgroundServices.Common
     public static class CronInterval
     {
         /// <summary>Returns cron expression that fires every minute.</summary>
+        public static string Secondly(int seconds)
+        {
+            if (seconds > 0 && seconds <= 59) {
+                return $"{seconds} * * * * *";
+            }
+            throw new ArgumentOutOfRangeException("Seconds should be in a range values 1-59");
+        }
+
+        /// <summary>Returns cron expression that fires every minute.</summary>
         public static string Minutely()
         {
             return Cron.Minutely();
