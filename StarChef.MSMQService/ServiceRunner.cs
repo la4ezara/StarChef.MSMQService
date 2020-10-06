@@ -4,6 +4,7 @@ using Hangfire.Logging;
 using Hangfire.SqlServer;
 using log4net;
 using log4net.Config;
+using StarChef.BackgroundServices.Common;
 using StarChef.BackgroundServices.Common.Jobs;
 using StarChef.MSMQService.Configuration;
 using StarChef.MSMQService.Interface;
@@ -67,7 +68,9 @@ namespace StarChef.MSMQService
                 .UseLog4NetLogProvider();
 
             if (Environment.UserInteractive)
+            {
                 configuration.UseColouredConsoleLogProvider(LogLevel.Debug);
+            }
 
             GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute
             {
@@ -101,23 +104,13 @@ namespace StarChef.MSMQService
 
         public void Start()
         {
-            //ThreadPool.QueueUserWorkItem(StartProcessing);
-            _server = new BackgroundJobServer(_options);
-
-            StarChef.BackgroundServices.Common.BackgroundJobManager mng = new BackgroundServices.Common.BackgroundJobManager();
-            
-            var exist = mng.IsRecurringJobExists<StarChef.BackgroundServices.Common.Jobs.IBackgroundJob>(224);
-            if (!exist)
+            if (_appConfiguration.UseMsmq)
             {
-                exist = mng.IsRecurringJobExists<StarChef.BackgroundServices.Common.Jobs.ICoreProcessingJob>(224);
-                if (!exist)
-                {
-                    var z = Cron.Minutely();
-                    mng.ScheduleRecurring<StarChef.BackgroundServices.Common.Jobs.ICoreProcessingJob>(224, "15 * * * * *");
-                }
+                ThreadPool.QueueUserWorkItem(StartProcessing);
             }
-            else {
-                mng.Delete<StarChef.BackgroundServices.Common.Jobs.IBackgroundJob>(224);
+            else
+            {
+                _server = new BackgroundJobServer(_options);
             }
         }
 
@@ -140,9 +133,12 @@ namespace StarChef.MSMQService
                 Thread.Sleep(2000);
             }
 
-            //_server.Dispose();
+            if (!_appConfiguration.UseMsmq)
+            {
+                _server.Dispose();
+            }
 
-            _logger.Info("Service is stopped.");
+                _logger.Info("Service is stopped.");
         }
 
         public void ShutDown()
@@ -161,6 +157,10 @@ namespace StarChef.MSMQService
         {
             _listener.CanProcess = false;
             _logger.Info("Service is paused.");
+            if (!_appConfiguration.UseMsmq)
+            {
+                _server.Dispose();
+            }
         }
 
         public void Continue()
@@ -169,6 +169,11 @@ namespace StarChef.MSMQService
             {
                 _listener.CanProcess = true;
                 ThreadPool.QueueUserWorkItem(StartProcessing);
+            }
+
+            if (!_appConfiguration.UseMsmq)
+            {
+                _server = new BackgroundJobServer(_options);
             }
 
             _logger.Info("Service is continued.");

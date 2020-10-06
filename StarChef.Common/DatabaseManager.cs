@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using Fourth.StarChef.Invariables;
+using Fourth.StarChef.Invariables.Extensions;
 using StarChef.Common.Types;
 using System.Runtime.Caching;
 using Dapper;

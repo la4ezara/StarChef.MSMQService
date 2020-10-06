@@ -1,5 +1,4 @@
-﻿using System;
-using System.Configuration;
+﻿using System.Configuration;
 
 namespace StarChef.MSMQService.Configuration.Impl
 {
@@ -20,6 +19,9 @@ namespace StarChef.MSMQService.Configuration.Impl
         public string PoisonQueueName { get; private set; }
 
         public bool SendPoisonMessageNotification { get; private set; }
+
+        public bool UseMsmq { get; private set; }
+
         public AppConfiguration()
         {
             this.GlobalUpdateWaitTime = int.Parse(ConfigurationManager.AppSettings["GlobalUpdateWaitTime"]);
@@ -30,6 +32,10 @@ namespace StarChef.MSMQService.Configuration.Impl
             this.Alias = ConfigurationManager.AppSettings["Alias"];
             this.FromAddress = ConfigurationManager.AppSettings["FromAddress"];
             this.SendPoisonMessageNotification = false;
+
+            bool useMsmq = true;
+            bool.TryParse(ConfigurationManager.AppSettings["UseMsmq"], out useMsmq);
+            this.UseMsmq = useMsmq;
         }
     }
 }
