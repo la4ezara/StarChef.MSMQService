@@ -33,9 +33,14 @@ namespace StarChef.MSMQService.Configuration.Impl
             this.FromAddress = ConfigurationManager.AppSettings["FromAddress"];
             this.SendPoisonMessageNotification = false;
 
-            bool useMsmq = true;
-            bool.TryParse(ConfigurationManager.AppSettings["UseMsmq"], out useMsmq);
-            this.UseMsmq = useMsmq;
+            if (bool.TryParse(ConfigurationManager.AppSettings["UseMsmq"], out var useMsmq))
+            {
+                this.UseMsmq = useMsmq;
+            }
+            else
+            {
+                this.UseMsmq = true;
+            }
         }
     }
 }

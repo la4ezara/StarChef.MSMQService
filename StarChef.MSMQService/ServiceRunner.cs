@@ -84,9 +84,11 @@ namespace StarChef.MSMQService
             {
                 //WorkerCount = Environment.ProcessorCount * 5,
                 WorkerCount = Environment.ProcessorCount,
-                Queues = Enum.GetNames(typeof(JobQueue))
-                    .Select(x => x.ToLowerInvariant())
-                    .ToArray(),
+                Queues =new string[]
+                {
+                    JobQueue.Default.ToString().ToLower(),
+                    JobQueue.Critical.ToString().ToLower()
+                }
             };
         }
 
@@ -138,7 +140,7 @@ namespace StarChef.MSMQService
                 _server.Dispose();
             }
 
-                _logger.Info("Service is stopped.");
+            _logger.Info("Service is stopped.");
         }
 
         public void ShutDown()

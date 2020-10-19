@@ -6,6 +6,8 @@
         Default,
 
         /// <summary>Queue name "critical"</summary>
-        Critical
+        Critical,
+        /// <summary>Queue name "packages"</summary>
+        Packages
     }
 }
