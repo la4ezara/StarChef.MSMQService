@@ -59,11 +59,12 @@ namespace StarChef.MSMQService
                 .UseAutofacActivator(container)
                 .UseSqlServerStorage("SL_login", new SqlServerStorageOptions
                 {
-                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(30),
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
                     QueuePollInterval = TimeSpan.Zero,
                     UseRecommendedIsolationLevel = true,
-                    UsePageLocksOnDequeue = true
+                    UsePageLocksOnDequeue = true,
+                    DisableGlobalLocks = true
                 })
                 .UseLog4NetLogProvider();
 
@@ -74,7 +75,7 @@ namespace StarChef.MSMQService
 
             GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute
             {
-                Attempts = 15,
+                Attempts = 1,
                 DelaysInSeconds = new[] { 60 },
                 OnAttemptsExceeded = AttemptsExceededAction.Fail,
                 LogEvents = true

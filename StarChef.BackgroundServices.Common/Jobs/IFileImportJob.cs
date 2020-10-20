@@ -3,7 +3,7 @@
 namespace StarChef.BackgroundServices.Common.Jobs
 {
     [DefaultJobLogging]
-    //[CustomDisableConcurrentExecution(timeoutInSeconds: 300)]
+    [CustomDisableConcurrentExecution(timeoutInSeconds: 1800)]
     public interface IFileImportJob
     {
         void Process(int databaseId, string externalId, string filePath, int importId);
