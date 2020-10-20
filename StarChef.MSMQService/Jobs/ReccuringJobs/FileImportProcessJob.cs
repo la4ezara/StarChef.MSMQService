@@ -7,17 +7,17 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
 {
     public class FileImportProcessJob : IFileImportJob
     {
-        protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
-        private ImportFileService importService = new ImportFileService();
+        private static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+        private readonly ImportFileService _importService = new ImportFileService();
 
         public void Process(int databaseId, string externalId, string filePath, int importId)
         {
-            var msg = $"databaseId:{databaseId} externalId:{externalId} filepath:'{filePath}' importId:{importId}";
+            var msg = $"databaseId:{databaseId} externalId:{externalId} filePath:'{filePath}' importId:{importId}";
             
             try
             {
                 Logger.Info($"Processing FileImportProcessJob {msg}");
-                var result = importService.ImportFileUploaded(filePath, "StarChefLogin");
+                var result = _importService.ImportFileUploaded(filePath, "StarChefLogin");
                 Logger.Info($"Processed FileImportProcessJob {msg}");
             }
             catch (Exception e) {

@@ -2,6 +2,7 @@
 using StarChef.BackgroundServices.Common.Jobs;
 using System;
 using System.Configuration;
+using System.Diagnostics;
 using System.Text;
 using StarChef.Common;
 using StarChef.MSMQService.Configuration;
@@ -41,8 +42,8 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                 var org = _orgManager.GetById(databaseId);
                 if (!string.IsNullOrEmpty(org.ConnectionString))
                 {
-                    IBackgroundTaskManager taskManager = new BackgroundTaskManager(org.ConnectionString);
-                    var tasks = taskManager.ListTasks(null, null, null, 100, 1);
+                    IBackgroundTaskManager taskManager = new BackgroundTaskManager(org.ConnectionString, Process.GetCurrentProcess().ProcessName);
+                    var tasks = taskManager.ListTasks(Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.New, null, null, 100, 1);
                     BackgroundTaskProcessor processor = new BackgroundTaskProcessor(databaseId, org.ConnectionString, _databaseManager, Logger);
 
                     foreach (var t in tasks)
@@ -58,7 +59,6 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                         catch (Exception ex)
                         {
                             var res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Failed, ex.Message).Result;
-
                         }
                     }
                 }
@@ -67,7 +67,6 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                     Logger.Warn($"OrganizationId {databaseId} not found");
                 }
 
-
                 Logger.Info($"{GetType().Name} - [Common Background Tasks] Finishing job for organization with database id: {databaseId}");
             }
             catch (Exception ex)
@@ -75,7 +74,7 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                 var errorMessage = new StringBuilder();
                 errorMessage.AppendFormat($"{GetType().Name} - [Common Background Tasks] error for organization with database id: {databaseId} ");
 
-                if (ex != null && (!string.IsNullOrEmpty(ex.Message)))
+                if (!string.IsNullOrEmpty(ex.Message))
                 {
                     errorMessage.AppendFormat($"Exception message is: {ex.Message} ");
                 }
