@@ -38,12 +38,12 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                 //should get older background tasks with status new and one by one to try processing it before processing try to change status and after processing update status
                 //processing itself should happen like listener.Process method 
 
-                var orgConnectionString = _orgManager.GetConnectionById(databaseId);
-                if (!string.IsNullOrEmpty(orgConnectionString))
+                var org = _orgManager.GetById(databaseId);
+                if (!string.IsNullOrEmpty(org.ConnectionString))
                 {
-                    IBackgroundTaskManager taskManager = new BackgroundTaskManager(orgConnectionString);
+                    IBackgroundTaskManager taskManager = new BackgroundTaskManager(org.ConnectionString);
                     var tasks = taskManager.ListTasks(null, null, null, 100, 1);
-                    BackgroundTaskProcessor processor = new BackgroundTaskProcessor(databaseId, orgConnectionString, _databaseManager, Logger);
+                    BackgroundTaskProcessor processor = new BackgroundTaskProcessor(databaseId, org.ConnectionString, _databaseManager, Logger);
 
                     foreach (var t in tasks)
                     {

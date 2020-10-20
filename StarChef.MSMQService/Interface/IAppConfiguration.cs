@@ -10,6 +10,6 @@
         int GlobalUpdateWaitTime { get; }
         string PoisonQueueName { get; }
         bool SendPoisonMessageNotification { get; }
-        bool UseMsmq { get; }
+        bool IsBackgroundTaskEnabled { get; }
     }
 }

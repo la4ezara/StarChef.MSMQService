@@ -59,7 +59,7 @@ namespace StarChef.MSMQService
                 .UseAutofacActivator(container)
                 .UseSqlServerStorage("SL_login", new SqlServerStorageOptions
                 {
-                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(30),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
                     QueuePollInterval = TimeSpan.Zero,
                     UseRecommendedIsolationLevel = true,
@@ -106,13 +106,13 @@ namespace StarChef.MSMQService
 
         public void Start()
         {
-            if (_appConfiguration.UseMsmq)
+            if (_appConfiguration.IsBackgroundTaskEnabled)
             {
-                ThreadPool.QueueUserWorkItem(StartProcessing);
+                _server = new BackgroundJobServer(_options);
             }
             else
             {
-                _server = new BackgroundJobServer(_options);
+                ThreadPool.QueueUserWorkItem(StartProcessing);
             }
         }
 
@@ -135,7 +135,7 @@ namespace StarChef.MSMQService
                 Thread.Sleep(2000);
             }
 
-            if (!_appConfiguration.UseMsmq)
+            if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
             }
@@ -159,7 +159,7 @@ namespace StarChef.MSMQService
         {
             _listener.CanProcess = false;
             _logger.Info("Service is paused.");
-            if (!_appConfiguration.UseMsmq)
+            if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
             }
@@ -173,7 +173,7 @@ namespace StarChef.MSMQService
                 ThreadPool.QueueUserWorkItem(StartProcessing);
             }
 
-            if (!_appConfiguration.UseMsmq)
+            if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server = new BackgroundJobServer(_options);
             }

@@ -20,7 +20,7 @@ namespace StarChef.MSMQService.Configuration.Impl
 
         public bool SendPoisonMessageNotification { get; private set; }
 
-        public bool UseMsmq { get; private set; }
+        public bool IsBackgroundTaskEnabled { get; private set; }
 
         public AppConfiguration()
         {
@@ -33,13 +33,9 @@ namespace StarChef.MSMQService.Configuration.Impl
             this.FromAddress = ConfigurationManager.AppSettings["FromAddress"];
             this.SendPoisonMessageNotification = false;
 
-            if (bool.TryParse(ConfigurationManager.AppSettings["UseMsmq"], out var useMsmq))
+            if (bool.TryParse(ConfigurationManager.AppSettings["enableBackgroundTask"], out var enableBackgroundTask))
             {
-                this.UseMsmq = useMsmq;
-            }
-            else
-            {
-                this.UseMsmq = true;
+                this.IsBackgroundTaskEnabled = enableBackgroundTask;
             }
         }
     }
