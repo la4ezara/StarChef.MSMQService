@@ -53,7 +53,7 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                             Logger.Info($"Task {t.Id} Processing");
                             var res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.InProgress, string.Empty).Result;
                             processor.ProcessMessage(t);
-                            res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Completed, string.Empty).Result;
+                            res = taskManager.UpdateTaskStatus(t.Id, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.InProgress, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Completed, string.Empty).Result;
                             Logger.Info($"Task {t.Id} Processing Complete");
                         }
                         catch (Exception ex)
