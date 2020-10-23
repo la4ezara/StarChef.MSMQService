@@ -58,7 +58,7 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                         }
                         catch (Exception ex)
                         {
-                            var res = taskManager.UpdateTaskStatus(t.Id, t.Status, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Failed, ex.Message).Result;
+                            var res = taskManager.UpdateTaskStatus(t.Id, null, Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.Failed, ex.Message).Result;
                         }
                     }
                 }
