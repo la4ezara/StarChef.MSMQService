@@ -43,7 +43,7 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                 if (!string.IsNullOrEmpty(org.ConnectionString))
                 {
                     IBackgroundTaskManager taskManager = new BackgroundTaskManager(org.ConnectionString, Process.GetCurrentProcess().ProcessName);
-                    var tasks = taskManager.ListTasks(Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.New, null, null, 100, 0);
+                    var tasks = taskManager.ListTasks(Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.New, null, null, false, 100, 0);
                     BackgroundTaskProcessor processor = new BackgroundTaskProcessor(databaseId, org.ConnectionString, _databaseManager, Logger);
 
                     foreach (var t in tasks)
