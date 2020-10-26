@@ -3,6 +3,7 @@ using Hangfire.Common;
 using Hangfire.Storage;
 using StarChef.BackgroundServices.Common.Jobs;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -82,6 +83,16 @@ namespace StarChef.BackgroundServices.Common
 
             return false;
         }
+
+        /// <summary>
+        /// Check is recurring job existing
+        /// </summary>
+        public List<RecurringJobDto> ListRecurringJobs(string jobPrefix)
+        {
+            var reccuringJobs = Hangfire.JobStorage.Current.GetConnection().GetRecurringJobs().Where(j=> j.Id.Contains(jobPrefix)).ToList();
+            return reccuringJobs;
+        }
+
 
         public string GetJobId<T>(int databaseId) where T : IBackgroundJob
         {
