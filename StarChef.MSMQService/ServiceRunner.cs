@@ -129,16 +129,20 @@ namespace StarChef.MSMQService
         public void Stop()
         {
             _logger.Info("Service is stopping.");
-            _listener.CanProcess = false;
 
-            while (!_isCompleted)
-            {
-                Thread.Sleep(2000);
-            }
 
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
+            }
+            else
+            {
+                _listener.CanProcess = false;
+
+                while (!_isCompleted)
+                {
+                    Thread.Sleep(2000);
+                }
             }
 
             _logger.Info("Service is stopped.");
@@ -147,36 +151,45 @@ namespace StarChef.MSMQService
         public void ShutDown()
         {
             _logger.Info("Service is ShutDown.");
-            _listener.CanProcess = false;
-
-            while (!_isCompleted)
+            if (!_appConfiguration.IsBackgroundTaskEnabled)
             {
-                Thread.Sleep(2000);
+                _listener.CanProcess = false;
+
+                while (!_isCompleted)
+                {
+                    Thread.Sleep(2000);
+                }
             }
             _logger.Info("Service is ShutDown.");
         }
 
         public void Pause()
         {
-            _listener.CanProcess = false;
+
             _logger.Info("Service is paused.");
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
             }
+            else
+            {
+                _listener.CanProcess = false;
+            }
         }
 
         public void Continue()
         {
-            if (!_listener.CanProcess)
-            {
-                _listener.CanProcess = true;
-                ThreadPool.QueueUserWorkItem(StartProcessing);
-            }
-
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server = new BackgroundJobServer(_options);
+            }
+            else
+            {
+                if (!_listener.CanProcess)
+                {
+                    _listener.CanProcess = true;
+                    ThreadPool.QueueUserWorkItem(StartProcessing);
+                }
             }
 
             _logger.Info("Service is continued.");
@@ -187,12 +200,12 @@ namespace StarChef.MSMQService
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        // NOTE: Leave out the finalize altogether if this class doesn't   
+        // NOTE: Leave out the finalizer altogether if this class doesn't   
         // own unmanaged resources itself, but leave the other methods  
         // exactly as they are.   
         ~ServiceRunner()
         {
-            // Finalize calls Dispose(false)  
+            // Finalizer calls Dispose(false)  
             Dispose(false);
         }
         // The bulk of the clean-up code is implemented in Dispose(bool)  
