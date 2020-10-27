@@ -1,31 +1,25 @@
-﻿using Hangfire.Logging;
+﻿using Fourth.StarChef.Invariables;
+using Fourth.StarChef.Invariables.Interfaces;
+using log4net;
 using StarChef.BackgroundServices.Common.Jobs;
+using StarChef.Common;
 using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.Text;
-using StarChef.Common;
-using StarChef.MSMQService.Configuration;
-using Fourth.StarChef.Invariables;
-using Fourth.StarChef.Invariables.Interfaces;
-using log4net;
 //using ILog = Hangfire.Logging.ILog;
 
 namespace StarChef.MSMQService.Jobs.ReccuringJobs
 {
     public class CoreProcessingJob : ICoreProcessingJob
     {
-        //protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
-
         private static readonly log4net.ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        //private readonly IAppConfiguration _appConfiguration;
         private readonly IDatabaseManager _databaseManager;
         private readonly IOrganizationManager _orgManager;
 
-        public CoreProcessingJob(IAppConfiguration appConfiguration, IDatabaseManager databaseManager)
+        public CoreProcessingJob(IDatabaseManager databaseManager)
         {
-            //_appConfiguration = appConfiguration;
             _databaseManager = databaseManager;
             _orgManager = new OrganizationManager(ConfigurationManager.ConnectionStrings["SL_login"].ConnectionString);
         }

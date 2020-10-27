@@ -1,14 +1,13 @@
 ﻿using Dapper;
 using Fourth.StarChef.Invariables;
+using Microsoft.SqlServer.Server;
 using StarChef.Common.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.Reflection;
 using System.Linq;
-using Microsoft.SqlServer.Server;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace StarChef.Common.Repository
@@ -29,20 +28,6 @@ namespace StarChef.Common.Repository
             {
                 SetTypeMap(type);
             }
-        }
-
-        private void SetTypeMap(Type type)
-        {
-            var map = new CustomPropertyTypeMap(type,
-                (t, columnName) => t.GetProperties().FirstOrDefault(prop => GetDescriptionFromAttribute(prop) == columnName));
-            SqlMapper.SetTypeMap(type, map);
-        }
-
-        private string GetDescriptionFromAttribute(MemberInfo member)
-        {
-            if (member == null) return null;
-            var attrib = (DescriptionAttribute)Attribute.GetCustomAttribute(member, typeof(DescriptionAttribute), false);
-            return attrib?.Description;
         }
 
         public async Task<IEnumerable<ProductGroupPrice>> GetGroupProductPricesByProduct(int productId) {
