@@ -37,7 +37,7 @@ namespace StarChef.MSMQService
 
         private volatile bool _canProcess;
 
-        public bool CanProcess
+        public virtual bool CanProcess
         {
             get => _canProcess;
 
