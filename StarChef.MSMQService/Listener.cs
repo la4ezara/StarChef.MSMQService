@@ -15,6 +15,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Messaging;
 using System.Net.Mail;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StarChef.MSMQService
@@ -34,7 +35,14 @@ namespace StarChef.MSMQService
         public event EventHandler<MessageProcessEventArgs> MessageProcessed;
         public event EventHandler<MessageProcessEventArgs> MessageNotProcessing;
 
-        public virtual bool CanProcess { get; set; }
+        private volatile bool _canProcess;
+
+        public virtual bool CanProcess
+        {
+            get => _canProcess;
+
+            set => _canProcess = value;
+        }
 
         public Listener(IAppConfiguration appConfiguration, IDatabaseManager databaseManager)
         {
@@ -42,7 +50,7 @@ namespace StarChef.MSMQService
             _databaseManager = databaseManager;
             _messageManager = new MsmqManager(_appConfiguration.NormalQueueName, _appConfiguration.PoisonQueueName);
             _messageFormat = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
-            this.CanProcess = true;
+            CanProcess = true;
         }
 
         public Listener(IAppConfiguration appConfiguration, IDatabaseManager databaseManager, IMessageManager messageManager)
@@ -51,13 +59,12 @@ namespace StarChef.MSMQService
             _databaseManager = databaseManager;
             _messageManager = messageManager;
             _messageFormat = new XmlMessageFormatter(new[] { typeof(UpdateMessage) });
-            this.CanProcess = true;
+            CanProcess = true;
         }
 
         public async Task<bool> ExecuteAsync(Hashtable activeDatabases, Hashtable globalUpdateTimeStamps)
         {
             Message msg = null;
-            UpdateMessage updmsg = null;
 
             TimeSpan timeout = TimeSpan.FromSeconds(10);
 
@@ -76,7 +83,7 @@ namespace StarChef.MSMQService
                         if (msg != null)
                         {
                             msg.Formatter = _messageFormat;
-                            updmsg = (UpdateMessage)msg.Body;
+                            var updmsg = (UpdateMessage)msg.Body;
                             _logger.Debug("message: " + updmsg.ToString());
                             databaseId = updmsg.DatabaseID;
                             if (!activeDatabases.Contains(databaseId) && updmsg != null)
@@ -208,18 +215,21 @@ namespace StarChef.MSMQService
         {
             if (msg != null)
             {
-                msg.Formatter = format;
-                _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
-                mqManager.mqSendToPoisonQueue(msg, msg.Priority);
-                if (_appConfiguration.SendPoisonMessageNotification)
+                var updmsg = (UpdateMessage)msg.Body;
+                if (updmsg != null)
                 {
-                    _logger.Error(new Exception("StarChef MQ Service: SENDING POISON MESSAGE TO THE MAIL"));
-                    SendPoisonMessageMail(msg);
+                    _logger.Error(new Exception("StarChef MQ Service: SENDING MESSAGE TO THE POISON QUEUE"));
+                    mqManager.mqSendToPoisonQueue(updmsg, msg.Priority);
+                    if (_appConfiguration.SendPoisonMessageNotification)
+                    {
+                        _logger.Error(new Exception("StarChef MQ Service: SENDING POISON MESSAGE TO THE MAIL"));
+                        SendPoisonMessageMail(updmsg);
+                    }
                 }
             }
         }
 
-        private void SendPoisonMessageMail(object message)
+        private void SendPoisonMessageMail(UpdateMessage message)
         {
             try
             {

@@ -65,6 +65,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Engine.Integration
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.Common.Tests", "StarChef.Common.Tests\StarChef.Common.Tests.csproj", "{BC51638E-F156-4931-AC7E-2944E3FA8CB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarChef.BackgroundServices.Common", "StarChef.BackgroundServices.Common\StarChef.BackgroundServices.Common.csproj", "{ECFBBA31-C274-45CA-810B-3D446F8845CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -265,6 +267,14 @@ Global
 		{BC51638E-F156-4931-AC7E-2944E3FA8CB3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BC51638E-F156-4931-AC7E-2944E3FA8CB3}.Release|x86.ActiveCfg = Release|Any CPU
 		{BC51638E-F156-4931-AC7E-2944E3FA8CB3}.Release|x86.Build.0 = Release|Any CPU
+		{ECFBBA31-C274-45CA-810B-3D446F8845CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECFBBA31-C274-45CA-810B-3D446F8845CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECFBBA31-C274-45CA-810B-3D446F8845CC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ECFBBA31-C274-45CA-810B-3D446F8845CC}.Debug|x86.Build.0 = Debug|Any CPU
+		{ECFBBA31-C274-45CA-810B-3D446F8845CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECFBBA31-C274-45CA-810B-3D446F8845CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECFBBA31-C274-45CA-810B-3D446F8845CC}.Release|x86.ActiveCfg = Release|Any CPU
+		{ECFBBA31-C274-45CA-810B-3D446F8845CC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

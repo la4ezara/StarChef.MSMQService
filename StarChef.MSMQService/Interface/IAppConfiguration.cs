@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StarChef.MSMQService.Configuration
+﻿namespace StarChef.MSMQService.Configuration
 {
     public interface IAppConfiguration
     {
@@ -16,5 +10,6 @@ namespace StarChef.MSMQService.Configuration
         int GlobalUpdateWaitTime { get; }
         string PoisonQueueName { get; }
         bool SendPoisonMessageNotification { get; }
+        bool IsBackgroundTaskEnabled { get; }
     }
 }

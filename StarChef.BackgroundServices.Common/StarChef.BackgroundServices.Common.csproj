@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Product>RME</Product>
+    <Company>Fourth</Company>
+    <Authors>RME Dev Team</Authors>
+    <PackageId />
+    <Copyright>Fourth 2020</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hangfire.Core" Version="1.7.16" />
+    <PackageReference Include="log4net" Version="2.0.11" />
+  </ItemGroup>
+
+</Project>

@@ -1,14 +1,13 @@
 ﻿using Dapper;
 using Fourth.StarChef.Invariables;
+using Microsoft.SqlServer.Server;
 using StarChef.Common.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.Reflection;
 using System.Linq;
-using Microsoft.SqlServer.Server;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace StarChef.Common.Repository
@@ -29,20 +28,6 @@ namespace StarChef.Common.Repository
             {
                 SetTypeMap(type);
             }
-        }
-
-        private void SetTypeMap(Type type)
-        {
-            var map = new CustomPropertyTypeMap(type,
-                (t, columnName) => t.GetProperties().FirstOrDefault(prop => GetDescriptionFromAttribute(prop) == columnName));
-            SqlMapper.SetTypeMap(type, map);
-        }
-
-        private string GetDescriptionFromAttribute(MemberInfo member)
-        {
-            if (member == null) return null;
-            var attrib = (DescriptionAttribute)Attribute.GetCustomAttribute(member, typeof(DescriptionAttribute), false);
-            return attrib?.Description;
         }
 
         public async Task<IEnumerable<ProductGroupPrice>> GetGroupProductPricesByProduct(int productId) {
@@ -637,57 +622,6 @@ namespace StarChef.Common.Repository
                 var result = await Task.Run(() => { return Query<IngredientAlternate>(connection, cmd, null, CommandType.Text); });
                 return result;
             }
-        }
-
-        public int Execute(SqlConnection connection, string sql, object param, CommandType commandType, bool retry)
-        {
-
-            Func<int> delFunc = () => this.Execute(connection, sql, param, commandType);
-            if (retry)
-            {
-                return DeadlockRetryHelper<int>(delFunc, 3);
-            }
-
-            return delFunc();
-        }
-
-        public T ExecuteScalar<T>(SqlConnection connection, string sql, object param, CommandType commandType, bool retry)
-        {
-            Func<T> delFunc = () => this.ExecuteScalar<T>(connection, sql, param, commandType);
-            if (retry)
-            {
-                return DeadlockRetryHelper<T>(delFunc, 3);
-            }
-
-            return delFunc();
-            
-        }
-
-        protected T DeadlockRetryHelper<T>(Func<T> repositoryMethod, int maxRetries)
-        {
-            int retryCount = 0;
-
-            while (retryCount < maxRetries)
-            {
-                try
-                {
-                    return repositoryMethod();
-                }
-                catch (SqlException e) // This example is for SQL Server, change the exception type/logic if you're using another DBMS
-                {
-                    if (e.Number == 1205)  // SQL Server error code for deadlock
-                    {
-                        retryCount++;
-                    }
-                    else
-                    {
-                        throw;  // Not a deadlock so throw the exception
-                    }
-                    // Add some code to do whatever you want with the exception once you've exceeded the max. retries
-                }
-            }
-
-            return default(T);
         }
     }
 }

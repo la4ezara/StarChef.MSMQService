@@ -13,6 +13,7 @@ namespace StarChef.SqlQueue.Service
     using StarChef.Common;
     using StarChef.Orchestrate;
     using StarChef.SqlQueue.Service.Interface;
+    using Fourth.StarChef.Invariables.Extensions;
 
     public class Listener : IListener
     {
