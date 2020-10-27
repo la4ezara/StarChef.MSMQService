@@ -33,7 +33,7 @@ namespace StarChef.MSMQService
         private readonly Hashtable _activeTaskDatabaseIDs;
 
         private BackgroundJobServer _server;
-        private BackgroundJobServerOptions _options;
+        private readonly BackgroundJobServerOptions _options;
 
         public ServiceRunner()
         {

@@ -7,7 +7,6 @@ using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.Text;
-//using ILog = Hangfire.Logging.ILog;
 
 namespace StarChef.MSMQService.Jobs.ReccuringJobs
 {

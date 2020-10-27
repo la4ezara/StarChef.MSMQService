@@ -15,7 +15,7 @@ namespace StarChef.BackgroundServices.Common
             if (seconds > 0 && seconds <= 59) {
                 return $"{seconds} * * * * *";
             }
-            throw new ArgumentOutOfRangeException("Seconds should be in a range values 1-59");
+            throw new ArgumentOutOfRangeException("seconds should be in a range values 1-59");
         }
 
         /// <summary>Returns cron expression that fires every minute.</summary>
