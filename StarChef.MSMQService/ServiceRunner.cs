@@ -129,16 +129,20 @@ namespace StarChef.MSMQService
         public void Stop()
         {
             _logger.Info("Service is stopping.");
-            _listener.CanProcess = false;
 
-            while (!_isCompleted)
-            {
-                Thread.Sleep(2000);
-            }
 
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
+            }
+            else
+            {
+                _listener.CanProcess = false;
+
+                while (!_isCompleted)
+                {
+                    Thread.Sleep(2000);
+                }
             }
 
             _logger.Info("Service is stopped.");
@@ -147,36 +151,45 @@ namespace StarChef.MSMQService
         public void ShutDown()
         {
             _logger.Info("Service is ShutDown.");
-            _listener.CanProcess = false;
-
-            while (!_isCompleted)
+            if (!_appConfiguration.IsBackgroundTaskEnabled)
             {
-                Thread.Sleep(2000);
+                _listener.CanProcess = false;
+
+                while (!_isCompleted)
+                {
+                    Thread.Sleep(2000);
+                }
             }
             _logger.Info("Service is ShutDown.");
         }
 
         public void Pause()
         {
-            _listener.CanProcess = false;
+
             _logger.Info("Service is paused.");
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
             }
+            else
+            {
+                _listener.CanProcess = false;
+            }
         }
 
         public void Continue()
         {
-            if (!_listener.CanProcess)
-            {
-                _listener.CanProcess = true;
-                ThreadPool.QueueUserWorkItem(StartProcessing);
-            }
-
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server = new BackgroundJobServer(_options);
+            }
+            else
+            {
+                if (!_listener.CanProcess)
+                {
+                    _listener.CanProcess = true;
+                    ThreadPool.QueueUserWorkItem(StartProcessing);
+                }
             }
 
             _logger.Info("Service is continued.");
