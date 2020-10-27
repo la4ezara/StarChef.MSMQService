@@ -200,12 +200,12 @@ namespace StarChef.MSMQService
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        // NOTE: Leave out the finalize altogether if this class doesn't   
+        // NOTE: Leave out the finalizer altogether if this class doesn't   
         // own unmanaged resources itself, but leave the other methods  
         // exactly as they are.   
         ~ServiceRunner()
         {
-            // Finalize calls Dispose(false)  
+            // Finalizer calls Dispose(false)  
             Dispose(false);
         }
         // The bulk of the clean-up code is implemented in Dispose(bool)  
