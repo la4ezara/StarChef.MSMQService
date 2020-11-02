@@ -53,7 +53,6 @@ namespace StarChef.MSMQService
             _listener = container.Resolve<IListener>();
             _listener.MessageNotProcessing += _listener_MessageNotProcessing;
 
-
             // Recommended in: https://docs.hangfire.io/en/latest/configuration/using-sql-server.html
             var configuration = GlobalConfiguration.Configuration
                 .UseAutofacActivator(container)
@@ -110,6 +109,7 @@ namespace StarChef.MSMQService
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server = new BackgroundJobServer(_options);
+                _logger.Info("Service queue started.");
             }
             else
             {
@@ -123,29 +123,31 @@ namespace StarChef.MSMQService
         {
             _logger.Info("Service starting.");
             _isCompleted = await _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps);
-            _logger.Info("Service finished.");
+            _logger.Info("Service MSMQ complete.");
         }
 
         public void Stop()
         {
-            _logger.Info("Service is stopping.");
+            
 
 
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
+                _logger.Info("Service queue is stopping.");
                 _server.Dispose();
+                _logger.Info("Service queue stopped.");
             }
             else
             {
+                _logger.Info("Service MSMQ is stopping.");
                 _listener.CanProcess = false;
 
                 while (!_isCompleted)
                 {
                     Thread.Sleep(2000);
                 }
+                _logger.Info("Service MSMQ stopped.");
             }
-
-            _logger.Info("Service is stopped.");
         }
 
         public void ShutDown()
@@ -166,10 +168,16 @@ namespace StarChef.MSMQService
         public void Pause()
         {
 
-            _logger.Info("Service is paused.");
+            
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
+                _logger.Info("Service queue paused.");
+            }
+            else
+            {
+                _listener.CanProcess = false;
+                _logger.Info("Service MSMQ paused.");
             }
             else
             {
@@ -182,6 +190,7 @@ namespace StarChef.MSMQService
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server = new BackgroundJobServer(_options);
+                _logger.Info("Service queue continued.");
             }
             else
             {
@@ -190,9 +199,10 @@ namespace StarChef.MSMQService
                     _listener.CanProcess = true;
                     ThreadPool.QueueUserWorkItem(StartProcessing);
                 }
+                _logger.Info("Service MSMQ continued.");
             }
 
-            _logger.Info("Service is continued.");
+            
         }
 
         public void Dispose()
