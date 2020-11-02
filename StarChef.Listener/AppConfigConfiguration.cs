@@ -22,12 +22,9 @@ namespace StarChef.Listener
                 Dictionary<string, string> values = JsonConvert.DeserializeObject<Dictionary<string, string>>(appSettings);
                 UserDefaults = values;
             }
-
-            NormalQueueName = ConfigurationManager.AppSettings["StarChef.MSMQ.Queue"];
         }
         
         public int PriceBandBatchSize { get; private set; }
         public Dictionary<string, string> UserDefaults { get; private set; }
-        public string NormalQueueName { get; private set; }
     }
 }

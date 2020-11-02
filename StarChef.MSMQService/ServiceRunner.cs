@@ -121,9 +121,9 @@ namespace StarChef.MSMQService
 
         private async void StartProcessing(Object stateInfo)
         {
-            _logger.Info("Service is stared.");
+            _logger.Info("Service starting.");
             _isCompleted = await _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps);
-            _logger.Info("Service finish.");
+            _logger.Info("Service finished.");
         }
 
         public void Stop()
