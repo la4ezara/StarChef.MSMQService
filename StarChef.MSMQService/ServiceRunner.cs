@@ -128,9 +128,6 @@ namespace StarChef.MSMQService
 
         public void Stop()
         {
-            
-
-
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _logger.Info("Service queue is stopping.");
@@ -167,8 +164,6 @@ namespace StarChef.MSMQService
 
         public void Pause()
         {
-
-            
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
@@ -178,10 +173,6 @@ namespace StarChef.MSMQService
             {
                 _listener.CanProcess = false;
                 _logger.Info("Service MSMQ paused.");
-            }
-            else
-            {
-                _listener.CanProcess = false;
             }
         }
 
