@@ -16,12 +16,11 @@ using FileUploadCompleted = Fourth.Orchestration.Model.StarChef.Events.FileUploa
 using System.Threading.Tasks;
 using log4net;
 using StarChef.Orchestrate.Models.TransferObjects;
-using MSMQHelper = StarChef.MSMQService.MSMQHelper;
-using StarChef.Listener.Extensions;
 using StarChef.Listener.Validators;
 using System;
 using Fourth.StarChef.Invariables;
-using System.Configuration;
+using StarChef.Common;
+using System.Data.SqlClient;
 
 namespace StarChef.Listener
 {
@@ -47,7 +46,7 @@ namespace StarChef.Listener
             {
                 var validator = new AccountCreatedValidator(dbCommands);
                 var handler = new AccountCreatedEventHandler(dbCommands, validator, configuration, messagingLogger);
-                handler.OnProcessed += SendMsmqMessage;
+                handler.OnProcessed += SendMessage;
                 return handler;
             }
 
@@ -87,7 +86,7 @@ namespace StarChef.Listener
             throw new NotSupportedMessageException(string.Format("Message type {0} is not supported.", typeof(T).Name));
         }
 
-        private async Task SendMsmqMessage(AccountCreatedEventHandler sender, AccountCreatedTransferObject user, IConfiguration config)
+        private async Task SendMessage(AccountCreatedEventHandler sender, AccountCreatedTransferObject user, IConfiguration config)
         {
             if (sender == null) return;
 
@@ -96,14 +95,23 @@ namespace StarChef.Listener
                 var userDetail = await sender.DbCommands.GetLoginUserIdAndCustomerDb(user.InternalLoginId);
 
                 ThreadContext.Properties["OrganisationId"] = userDetail.Item2;
+                var db = new DatabaseManager();
+                
+                var publishEnabled = db.IsPublishEnabled(userDetail.Item3, (int)Constants.EntityType.User);
+                if (publishEnabled) {
 
-                var msg = new UpdateMessage(productId: userDetail.Item1,
-                                            entityTypeId: (int)Constants.EntityType.User,
-                                            action: (int)Constants.MessageActionType.SalesForceUserCreated,
-                                            dbDSN: userDetail.Item3,
-                                            databaseId: userDetail.Item2);
-                MSMQHelper.Send(msg, config.NormalQueueName, string.Empty);
-                _logger.MessageSent(msg);
+                    SqlParameter[] parameters = new SqlParameter[] {
+                        new SqlParameter("@EntityId", userDetail.Item1),
+                        new SqlParameter("@EntityTypeId", (int)Constants.EntityType.User),
+                        new SqlParameter("@RetryCount", 0) { Value = 0, DbType = System.Data.DbType.Int32 },
+                        new SqlParameter("@StatusId", 1),
+                        new SqlParameter("@DateCreated", DateTime.UtcNow),
+                        new SqlParameter("@ExternalId", string.Empty),
+                        new SqlParameter("@MessageActionTypeId", (int)Constants.MessageActionType.SalesForceUserCreated) };
+
+                    db.Execute(userDetail.Item3, "sc_calculation_enqueue", Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC, true, parameters);
+                }
+                _logger.InfoFormat("Enque userId: {0}, databaseId: {1}", userDetail.Item1, userDetail.Item2);
             }
             catch (Exception ex)
             {

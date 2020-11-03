@@ -121,16 +121,13 @@ namespace StarChef.MSMQService
 
         private async void StartProcessing(Object stateInfo)
         {
-            _logger.Info("Service MSMQ was started.");
+            _logger.Info("Service starting.");
             _isCompleted = await _listener.ExecuteAsync(this._activeTaskDatabaseIDs, this._globalUpdateTimeStamps);
             _logger.Info("Service MSMQ complete.");
         }
 
         public void Stop()
         {
-            
-
-
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _logger.Info("Service queue is stopping.");
@@ -167,8 +164,6 @@ namespace StarChef.MSMQService
 
         public void Pause()
         {
-
-            
             if (_appConfiguration.IsBackgroundTaskEnabled)
             {
                 _server.Dispose();
@@ -206,12 +201,12 @@ namespace StarChef.MSMQService
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        // NOTE: Leave out the finalize altogether if this class doesn't   
+        // NOTE: Leave out the finalizer altogether if this class doesn't   
         // own unmanaged resources itself, but leave the other methods  
         // exactly as they are.   
         ~ServiceRunner()
         {
-            // Finalize calls Dispose(false)  
+            // Finalizer calls Dispose(false)  
             Dispose(false);
         }
         // The bulk of the clean-up code is implemented in Dispose(bool)  
