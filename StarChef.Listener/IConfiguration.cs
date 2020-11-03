@@ -6,6 +6,5 @@ namespace StarChef.Listener
     {
         int PriceBandBatchSize { get; }
         Dictionary<string, string> UserDefaults { get; }
-        string NormalQueueName { get; }
     }
 }
