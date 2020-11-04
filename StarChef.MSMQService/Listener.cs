@@ -343,7 +343,12 @@ namespace StarChef.MSMQService
 					case (int)Constants.MessageActionType.UpdateAlternatesRank:
 						ProcessRankReorder(msg);
 						break;
-
+					case (int)Constants.MessageActionType.UpdatedProductFIR:
+						ProcessProductFIRUpdate(msg);
+						break;
+					case (int)Constants.MessageActionType.EnabledFIR:
+						ProcessFullFIRIngredientRecalculation(msg);
+						break;
 				}
             }
         }
@@ -846,5 +851,26 @@ namespace StarChef.MSMQService
                 }
             }
         }
-    }
+
+		public void ProcessFullFIRIngredientRecalculation(UpdateMessage msg)
+		{
+			ExecuteStoredProc(msg.DSN,
+				 "sc_full_recipe_fir_recalculation",
+				 new SqlParameter[] {
+					new SqlParameter("@user_id", msg.UserId)
+				 });
+
+		}
+
+		private void ProcessProductFIRUpdate(UpdateMessage msg)
+		{
+			ExecuteStoredProc(msg.DSN,
+				"sc_batch_product_fir_update",
+				new SqlParameter[] {
+					new SqlParameter("@product_id", msg.ProductID),
+					new SqlParameter("@msmq_log_id", msg.TrackId),
+					new SqlParameter("@user_id", msg.UserId)
+				});
+		}
+	}
 }
