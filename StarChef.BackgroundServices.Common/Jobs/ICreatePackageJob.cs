@@ -9,6 +9,7 @@ namespace StarChef.BackgroundServices.Common.Jobs
     [Queue("packages")]
     public interface ICreatePackageJob
     {
+        [Queue("packages")]
         void Process(int databaseId, int packageId, int userId, Guid uniqueIdent);
     }
 }

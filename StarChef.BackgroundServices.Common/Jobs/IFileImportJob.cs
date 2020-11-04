@@ -8,6 +8,7 @@ namespace StarChef.BackgroundServices.Common.Jobs
     [Queue("critical")]
     public interface IFileImportJob
     {
+        [Queue("critical")]
         void Process(int databaseId, string externalId, string filePath, int importId);
     }
 }
