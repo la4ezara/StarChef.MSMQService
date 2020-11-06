@@ -620,8 +620,9 @@ namespace StarChef.MSMQService
             ProcessProductNutrientUpdate(msg);
             ProcessProductAbvUpdate(msg);
             ProcessPriceRecalculation(msg.DSN, 0, msg.ProductID, 0, 0, 0, msg.ArrivedTime);
+			ProcessProductFIRUpdate(msg);
 
-            var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(msg.DSN, msg.EntityTypeId);
+			var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(msg.DSN, msg.EntityTypeId);
             if (isOrchestrationEnabled)
             {
                 AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);

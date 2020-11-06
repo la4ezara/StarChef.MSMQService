@@ -399,6 +399,7 @@ namespace StarChef.MSMQService
             ProcessProductNutrientUpdate(task);
             ProcessProductAbvUpdate(_connectionString, task.ProductId, task.TrackId, task.UserId);
             ProcessPriceRecalculation(_connectionString, 0, task.ProductId, 0, 0, 0, task.CreateDate);
+			ProcessProductFIRUpdate(_connectionString, task.ProductId, 0, task.UserId);
 
             var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(_connectionString, (int)task.EntityType);
             if (isOrchestrationEnabled)
