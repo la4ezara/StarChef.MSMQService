@@ -3,7 +3,7 @@
 namespace StarChef.BackgroundServices.Common.Jobs
 {
     [DefaultJobLogging]
-    [CustomDisableConcurrentExecution(timeoutInSeconds: 3600)]
+    [CustomDisableConcurrentExecution(timeoutInSeconds: 7200)]
     public interface ICoreProcessingJob : IBackgroundJob
     {
     }

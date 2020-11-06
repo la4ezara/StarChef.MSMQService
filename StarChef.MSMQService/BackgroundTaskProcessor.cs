@@ -247,7 +247,7 @@ namespace StarChef.MSMQService
                             if (properties.TryGetValue("PRICE_BANDS", out priceBands))
                             {
                                 //do recalculation for each affected product
-                                var priceBandsArray = priceBands.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Cast<int>().ToArray();
+                                var priceBandsArray = priceBands.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => int.Parse(s)).ToArray();
                                 for (var i = 0; i < priceBandsArray.Count(); i++)
                                 {
                                     ProcessPriceRecalculation(_connectionString, 0, priceBandsArray[i], 0, 0, 0, task.CreateDate);

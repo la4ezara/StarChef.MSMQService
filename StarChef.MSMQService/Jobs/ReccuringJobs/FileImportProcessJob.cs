@@ -22,6 +22,7 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
             }
             catch (Exception e) {
                 Logger.FatalException(msg, e);
+                throw e;
             }
         }
     }
