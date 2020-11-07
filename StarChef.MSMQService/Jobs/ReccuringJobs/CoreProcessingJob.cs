@@ -3,6 +3,7 @@ using Fourth.StarChef.Invariables.Interfaces;
 using log4net;
 using StarChef.BackgroundServices.Common.Jobs;
 using StarChef.Common;
+using StarChef.Common.Engine;
 using System;
 using System.Configuration;
 using System.Diagnostics;
@@ -36,8 +37,12 @@ namespace StarChef.MSMQService.Jobs.ReccuringJobs
                 if (!string.IsNullOrEmpty(org.ConnectionString))
                 {
                     IBackgroundTaskManager taskManager = new BackgroundTaskManager(org.ConnectionString, Process.GetCurrentProcess().ProcessName);
+
+                    var repo = new Common.Repository.PricingRepository(org.ConnectionString, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC);
+                    var engine = new PriceEngine(repo, Logger);
+
                     var tasks = taskManager.ListTasks(Fourth.StarChef.Invariables.Enums.BackgroundTaskStatus.New, null, null, false, 100, 0);
-                    BackgroundTaskProcessor processor = new BackgroundTaskProcessor(databaseId, org.ConnectionString, _databaseManager, Logger);
+                    BackgroundTaskProcessor processor = new BackgroundTaskProcessor(databaseId, org.ConnectionString, _databaseManager, engine, Logger);
 
                     foreach (var t in tasks)
                     {

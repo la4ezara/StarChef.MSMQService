@@ -21,12 +21,14 @@ namespace StarChef.MSMQService
         private readonly int _organizationId;
         private readonly IDatabaseManager _databaseManager;
         private readonly ILog _logger;
+        private readonly IPriceEngine _priceEngine;
 
-        public BackgroundTaskProcessor(int organizationId, string connectionStr, IDatabaseManager databaseManager, ILog logger)
+        public BackgroundTaskProcessor(int organizationId, string connectionStr, IDatabaseManager databaseManager, IPriceEngine priceEngine, ILog logger)
         {
             _connectionString = connectionStr;
             _organizationId = organizationId;
             _databaseManager = databaseManager;
+            _priceEngine = priceEngine;
             _logger = logger;
         }
 
@@ -237,30 +239,21 @@ namespace StarChef.MSMQService
                 case Constants.MessageSubActionType.ImportedIngredientPriceBand:
 
                     #region IngredientPriceBand
-
+                    
+                    var importPriceBandSettings = importSettings.IngredientPriceBand();
+                    if (importPriceBandSettings.AutoCalculateCost)
                     {
-                        var importTypeSettings = importSettings.IngredientPriceBand();
-                        if (importTypeSettings.AutoCalculateCost)
+                        if (task.ProductId > 0)
                         {
-                            string priceBands;
-                            var properties = task.ExtendedProperties.Pairs();
-                            if (properties.TryGetValue("PRICE_BANDS", out priceBands))
-                            {
-                                //do recalculation for each affected product
-                                var priceBandsArray = priceBands.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => int.Parse(s)).ToArray();
-                                for (var i = 0; i < priceBandsArray.Count(); i++)
-                                {
-                                    ProcessPriceRecalculation(_connectionString, 0, priceBandsArray[i], 0, 0, 0, task.CreateDate);
-                                }
-                            }
-                            else
-                            {
-                                //if empty trigger global price recalc
-                                ProcessPriceRecalculation(_connectionString, 0, 0, 0, 0, 0, task.CreateDate);
-                            }
+                            //if empty trigger global price recalc
+                            ProcessPriceRecalculation(_connectionString, 0, task.ProductId, 0, 0, 0, task.CreateDate);
+                        }
+                        else
+                        {
+                            ProcessPriceRecalculation(_connectionString, 0, 0, 0, 0, 0, task.CreateDate);
                         }
                     }
-
+                    
                     #endregion
 
                     break;
@@ -515,13 +508,6 @@ namespace StarChef.MSMQService
                 new SqlParameter("@MessageActionTypeId", messageActionTypeId));
         }
 
-        public virtual IPriceEngine GetPriceEngine(string dsn)
-        {
-            var repo = new Common.Repository.PricingRepository(dsn, Constants.TIMEOUT_MSMQ_EXEC_STOREDPROC);
-            var engine = new PriceEngine(repo, _logger);
-            return engine;
-        }
-
         public string GetCustomerFromDsn(string dsn)
         {
             string result = string.Empty;
@@ -567,8 +553,8 @@ namespace StarChef.MSMQService
             _logger.Info($"{customer} sc_calculate_dish_pricing @group_id = {groupId}, @product_id = {productId}, @pset_id = {psetId}, @pband_id = {pbandId}, @unit_id = {unitId}, @message_arrived_time = {arrivedTime.ToString()}");
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
 
-            var engine = GetPriceEngine(dsn);
-            bool newPriceEngineOn = engine.IsEngineEnabled().Result;
+            //var engine = GetPriceEngine(dsn);
+            bool newPriceEngineOn = _priceEngine.IsEngineEnabled().Result;
             bool runGlobalRecalculation = true;
 
             if (productId > 0)
@@ -586,11 +572,11 @@ namespace StarChef.MSMQService
                 IEnumerable<Common.Model.DbPrice> result;
                 if (runGlobalRecalculation)
                 {
-                    result = engine.GlobalRecalculation(true, groupId, pbandId, psetId, unitId, arrivedTime).Result;
+                    result = _priceEngine.GlobalRecalculation(true, groupId, pbandId, psetId, unitId, arrivedTime).Result;
                 }
                 else
                 {
-                    result = engine.Recalculation(productId, groupId, pbandId, psetId, unitId, true, arrivedTime).Result;
+                    result = _priceEngine.Recalculation(productId, groupId, pbandId, psetId, unitId, true, arrivedTime).Result;
                 }
 
                 sw.Stop();
