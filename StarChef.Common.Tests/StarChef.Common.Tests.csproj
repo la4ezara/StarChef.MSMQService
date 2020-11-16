@@ -48,7 +48,7 @@
       <HintPath>..\packages\Dapper.1.60.6\lib\net451\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="Fourth.StarChef.Invariables, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.82\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
+      <HintPath>..\packages\Fourth.StarChef.Invariables.1.0.86\lib\net461\Fourth.StarChef.Invariables.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Moq, Version=4.10.0.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">

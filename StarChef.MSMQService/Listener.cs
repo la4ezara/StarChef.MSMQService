@@ -526,6 +526,9 @@ namespace StarChef.MSMQService
                 case (int)Constants.MessageSubActionType.ImportedRecipeIngredients:
                     ProcessImportRecipeIngredients(msg);
                     break;
+                case (int)Constants.MessageSubActionType.ImportedIngredientFIR:
+                    ProcessImportRecipeIngredientsFIR(msg);
+                    break;
                 case (int)Constants.MessageSubActionType.ImportedUsers:
                 case (int)Constants.MessageSubActionType.ImportedIngredientCategory:
                 default:
@@ -623,6 +626,17 @@ namespace StarChef.MSMQService
 			ProcessProductFIRUpdate(msg);
 
 			var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(msg.DSN, msg.EntityTypeId);
+            if (isOrchestrationEnabled)
+            {
+                AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
+            }
+        }
+
+        private void ProcessImportRecipeIngredientsFIR(UpdateMessage msg)
+        {
+            ProcessProductFIRUpdate(msg);
+
+            var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(msg.DSN, msg.EntityTypeId);
             if (isOrchestrationEnabled)
             {
                 AddOrchestrationMessageToQueue(msg.DSN, msg.ProductID, msg.EntityTypeId, msg.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
