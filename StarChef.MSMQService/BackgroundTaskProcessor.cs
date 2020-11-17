@@ -643,7 +643,6 @@ namespace StarChef.MSMQService
 				});
 		}
 
-
 		public void ProcessFullFIRIngredientRecalculation(string dsn, int userId)
 		{
 			ExecuteStoredProc(dsn,
