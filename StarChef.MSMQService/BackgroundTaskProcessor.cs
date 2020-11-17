@@ -123,14 +123,14 @@ namespace StarChef.MSMQService
                     case Constants.MessageActionType.UpdateAlternatesRank:
                         ProcessRankReorder(_connectionString, task.ExtendedProperties);
                         break;
-					case Constants.MessageActionType.UpdatedProductFIR:
-						ProcessProductFIRUpdate(_connectionString, task.ProductId, task.TrackId, task.UserId);
-						break;
-					case Constants.MessageActionType.EnabledFIR:
-						ProcessFullFIRIngredientRecalculation(_connectionString, task.UserId);
-						break;
+                    case Constants.MessageActionType.UpdatedProductFIR:
+                        ProcessProductFIRUpdate(_connectionString, task.ProductId, task.TrackId, task.UserId);
+                        break;
+                    case Constants.MessageActionType.EnabledFIR:
+                        ProcessFullFIRIngredientRecalculation(_connectionString, task.UserId);
+                        break;
 
-				}
+                }
             }
         }
 
@@ -239,7 +239,7 @@ namespace StarChef.MSMQService
                 case Constants.MessageSubActionType.ImportedIngredientPriceBand:
 
                     #region IngredientPriceBand
-                    
+
                     var importPriceBandSettings = importSettings.IngredientPriceBand();
                     if (importPriceBandSettings.AutoCalculateCost)
                     {
@@ -253,7 +253,7 @@ namespace StarChef.MSMQService
                             ProcessPriceRecalculation(_connectionString, 0, 0, 0, 0, 0, task.CreateDate);
                         }
                     }
-                    
+
                     #endregion
 
                     break;
@@ -297,6 +297,9 @@ namespace StarChef.MSMQService
                     break;
                 case Constants.MessageSubActionType.ImportedRecipeIngredients:
                     ProcessImportRecipeIngredients(task);
+                    break;
+                case Constants.MessageSubActionType.ImportedIngredientFIR:
+                    ProcessImportRecipeIngredientsFIR(task);
                     break;
                 case Constants.MessageSubActionType.ImportedUsers:
                 case Constants.MessageSubActionType.ImportedIngredientCategory:
@@ -392,7 +395,18 @@ namespace StarChef.MSMQService
             ProcessProductNutrientUpdate(task);
             ProcessProductAbvUpdate(_connectionString, task.ProductId, task.TrackId, task.UserId);
             ProcessPriceRecalculation(_connectionString, 0, task.ProductId, 0, 0, 0, task.CreateDate);
-			ProcessProductFIRUpdate(_connectionString, task.ProductId, 0, task.UserId);
+            ProcessProductFIRUpdate(_connectionString, task.ProductId, 0, task.UserId);
+
+            var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(_connectionString, (int)task.EntityType);
+            if (isOrchestrationEnabled)
+            {
+                AddOrchestrationMessageToQueue(_connectionString, task.ProductId, (int)task.EntityType, task.ExternalId, Constants.MessageActionType.StarChefEventsUpdated);
+            }
+        }
+
+        private void ProcessImportRecipeIngredientsFIR(IBackgroundTask task)
+        {
+            ProcessProductFIRUpdate(_connectionString, task.ProductId, 0, task.UserId);
 
             var isOrchestrationEnabled = _databaseManager.IsPublishEnabled(_connectionString, (int)task.EntityType);
             if (isOrchestrationEnabled)
@@ -468,7 +482,7 @@ namespace StarChef.MSMQService
                 {
                     foreach (int id in productIds)
                     {
-                        AddOrchestrationMessageToQueue(_connectionString, id, entityTypeId, string.Empty,task.TaskType);
+                        AddOrchestrationMessageToQueue(_connectionString, id, entityTypeId, string.Empty, task.TaskType);
                     }
                 }
             }
@@ -618,26 +632,25 @@ namespace StarChef.MSMQService
             }
         }
 
-		private void ProcessProductFIRUpdate(string dsn, int productId, int trackId, int userId)
-		{
-			ExecuteStoredProc(dsn,
-				"sc_batch_product_fir_update",
-				new SqlParameter[] {
-					new SqlParameter("@product_id", productId),
-					new SqlParameter("@msmq_log_id", trackId),
-					new SqlParameter("@user_id", userId)
-				});
-		}
+        private void ProcessProductFIRUpdate(string dsn, int productId, int trackId, int userId)
+        {
+            ExecuteStoredProc(dsn,
+                "sc_batch_product_fir_update",
+                new SqlParameter[] {
+                    new SqlParameter("@product_id", productId),
+                    new SqlParameter("@msmq_log_id", trackId),
+                    new SqlParameter("@user_id", userId)
+                });
+        }
 
+        public void ProcessFullFIRIngredientRecalculation(string dsn, int userId)
+        {
+            ExecuteStoredProc(dsn,
+                 "sc_full_recipe_fir_recalculation",
+                 new SqlParameter[] {
+                    new SqlParameter("@user_id", userId)
+                 });
 
-		public void ProcessFullFIRIngredientRecalculation(string dsn, int userId)
-		{
-			ExecuteStoredProc(dsn,
-				 "sc_full_recipe_fir_recalculation",
-				 new SqlParameter[] {
-					new SqlParameter("@user_id", userId)
-				 });
-
-		}
-	}
+        }
+    }
 }
